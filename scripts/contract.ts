@@ -1,0 +1,47 @@
+import 'reflect-metadata';
+import process from 'node:process';
+import fs from 'node:fs';
+import path from 'node:path';
+import config from '../config/nestia.config.ts';
+import { NoTransformConfigurationError } from '@nestia/core/lib/decorators/NoTransformConfigurationError.js';
+import { NestiaSdkApplication } from '@nestia/sdk';
+import type { INestiaConfig } from 'nestia';
+
+NoTransformConfigurationError.throws = false;
+
+const normalizeConfigs = (value: INestiaConfig | INestiaConfig[]): INestiaConfig[] =>
+  Array.isArray(value) ? value : [value];
+
+const ensureOutput = async (entry: INestiaConfig) => {
+  if (entry.output) {
+    await fs.promises.mkdir(entry.output, { recursive: true });
+  }
+  const swaggerOutput = entry.swagger?.output;
+  if (swaggerOutput) {
+    const dir = path.dirname(swaggerOutput);
+    await fs.promises.mkdir(dir, { recursive: true });
+  }
+};
+
+const main = async () => {
+  const mode = process.argv[2] ?? 'all';
+  const rawConfig = (config as any).default ?? config;
+  const configs = normalizeConfigs(rawConfig);
+  console.log(`[nestia] loaded configurations`, configs);
+
+  for (const entry of configs) {
+    await ensureOutput(entry);
+    const app = new NestiaSdkApplication(entry);
+    if (mode === 'sdk' || mode === 'all') {
+      await app.sdk();
+    }
+    if (mode === 'swagger' || mode === 'all') {
+      await app.swagger();
+    }
+  }
+};
+
+main().catch((error) => {
+  console.error('Contract generation failed:', error);
+  process.exitCode = 1;
+});

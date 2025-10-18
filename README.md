@@ -1,93 +1,50 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Git Dungeon Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS 기반 백엔드 서비스의 인프라/계약 구성을 위한 초기 프로젝트입니다. Typia + Nestia 조합으로 런타임 검증과 SDK/Swagger 생성을 자동화하며, Pino 로거와 RequestId 미들웨어를 통해 일관된 JSON 로그를 제공합니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 요구 사항
 
-## Description
+- Node.js 22+
+- pnpm 10+
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## 주요 스크립트
 
 ```bash
-$ pnpm install
+pnpm start:dev          # 개발 서버 (watch)
+pnpm build && pnpm start # 프로덕션 빌드 및 실행
+pnpm test               # Vitest 단위 테스트
+pnpm contract:generate  # Nestia SDK + Swagger 생성
+pnpm contract:swagger   # Swagger 문서만 생성
 ```
 
-## Compile and run the project
+## 환경 변수
 
-```bash
-# development (watch mode)
-$ pnpm start:dev
+`.env.example`을 참고하여 필요한 값을 설정합니다.
 
-# create production build and run
-$ pnpm build
-$ pnpm start
-```
+| 변수         | 설명                                           | 기본값        |
+|--------------|------------------------------------------------|---------------|
+| `PORT`       | HTTP 서버 포트                                 | `3000`        |
+| `LOG_LEVEL`  | Pino 로그 레벨 (`fatal` ~ `trace`)         | `info`        |
+| `LOG_PRETTY` | 개발용 컬러/단일라인 로그 출력 여부            | `true` (dev)  |
 
-## Run tests
+Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
 
-```bash
-# unit tests
-$ pnpm test
+## 로깅 & 요청 컨텍스트
 
-# test coverage
-$ pnpm test:cov
-```
+- `nestjs-pino` + `pino-http`를 사용해 모든 HTTP 요청을 JSON 로그로 남깁니다.
+- `x-request-id` 헤더를 자동 발급/전파하며 에러 및 응답 메타데이터에 포함합니다.
 
-## Deployment
+## API 계약
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- 컨트롤러는 `@TypedRoute`, `@TypedBody` 등 Nestia 데코레이터를 사용합니다.
+- `pnpm contract:generate` 실행 시 `generated/` 디렉터리에 SDK와 Swagger 파일이 생성됩니다.
+- 생성물은 아직 커밋하지 않으며, 필요 시 배포 파이프라인에서 활용합니다.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 테스트
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+- Vitest + Supertest 조합으로 글로벌 필터/미들웨어/인터셉터 동작을 검증합니다.
+- `pnpm test:cov`로 커버리지 리포트를 생성할 수 있습니다.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 추가 문서화
 
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+추후 PRD/설계 문서는 `docs/` 디렉터리에 정리하며, 마일스톤/태스크 완료 시 동기화합니다.

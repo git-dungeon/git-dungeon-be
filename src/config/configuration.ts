@@ -1,22 +1,18 @@
-const parsePort = (value: string | undefined): number => {
-  const defaultPort = 3000;
-  if (!value) {
-    return defaultPort;
-  }
+import { loadEnvironment } from './environment.js';
 
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) {
-    return defaultPort;
-  }
+const configuration = () => {
+  const env = loadEnvironment();
 
-  return parsed;
+  return {
+    app: {
+      env: env.nodeEnv,
+      port: env.port,
+    },
+    logger: {
+      level: env.logLevel,
+      pretty: env.logPretty,
+    },
+  };
 };
-
-const configuration = () => ({
-  app: {
-    env: process.env.NODE_ENV ?? 'development',
-    port: parsePort(process.env.PORT),
-  },
-});
 
 export default configuration;

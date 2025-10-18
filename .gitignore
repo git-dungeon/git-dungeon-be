@@ -4,6 +4,7 @@ yarn.lock
 .DS_Store
 /dist
 /coverage
+/generated
 /.env
 /.env.*
 !.env.example

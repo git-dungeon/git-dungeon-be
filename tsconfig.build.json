@@ -2,8 +2,12 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "**/*spec.ts",
+    "config",
     "dist",
+    "generated",
+    "nestia.config.ts",
     "node_modules",
+    "scripts",
     "test",
     "vitest.config.ts"
   ]

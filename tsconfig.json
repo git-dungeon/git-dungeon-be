@@ -18,6 +18,11 @@
       "vitest/globals",
       "node"
     ],
+    "plugins": [
+      {
+        "transform": "typia/lib/transform"
+      }
+    ],
     "rootDir": "./src",
     "incremental": true,
     "skipLibCheck": true,
@@ -28,8 +33,12 @@
     "noFallthroughCasesInSwitch": false
   },
   "exclude": [
+    "config",
     "dist",
+    "generated",
+    "nestia.config.ts",
     "node_modules",
+    "scripts",
     "vitest.config.ts"
   ]
 }

@@ -9,23 +9,35 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "ts-patch install || true",
     "start": "node --enable-source-maps dist/main.js",
     "start:dev": "tsx watch src/main.ts",
     "start:prod": "node --enable-source-maps dist/main.js",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "test:cov": "vitest run --coverage"
+    "test:cov": "vitest run --coverage",
+    "contract:generate": "pnpm build && tsx scripts/contract.ts all",
+    "contract:swagger": "pnpm build && tsx scripts/contract.ts swagger"
   },
   "dependencies": {
+    "@nestia/core": "^8.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/platform-express": "^11.0.1",
+    "nestjs-pino": "^4.4.1",
+    "nanoid": "^5.0.7",
+    "pino": "^9.5.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^11.2.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typia": "^9.7.2"
   },
   "devDependencies": {
+    "@nestia/fetcher": "^8.1.0",
+    "@nestia/sdk": "^8.1.0",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -33,18 +45,23 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
+    "@types/pino-http": "^6.1.0",
+    "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
+    "nestia": "^8.1.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
+    "ts-patch": "^3.3.0",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "supertest": "^7.0.0"
   }
 }
