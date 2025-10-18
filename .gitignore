@@ -1,0 +1,14 @@
+node_modules
+package-lock.json
+yarn.lock
+.DS_Store
+/dist
+/coverage
+/.env
+/.env.*
+!.env.example
+/tsconfig.build.tsbuildinfo
+/vitest.config.js
+/vitest.config.js.map
+/vitest.config.d.ts
+AGENTS.md
