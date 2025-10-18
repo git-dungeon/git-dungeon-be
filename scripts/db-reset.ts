@@ -8,6 +8,10 @@ const run = (command: string, args: string[]) =>
       env: process.env,
     });
 
+    child.once('error', (error) => {
+      reject(error);
+    });
+
     child.on('close', (code) => {
       if (code === 0) {
         resolve();

@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { TypedRoute } from '@nestia/core';
 
 export interface HealthCheckResponse {
@@ -9,7 +9,6 @@ export interface HealthCheckResponse {
 
 @Controller()
 export class AppController {
-  @Get('health')
   @TypedRoute.Get('health')
   public health(): HealthCheckResponse {
     return {

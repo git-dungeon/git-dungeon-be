@@ -20,7 +20,12 @@
     ],
     "plugins": [
       {
-        "transform": "typia/lib/transform"
+        "transform": "typia/lib/transform",
+        "type": "program"
+      },
+      {
+        "transform": "@nestia/core/lib/transform",
+        "type": "program"
       }
     ],
     "rootDir": "./src",
@@ -43,5 +48,9 @@
   ],
   "include": [
     "src/**/*.ts"
-  ]
+  ],
+  "ts-node": {
+    "compiler": "ts-patch/compiler",
+    "esm": true
+  }
 }

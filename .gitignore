@@ -8,6 +8,7 @@ yarn.lock
 /.env
 /.env.*
 !.env.example
+*.tsbuildinfo
 /tsconfig.build.tsbuildinfo
 /vitest.config.js
 /vitest.config.js.map

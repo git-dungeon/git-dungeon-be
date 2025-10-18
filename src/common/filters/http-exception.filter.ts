@@ -11,6 +11,7 @@ import type { ApiErrorBody } from '../http/api-response.js';
 import { PinoLogger } from 'nestjs-pino';
 
 const DEFAULT_ERROR_CODE = 'INTERNAL_SERVER_ERROR';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -82,14 +83,59 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof Error) {
       return {
         code: DEFAULT_ERROR_CODE,
-        message: exception.message,
+        message: IS_PRODUCTION
+          ? 'Unexpected error occurred'
+          : (exception.message ?? 'Unexpected error occurred'),
+        details: IS_PRODUCTION
+          ? undefined
+          : this.sanitizeDetails({
+              name: exception.name,
+              message: exception.message,
+            }),
       };
     }
 
     return {
       code: DEFAULT_ERROR_CODE,
       message: 'Unexpected error occurred',
-      details: exception,
+      details: IS_PRODUCTION ? undefined : this.sanitizeDetails(exception),
     };
+  }
+
+  private sanitizeDetails(
+    exception: unknown,
+  ): Record<string, unknown> | undefined {
+    if (!exception) {
+      return undefined;
+    }
+
+    if (typeof exception === 'string') {
+      return { message: exception };
+    }
+
+    if (typeof exception === 'number' || typeof exception === 'boolean') {
+      return { value: exception };
+    }
+
+    if (typeof exception === 'object') {
+      const entries = Object.entries(
+        exception as Record<string, unknown>,
+      ).reduce<Record<string, unknown>>((acc, [key, value]) => {
+        if (
+          typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean' ||
+          value === null
+        ) {
+          acc[key] = value;
+        }
+
+        return acc;
+      }, {});
+
+      return Object.keys(entries).length ? entries : undefined;
+    }
+
+    return undefined;
   }
 }
