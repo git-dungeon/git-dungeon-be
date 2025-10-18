@@ -40,5 +40,8 @@
     "node_modules",
     "scripts",
     "vitest.config.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
   ]
 }

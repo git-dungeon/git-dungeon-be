@@ -37,8 +37,8 @@ vi.mock('@nestia/core', async () => {
 
 import { Logger } from 'nestjs-pino';
 
-describe('AppModule', () => {
-  it('should respond with health payload', async () => {
+describe('AppModule 테스트', () => {
+  it('헬스 체크 응답을 반환해야 한다', async () => {
     const { AppModule } = await import('./app.module.js');
     const testingModule = await Test.createTestingModule({
       imports: [AppModule],

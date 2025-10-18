@@ -7,6 +7,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor.js';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware.js';
 import { AppController } from './app.controller.js';
+import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AppController } from './app.controller.js';
         };
       },
     }),
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [

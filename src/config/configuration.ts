@@ -12,6 +12,12 @@ const configuration = () => {
       level: env.logLevel,
       pretty: env.logPretty,
     },
+    database: {
+      url: env.databaseUrl,
+      shadowUrl: env.databaseShadowUrl,
+      logQueries: env.databaseLogQueries,
+      skipConnection: env.databaseSkipConnection,
+    },
   };
 };
 

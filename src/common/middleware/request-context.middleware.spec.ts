@@ -12,8 +12,8 @@ const createResponse = () => {
   } as unknown as Response & { headers: Record<string, string> };
 };
 
-describe('RequestContextMiddleware', () => {
-  it('should reuse incoming request id', () => {
+describe('RequestContextMiddleware 테스트', () => {
+  it('요청에 포함된 ID를 재사용해야 한다', () => {
     const middleware = new RequestContextMiddleware();
     const request = {
       header: (name: string) =>
@@ -27,7 +27,7 @@ describe('RequestContextMiddleware', () => {
     expect(response.headers['x-request-id']).toBe('incoming-id');
   });
 
-  it('should generate request id when missing', () => {
+  it('요청 ID가 없으면 새로 생성해야 한다', () => {
     const middleware = new RequestContextMiddleware();
     const request = {
       header: () => undefined,

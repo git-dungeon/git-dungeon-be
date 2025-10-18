@@ -27,8 +27,8 @@ const createRpcContext = (): ExecutionContextStub =>
     }),
   }) as ExecutionContextStub;
 
-describe('ApiResponseInterceptor', () => {
-  it('should wrap payload in ApiResponse format', async () => {
+describe('ApiResponseInterceptor 테스트', () => {
+  it('응답 데이터를 ApiResponse 형식으로 감싸야 한다', async () => {
     const interceptor = new ApiResponseInterceptor<{ status: string }>();
     const handler: CallHandler<{ status: string }> = {
       handle: () => of({ status: 'ok' }),
@@ -41,7 +41,7 @@ describe('ApiResponseInterceptor', () => {
     );
 
     if (!result.success) {
-      throw new Error('Expected success response');
+      throw new Error('성공 응답을 기대했습니다');
     }
 
     const data = result.data;
@@ -52,7 +52,7 @@ describe('ApiResponseInterceptor', () => {
     expect(typeof meta.generatedAt).toBe('string');
   });
 
-  it('should bypass non-http contexts', async () => {
+  it('HTTP 컨텍스트가 아니면 그대로 통과시켜야 한다', async () => {
     const interceptor = new ApiResponseInterceptor<string>();
     const handler: CallHandler<string> = {
       handle: () => of('raw'),

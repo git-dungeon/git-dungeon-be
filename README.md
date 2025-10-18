@@ -21,13 +21,45 @@ pnpm contract:swagger   # Swagger 문서만 생성
 
 `.env.example`을 참고하여 필요한 값을 설정합니다.
 
-| 변수         | 설명                                           | 기본값        |
-|--------------|------------------------------------------------|---------------|
-| `PORT`       | HTTP 서버 포트                                 | `3000`        |
-| `LOG_LEVEL`  | Pino 로그 레벨 (`fatal` ~ `trace`)         | `info`        |
-| `LOG_PRETTY` | 개발용 컬러/단일라인 로그 출력 여부            | `true` (dev)  |
+| 변수                       | 설명                                        | 기본값                                                                               |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `PORT`                     | HTTP 서버 포트                              | `3000`                                                                               |
+| `LOG_LEVEL`                | Pino 로그 레벨 (`fatal` ~ `trace`)          | `info`                                                                               |
+| `LOG_PRETTY`               | 개발용 컬러/단일라인 로그 출력 여부         | `true` (dev)                                                                         |
+| `DATABASE_URL`             | Prisma 기본 데이터베이스 접속 문자열        | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon?schema=public`        |
+| `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열 | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public` |
+| `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                       | `false` (prod), `true` (dev)                                                         |
+| `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용) | `false` (dev), `true` (test)                                                         |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
+
+## 데이터베이스
+
+### Docker Compose로 PostgreSQL 실행
+
+```bash
+# 컨테이너 기동
+docker compose up -d postgres
+
+# 정상 기동 여부 확인
+docker compose ps postgres
+```
+
+- 기본 데이터베이스는 `git_dungeon`, 섀도우 데이터베이스는 `git_dungeon_shadow`로 초기화됩니다.
+- 포트/계정 정보는 `.env.example`과 동일하며 필요 시 `POSTGRES_*` 환경 변수로 오버라이드할 수 있습니다.
+
+### 마이그레이션 & 시드
+
+```bash
+pnpm prisma:generate   # Prisma Client 재생성
+pnpm prisma:migrate:dev  # 개발 환경에서 스키마 싱크 & 마이그레이션 파일 생성
+pnpm db:migrate        # 프로덕션/CI 배포용 마이그레이션 실행
+pnpm db:seed           # prisma/seed.ts 실행
+```
+
+- 스키마 수정 후에는 `prisma/migrations/` 폴더에 SQL이 생성되며, PR에 포함해야 합니다.
+- `pnpm db:reset`은 전체 데이터베이스를 리셋하고 최신 마이그레이션/시드를 적용합니다.
+- CI나 Vitest 실행 시 DB 접속이 필요 없을 경우 `DATABASE_SKIP_CONNECTION=true`를 지정하면 부트스트랩 시 Prisma 연결을 건너뜁니다.
 
 ## 로깅 & 요청 컨텍스트
 
@@ -38,13 +70,8 @@ Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애�
 
 - 컨트롤러는 `@TypedRoute`, `@TypedBody` 등 Nestia 데코레이터를 사용합니다.
 - `pnpm contract:generate` 실행 시 `generated/` 디렉터리에 SDK와 Swagger 파일이 생성됩니다.
-- 생성물은 아직 커밋하지 않으며, 필요 시 배포 파이프라인에서 활용합니다.
 
 ## 테스트
 
 - Vitest + Supertest 조합으로 글로벌 필터/미들웨어/인터셉터 동작을 검증합니다.
 - `pnpm test:cov`로 커버리지 리포트를 생성할 수 있습니다.
-
-## 추가 문서화
-
-추후 PRD/설계 문서는 `docs/` 디렉터리에 정리하며, 마일스톤/태스크 완료 시 동기화합니다.

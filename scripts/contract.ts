@@ -4,13 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import config from '../config/nestia.config.ts';
 import { NoTransformConfigurationError } from '@nestia/core/lib/decorators/NoTransformConfigurationError.js';
-import { NestiaSdkApplication } from '@nestia/sdk';
-import type { INestiaConfig } from 'nestia';
+import { NestiaSdkApplication, type INestiaConfig } from '@nestia/sdk';
 
 NoTransformConfigurationError.throws = false;
 
-const normalizeConfigs = (value: INestiaConfig | INestiaConfig[]): INestiaConfig[] =>
-  Array.isArray(value) ? value : [value];
+const normalizeConfigs = (
+  value: INestiaConfig | INestiaConfig[],
+): INestiaConfig[] => (Array.isArray(value) ? value : [value]);
 
 const ensureOutput = async (entry: INestiaConfig) => {
   if (entry.output) {
@@ -23,9 +23,22 @@ const ensureOutput = async (entry: INestiaConfig) => {
   }
 };
 
+type ConfigModule =
+  | INestiaConfig
+  | INestiaConfig[]
+  | { default: INestiaConfig | INestiaConfig[] };
+
+const isModuleWithDefault = (
+  value: ConfigModule,
+): value is { default: INestiaConfig | INestiaConfig[] } =>
+  typeof value === 'object' && value !== null && 'default' in value;
+
 const main = async () => {
   const mode = process.argv[2] ?? 'all';
-  const rawConfig = (config as any).default ?? config;
+  const moduleValue = config as ConfigModule;
+  const rawConfig = isModuleWithDefault(moduleValue)
+    ? moduleValue.default
+    : moduleValue;
   const configs = normalizeConfigs(rawConfig);
   console.log(`[nestia] loaded configurations`, configs);
 

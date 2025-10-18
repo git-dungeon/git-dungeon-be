@@ -18,8 +18,8 @@ const createLogger = () => {
   return { logger, error };
 };
 
-describe('HttpExceptionFilter', () => {
-  it('should format HttpException into ApiResponse', () => {
+describe('HttpExceptionFilter 테스트', () => {
+  it('HttpException을 ApiResponse 형식으로 변환한다', () => {
     const json = vi.fn();
     const status = vi.fn().mockReturnValue({ json });
     const response = { status } as unknown as Response;
