@@ -26,7 +26,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
         return {
           pinoHttp: {
             level,
-            autoLogging: false,
+            autoLogging: true,
             transport: pretty
               ? {
                   target: 'pino-pretty',
