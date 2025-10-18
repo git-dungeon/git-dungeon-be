@@ -44,6 +44,7 @@ export class ApiResponseInterceptor<T>
     data: T,
     request: (Request & { id?: string }) | undefined,
   ): T {
+    // Nestia @TypedRoute 직렬화로 문자열(JSON) 로 응답이 내려올 수 있어 방어적으로 처리한다.
     if (typeof data === 'string') {
       if (data.trim().length === 0) {
         return data;
