@@ -26,12 +26,27 @@ export class ApiResponseInterceptor<T>
       .getRequest<Request & { id?: string }>();
 
     return next.handle().pipe(
-      map((data) =>
-        successResponse(data, {
+      map((data) => {
+        const normalized = this.normalizeData(data);
+
+        return successResponse(normalized, {
           requestId: request?.id,
           generatedAt: new Date().toISOString(),
-        }),
-      ),
+        });
+      }),
     );
+  }
+
+  private normalizeData(data: T): T {
+    if (typeof data === 'string') {
+      try {
+        return JSON.parse(data) as T;
+      } catch {
+        // 문자열이 JSON이 아니면 원본 데이터를 반환한다.
+        return data;
+      }
+    }
+
+    return data;
   }
 }
