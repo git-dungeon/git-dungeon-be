@@ -1,5 +1,6 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 import { TypedRoute } from '@nestia/core';
+import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor.js';
 
 export interface HealthCheckResponse {
   status: 'ok';
@@ -8,6 +9,7 @@ export interface HealthCheckResponse {
 }
 
 @Controller()
+@UseInterceptors(ApiResponseInterceptor)
 export class AppController {
   @TypedRoute.Get('health')
   public health(): HealthCheckResponse {

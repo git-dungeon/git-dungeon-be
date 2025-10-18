@@ -1,10 +1,9 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import configuration from './config/configuration.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
-import { ApiResponseInterceptor } from './common/interceptors/api-response.interceptor.js';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware.js';
 import { AppController } from './app.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
@@ -49,10 +48,6 @@ import { PrismaModule } from './prisma/prisma.module.js';
     {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ApiResponseInterceptor,
     },
   ],
 })
