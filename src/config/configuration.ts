@@ -7,6 +7,10 @@ const configuration = () => {
     app: {
       env: env.nodeEnv,
       port: env.port,
+      cors: {
+        allowedOrigins: env.corsAllowedOrigins,
+        allowCredentials: env.corsAllowCredentials,
+      },
     },
     logger: {
       level: env.logLevel,

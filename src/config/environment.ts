@@ -5,6 +5,8 @@ export interface Environment {
   port: number;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   logPretty: boolean;
+  corsAllowedOrigins: (string & tags.MinLength<1>)[];
+  corsAllowCredentials: boolean;
   databaseUrl: string & tags.MinLength<1>;
   databaseShadowUrl: string & tags.MinLength<1>;
   databaseLogQueries: boolean;
@@ -28,6 +30,22 @@ const parseNumber = (value: string | undefined, defaultValue: number) => {
   return Number.isNaN(parsed) ? defaultValue : parsed;
 };
 
+const parseStringArray = (
+  value: string | undefined,
+  defaults: string[],
+): string[] => {
+  if (typeof value === 'undefined' || value.trim().length === 0) {
+    return defaults;
+  }
+
+  const items = value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return items.length > 0 ? items : defaults;
+};
+
 export const loadEnvironment = (): Environment => {
   const nodeEnv = (process.env.NODE_ENV ?? 'development').toLowerCase();
   const databaseUrl =
@@ -38,12 +56,31 @@ export const loadEnvironment = (): Environment => {
   const databaseShadowUrl = process.env.DATABASE_SHADOW_URL ?? databaseUrl;
   const defaultGithubRedirect =
     nodeEnv === 'test' ? 'http://localhost:4173/auth/github/callback' : '';
+  const defaultCorsOrigins =
+    nodeEnv === 'production'
+      ? ['https://app.gitdungeon.com']
+      : nodeEnv === 'test'
+        ? ['http://localhost:4173']
+        : [
+            'http://localhost:4173',
+            'http://localhost:5173',
+            'https://staging.gitdungeon.com',
+            'https://app.gitdungeon.com',
+          ];
 
   const raw = {
     nodeEnv,
     port: parseNumber(process.env.PORT, 3000),
     logLevel: (process.env.LOG_LEVEL ?? 'info').toLowerCase(),
     logPretty: parseBoolean(process.env.LOG_PRETTY, nodeEnv !== 'production'),
+    corsAllowedOrigins: parseStringArray(
+      process.env.CORS_ALLOWED_ORIGINS,
+      defaultCorsOrigins,
+    ),
+    corsAllowCredentials: parseBoolean(
+      process.env.CORS_ALLOW_CREDENTIALS,
+      true,
+    ),
     databaseUrl,
     databaseShadowUrl,
     databaseLogQueries: parseBoolean(

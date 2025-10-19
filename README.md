@@ -26,12 +26,20 @@ pnpm contract:swagger   # Swagger 문서만 생성
 | `PORT`                     | HTTP 서버 포트                              | `3000`                                                                               |
 | `LOG_LEVEL`                | Pino 로그 레벨 (`fatal` ~ `trace`)          | `info`                                                                               |
 | `LOG_PRETTY`               | 개발용 컬러/단일라인 로그 출력 여부         | `true` (dev)                                                                         |
+| `CORS_ALLOWED_ORIGINS`     | 허용할 오리진 목록(콤마 구분)                | `http://localhost:4173,http://localhost:5173,https://staging.gitdungeon.com,https://app.gitdungeon.com` |
+| `CORS_ALLOW_CREDENTIALS`   | 쿠키 등 credentials 포함 요청 허용 여부     | `true`                                                                               |
 | `DATABASE_URL`             | Prisma 기본 데이터베이스 접속 문자열        | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon?schema=public`        |
 | `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열 | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public` |
 | `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                       | `false` (prod), `true` (dev)                                                         |
 | `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용) | `false` (dev), `true` (test)                                                         |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
+
+### CORS 정책
+
+- 기본값은 개발용 `localhost` 도메인과 스테이징/프로덕션 오리진을 모두 허용합니다.
+- 추가 오리진이 필요하면 `CORS_ALLOWED_ORIGINS`에 콤마로 구분해 등록합니다.
+- 모든 프런트엔드 쿠키 기반 인증을 위해 `CORS_ALLOW_CREDENTIALS=true` 상태를 유지하고, 프록시/로드밸런서에서도 동일하게 허용해야 합니다.
 
 ## GitHub OAuth 설정
 
