@@ -18,6 +18,21 @@ const configuration = () => {
       logQueries: env.databaseLogQueries,
       skipConnection: env.databaseSkipConnection,
     },
+    auth: {
+      github: {
+        clientId: env.authGithubClientId,
+        clientSecret: env.authGithubClientSecret,
+        redirectUri: env.authGithubRedirectUri,
+        scope: (() => {
+          const scopes = env.authGithubScope
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+
+          return scopes.length > 0 ? scopes : ['read:user', 'user:email'];
+        })(),
+      },
+    },
   };
 };
 

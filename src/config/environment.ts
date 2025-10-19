@@ -9,6 +9,10 @@ export interface Environment {
   databaseShadowUrl: string & tags.MinLength<1>;
   databaseLogQueries: boolean;
   databaseSkipConnection: boolean;
+  authGithubClientId: string & tags.MinLength<1>;
+  authGithubClientSecret: string & tags.MinLength<1>;
+  authGithubRedirectUri: string & tags.MinLength<1>;
+  authGithubScope: string & tags.MinLength<1>;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -32,6 +36,8 @@ export const loadEnvironment = (): Environment => {
       ? 'postgresql://postgres:postgres@localhost:5432/git_dungeon_test'
       : '');
   const databaseShadowUrl = process.env.DATABASE_SHADOW_URL ?? databaseUrl;
+  const defaultGithubRedirect =
+    nodeEnv === 'test' ? 'http://localhost:4173/auth/github/callback' : '';
 
   const raw = {
     nodeEnv,
@@ -48,6 +54,15 @@ export const loadEnvironment = (): Environment => {
       process.env.DATABASE_SKIP_CONNECTION,
       nodeEnv === 'test',
     ),
+    authGithubClientId:
+      process.env.AUTH_GITHUB_CLIENT_ID ??
+      (nodeEnv === 'test' ? 'test-github-client-id' : ''),
+    authGithubClientSecret:
+      process.env.AUTH_GITHUB_CLIENT_SECRET ??
+      (nodeEnv === 'test' ? 'test-github-client-secret' : ''),
+    authGithubRedirectUri:
+      process.env.AUTH_GITHUB_REDIRECT_URI ?? defaultGithubRedirect,
+    authGithubScope: process.env.AUTH_GITHUB_SCOPE ?? 'read:user,user:email',
   };
 
   return typia.assert<Environment>(raw);

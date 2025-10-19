@@ -7,6 +7,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware.js';
 import { AppController } from './app.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
       },
     }),
     PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
