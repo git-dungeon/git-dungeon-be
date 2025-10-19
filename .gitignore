@@ -4,9 +4,11 @@ yarn.lock
 .DS_Store
 /dist
 /coverage
+/generated
 /.env
 /.env.*
 !.env.example
+*.tsbuildinfo
 /tsconfig.build.tsbuildinfo
 /vitest.config.js
 /vitest.config.js.map
