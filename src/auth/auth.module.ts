@@ -6,11 +6,14 @@ import { PrismaModule } from '../prisma/prisma.module.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
 import type { AuthConfig } from './auth.interfaces.js';
+import { AuthService } from './auth.service.js';
+import { AuthController } from './auth.controller.js';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
 @Module({
   imports: [ConfigModule, PrismaModule],
+  controllers: [AuthController],
   providers: [
     {
       provide: AUTH_CONFIG_TOKEN,
@@ -72,6 +75,7 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
         });
       },
     },
+    AuthService,
   ],
   exports: [AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN],
 })

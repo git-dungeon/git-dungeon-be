@@ -4,6 +4,8 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
+  Optional,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { errorResponse } from '../http/api-response.js';
@@ -15,7 +17,9 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: PinoLogger) {}
+  private readonly fallbackLogger = new Logger(HttpExceptionFilter.name);
+
+  constructor(@Optional() private readonly logger?: PinoLogger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -35,14 +39,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const error: ApiErrorBody = this.normalizeError(exception);
 
-    this.logger.error(
-      {
-        err: exception instanceof Error ? exception : undefined,
-        requestId,
-        path: request?.url,
-      },
-      error.message,
-    );
+    if (this.logger) {
+      this.logger.error(
+        {
+          err: exception instanceof Error ? exception : undefined,
+          requestId,
+          path: request?.url,
+        },
+        error.message,
+      );
+    } else {
+      this.fallbackLogger.error(
+        { requestId, path: request?.url },
+        error.message,
+      );
+    }
 
     response.status(status).json(errorResponse(error, meta));
   }
