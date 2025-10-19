@@ -3,7 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { INestApplication, Logger as NestLogger } from '@nestjs/common';
 import { Logger as PinoLogger } from 'nestjs-pino';
+import type { Auth } from 'better-auth';
+import type { Express } from 'express';
 import { AppModule } from './app.module.js';
+import { BETTER_AUTH_TOKEN } from './auth/auth.constants.js';
+import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-express.util.js';
 
 async function bootstrap() {
   const bootstrapLogger = new NestLogger('Bootstrap');
@@ -36,6 +40,16 @@ async function bootstrap() {
           : false,
       credentials: corsAllowCredentials,
     });
+
+    const betterAuth = app.get<Auth<any>>(BETTER_AUTH_TOKEN);
+    const httpAdapter = app.getHttpAdapter();
+    if (httpAdapter?.getType?.() === 'express') {
+      const instance = httpAdapter.getInstance?.() as Express | undefined;
+      instance?.use(
+        '/api/auth',
+        createBetterAuthExpressMiddleware(betterAuth.handler),
+      );
+    }
 
     await app.listen(port);
     logger.log(`Server is running on http://localhost:${port}`);

@@ -11,6 +11,7 @@ import type { Auth } from 'better-auth';
 import {
   AUTH_CONFIG_TOKEN,
   BETTER_AUTH_TOKEN,
+  GITHUB_FLOW_COOKIE,
   GITHUB_REDIRECT_COOKIE,
   REDIRECT_COOKIE_MAX_AGE,
 } from './auth.constants.js';
@@ -139,6 +140,17 @@ export class AuthService {
     }
 
     const cookies = this.collectCookies(headers);
+    const flowCookie = this.buildFlowCookie(
+      {
+        redirect: redirectPath,
+        popup: isPopup,
+        parent: parentOrigin,
+      },
+      request,
+    );
+    if (flowCookie) {
+      cookies.push(flowCookie);
+    }
     cookies.push(this.buildRedirectCookie(redirectPath, request));
 
     return {
@@ -260,9 +272,9 @@ export class AuthService {
     }
 
     const redirectPath = this.getRedirectFromCookies(request);
-    const cleanupCookie = this.buildRedirectCleanupCookie(request);
-    if (cleanupCookie) {
-      cookies.push(cleanupCookie);
+    const cleanupCookies = this.buildCleanupCookies(request);
+    if (cleanupCookies.length > 0) {
+      cookies.push(...cleanupCookies);
     }
 
     const popupPayload: GitHubPopupAuthResponse = {
@@ -573,6 +585,55 @@ export class AuthService {
     return parts.join('; ');
   }
 
+  private buildFlowCookie(
+    payload: { redirect: string; popup: boolean; parent?: string | null },
+    request: Request,
+  ): string | undefined {
+    const secure =
+      request.secure ||
+      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
+
+    try {
+      const serialized = JSON.stringify({
+        redirect: payload.redirect,
+        popup: payload.popup,
+        parent: payload.parent ?? null,
+      });
+      const encoded = encodeURIComponent(serialized);
+
+      const parts = [
+        `${GITHUB_FLOW_COOKIE}=${encoded}`,
+        'Path=/',
+        'HttpOnly',
+        'SameSite=Lax',
+        `Max-Age=${REDIRECT_COOKIE_MAX_AGE}`,
+      ];
+
+      if (secure) {
+        parts.push('Secure');
+      }
+
+      return parts.join('; ');
+    } catch {
+      return undefined;
+    }
+  }
+
+  private buildCleanupCookies(request: Request): string[] {
+    const results: string[] = [];
+    const redirectCleanup = this.buildRedirectCleanupCookie(request);
+    if (redirectCleanup) {
+      results.push(redirectCleanup);
+    }
+
+    const flowCleanup = this.buildFlowCleanupCookie(request);
+    if (flowCleanup) {
+      results.push(flowCleanup);
+    }
+
+    return results;
+  }
+
   private buildRedirectCleanupCookie(request: Request): string | undefined {
     const cookies = this.parseCookieHeader(request.get('cookie'));
     if (!cookies.has(GITHUB_REDIRECT_COOKIE)) {
@@ -585,6 +646,31 @@ export class AuthService {
 
     const parts = [
       `${GITHUB_REDIRECT_COOKIE}=`,
+      'Path=/',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Max-Age=0',
+    ];
+
+    if (secure) {
+      parts.push('Secure');
+    }
+
+    return parts.join('; ');
+  }
+
+  private buildFlowCleanupCookie(request: Request): string | undefined {
+    const cookies = this.parseCookieHeader(request.get('cookie'));
+    if (!cookies.has(GITHUB_FLOW_COOKIE)) {
+      return undefined;
+    }
+
+    const secure =
+      request.secure ||
+      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
+
+    const parts = [
+      `${GITHUB_FLOW_COOKIE}=`,
       'Path=/',
       'HttpOnly',
       'SameSite=Lax',

@@ -55,7 +55,9 @@ export const loadEnvironment = (): Environment => {
       : '');
   const databaseShadowUrl = process.env.DATABASE_SHADOW_URL ?? databaseUrl;
   const defaultGithubRedirect =
-    nodeEnv === 'test' ? 'http://localhost:4173/auth/github/callback' : '';
+    nodeEnv === 'production'
+      ? ''
+      : 'http://localhost:3000/api/auth/callback/github';
   const defaultCorsOrigins =
     nodeEnv === 'production'
       ? ['https://app.gitdungeon.com']
