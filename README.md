@@ -100,6 +100,7 @@ pnpm db:seed           # prisma/seed.ts 실행
 ```
 
 - 스키마 수정 후에는 `prisma/migrations/` 폴더에 SQL이 생성되며, PR에 포함해야 합니다.
+- better-auth 연동을 위해 `User`, `Account`, `Session`, `Verification`, `RateLimit` 테이블 구조가 포함돼 있으므로, 새로 환경을 구성할 때는 `pnpm prisma:migrate:dev`로 최신 스키마를 적용한 뒤 `pnpm prisma:generate`를 실행합니다.
 - `pnpm db:reset`은 전체 데이터베이스를 리셋하고 최신 마이그레이션/시드를 적용합니다.
 - CI나 Vitest 실행 시 DB 접속이 필요 없을 경우 `DATABASE_SKIP_CONNECTION=true`를 지정하면 부트스트랩 시 Prisma 연결을 건너뜁니다.
 
