@@ -14,13 +14,10 @@ import {
   InvalidRedirectError,
   validateRedirectParam,
 } from './utils/redirect.util.js';
+import { buildForwardHeaders } from './utils/request-forward.util.js';
+import { collectSetCookies } from './utils/set-cookie.util.js';
 
-type FetchHeaders = globalThis.Headers;
 type GitDungeonAuth = Auth<any>;
-
-interface HeadersWithRaw extends FetchHeaders {
-  raw(): Record<string, string[]>;
-}
 
 interface StartGithubOAuthResult {
   location: string;
@@ -37,7 +34,7 @@ interface FinalizeGithubRedirectOptions {
   redirect?: string;
   origin?: string;
   error?: string;
-  mode?: 'success' | 'error' | string;
+  mode?: 'success' | 'error';
 }
 
 @Injectable()
@@ -115,7 +112,7 @@ export class AuthService {
 
     return {
       location: response.url,
-      cookies: this.collectCookies(headers),
+      cookies: collectSetCookies(headers),
     };
   }
 
@@ -248,7 +245,7 @@ export class AuthService {
     callbackURL,
     errorCallbackURL,
   }: InvokeBetterAuthOptions) {
-    const headers = this.buildForwardHeaders(request);
+    const headers = buildForwardHeaders(request);
     const signInSocial = this.betterAuth.api.signInSocial;
 
     try {
@@ -276,71 +273,6 @@ export class AuthService {
 
       throw error;
     }
-  }
-
-  private buildForwardHeaders(request: Request): FetchHeaders {
-    const headers = new globalThis.Headers();
-
-    const append = (name: string) => {
-      const value = request.get(name);
-      if (value) {
-        headers.set(name, value);
-      }
-    };
-
-    append('user-agent');
-    append('accept-language');
-    append('x-forwarded-for');
-    append('x-request-id');
-    append('cookie');
-
-    const host = request.get('host');
-    if (host) {
-      headers.set('host', host);
-    }
-
-    const forwardedHost = request.get('x-forwarded-host');
-    if (forwardedHost) {
-      headers.set('x-forwarded-host', forwardedHost);
-    }
-
-    const forwardedProto =
-      request.get('x-forwarded-proto') ?? (request.secure ? 'https' : 'http');
-    headers.set('x-forwarded-proto', forwardedProto);
-
-    const origin = this.getRequestOrigin(request);
-    if (origin) {
-      headers.set('origin', origin);
-      headers.set('referer', origin);
-    }
-
-    return headers;
-  }
-
-  private collectCookies(headers?: FetchHeaders): string[] {
-    if (!headers) {
-      return [];
-    }
-
-    try {
-      const setCookieValues = headers.getSetCookie();
-      if (Array.isArray(setCookieValues) && setCookieValues.length > 0) {
-        return setCookieValues;
-      }
-    } catch {
-      // 일부 런타임에서는 getSetCookie가 구현되지 않을 수 있으므로 무시한다.
-    }
-
-    if (this.hasRaw(headers)) {
-      const data = headers.raw();
-      const setCookie = data['set-cookie'];
-      if (Array.isArray(setCookie)) {
-        return setCookie;
-      }
-    }
-
-    const single = headers.get('set-cookie');
-    return typeof single === 'string' ? [single] : [];
   }
 
   private mapProviderError(error?: string): string | undefined {
@@ -381,10 +313,6 @@ export class AuthService {
     }
 
     return `${protocol}://${hostname}`;
-  }
-
-  private hasRaw(headers: FetchHeaders): headers is HeadersWithRaw {
-    return typeof (headers as { raw?: unknown }).raw === 'function';
   }
 
   private resolveBackendOrigin(): string {

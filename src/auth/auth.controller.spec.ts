@@ -100,6 +100,13 @@ describe('AuthController (E2E)', () => {
           },
         }),
       },
+      options: {
+        baseURL: 'http://localhost:3000/api/auth',
+        advanced: {},
+        session: {
+          expiresIn: 60 * 60,
+        },
+      },
     } as const;
 
     signInSocialMock = stubAuth.api.signInSocial;

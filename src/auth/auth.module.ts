@@ -8,6 +8,7 @@ import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
 import type { AuthConfig } from './auth.interfaces.js';
 import { AuthService } from './auth.service.js';
 import { AuthController } from './auth.controller.js';
+import { AuthSessionService } from './auth-session.service.js';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
@@ -98,7 +99,8 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
       },
     },
     AuthService,
+    AuthSessionService,
   ],
-  exports: [AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN],
+  exports: [AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN, AuthSessionService],
 })
 export class AuthModule {}
