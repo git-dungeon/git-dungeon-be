@@ -12,7 +12,6 @@ import {
   it,
   vi,
 } from 'vitest';
-import { APIError } from 'better-auth';
 import { AppModule } from '../app.module.js';
 import { BETTER_AUTH_TOKEN } from './auth.constants.js';
 import { AuthController } from './auth.controller.js';
@@ -60,21 +59,7 @@ const setupTestEnv = () => {
   process.env.DATABASE_SKIP_CONNECTION = 'true';
 };
 
-const decodeFlowCookie = (cookie: string) => {
-  const [cookieValuePart] = cookie.split(';', 1);
-  const [, encodedValue = ''] = cookieValuePart.split('=');
-  if (!encodedValue) {
-    return null;
-  }
-
-  return JSON.parse(decodeURIComponent(encodedValue)) as {
-    redirect: string;
-    popup: boolean;
-    parent: string | null;
-  };
-};
-
-describe('AuthController (E2E) 시나리오', () => {
+describe('AuthController (E2E)', () => {
   const originalEnv = Object.entries(process.env).reduce<
     Record<string, string | undefined>
   >((acc, [key, value]) => {
@@ -83,8 +68,6 @@ describe('AuthController (E2E) 시나리오', () => {
   }, {});
   let app: INestApplication;
   let signInSocialMock: ReturnType<typeof vi.fn>;
-  let callbackOAuthMock: ReturnType<typeof vi.fn>;
-  let getSessionMock: ReturnType<typeof vi.fn>;
   let handlerMock: ReturnType<typeof vi.fn>;
 
   const createAgent = () =>
@@ -102,18 +85,6 @@ describe('AuthController (E2E) 시나리오', () => {
       value: () => [stateCookieValue],
     });
 
-    const stubCallbackHeaders = new Headers();
-    const sessionCookieValue =
-      'better-auth.session=stub-session-token; Path=/; HttpOnly; SameSite=Lax';
-    const refreshCookieValue =
-      'better-auth.refresh=stub-refresh-token; Path=/; HttpOnly; SameSite=Lax';
-    stubCallbackHeaders.append('set-cookie', sessionCookieValue);
-    stubCallbackHeaders.append('set-cookie', refreshCookieValue);
-    Object.defineProperty(stubCallbackHeaders, 'getSetCookie', {
-      configurable: true,
-      value: () => [sessionCookieValue, refreshCookieValue],
-    });
-
     handlerMock = vi.fn(() =>
       Promise.resolve(new Response(null, { status: 404 })),
     );
@@ -125,39 +96,13 @@ describe('AuthController (E2E) 시나리오', () => {
           headers: stubAuthorizeHeaders,
           response: {
             url: 'https://github.com/login/oauth/authorize?client_id=test-client-id',
-          },
-        }),
-        callbackOAuth: vi.fn().mockResolvedValue({
-          headers: stubCallbackHeaders,
-          response: undefined,
-        }),
-        getSession: vi.fn().mockResolvedValue({
-          session: {
-            id: 'session-1',
-            token: 'stub-session-token',
-            userId: 'user-123',
-            createdAt: new Date('2025-10-19T00:00:00.000Z'),
-            updatedAt: new Date('2025-10-19T00:00:00.000Z'),
-            expiresAt: new Date('2025-10-26T00:00:00.000Z'),
-            ipAddress: null,
-            userAgent: null,
-          },
-          user: {
-            id: 'user-123',
-            email: 'mock-user@example.com',
-            name: 'Mocked Adventurer',
-            image: 'https://avatars.githubusercontent.com/u/1?v=4',
-            createdAt: new Date('2025-10-19T00:00:00.000Z'),
-            updatedAt: new Date('2025-10-19T00:00:00.000Z'),
-            emailVerified: true,
+            redirect: true,
           },
         }),
       },
     } as const;
 
     signInSocialMock = stubAuth.api.signInSocial;
-    callbackOAuthMock = stubAuth.api.callbackOAuth;
-    getSessionMock = stubAuth.api.getSession;
 
     const moduleBuilder = Test.createTestingModule({
       imports: [AppModule],
@@ -181,8 +126,6 @@ describe('AuthController (E2E) 시나리오', () => {
 
   beforeEach(() => {
     signInSocialMock.mockClear();
-    callbackOAuthMock.mockClear();
-    getSessionMock.mockClear();
     handlerMock.mockClear();
   });
 
@@ -195,28 +138,40 @@ describe('AuthController (E2E) 시나리오', () => {
     Object.assign(process.env, originalEnv);
   });
 
-  it('GET /auth/github 요청 시 안전한 redirect 경로로 GitHub OAuth로 이동해야 한다', async () => {
+  it('GET /auth/github 요청 시 better-auth 기본 리다이렉트 플로우로 GitHub OAuth로 이동해야 한다', async () => {
     const response = await createAgent()
       .get('/auth/github?redirect=%2Fdashboard')
+      .set('Referer', 'http://localhost:4173/login')
       .redirects(0);
 
     expect(response.status).toBe(302);
-    const locationHeader = response.headers.location;
-    expect(locationHeader).toBe(
+    expect(response.headers.location).toBe(
       'https://github.com/login/oauth/authorize?client_id=test-client-id',
     );
 
     expect(signInSocialMock).toHaveBeenCalledTimes(1);
     const callArgs = signInSocialMock.mock.calls[0]?.[0] as {
-      body: { provider: string; callbackURL: string; disableRedirect: boolean };
-      headers: Headers;
+      body: {
+        callbackURL: string;
+        errorCallbackURL: string;
+        provider: string;
+        disableRedirect?: boolean;
+      };
     };
     expect(callArgs).toBeDefined();
     expect(callArgs.body.provider).toBe('github');
-    expect(callArgs.body.disableRedirect).toBe(true);
+    expect(callArgs.body.disableRedirect).toBeUndefined();
 
     const callbackUrl = new URL(callArgs.body.callbackURL);
+    expect(callbackUrl.pathname).toBe('/auth/github/redirect');
+    expect(callbackUrl.searchParams.get('mode')).toBe('success');
     expect(callbackUrl.searchParams.get('redirect')).toBe('/dashboard');
+    expect(callbackUrl.searchParams.get('origin')).toBe(
+      'http://localhost:4173',
+    );
+
+    const errorCallbackUrl = new URL(callArgs.body.errorCallbackURL);
+    expect(errorCallbackUrl.searchParams.get('mode')).toBe('error');
 
     const cookieHeader = response.headers['set-cookie'];
     const cookies: string[] = Array.isArray(cookieHeader)
@@ -228,20 +183,6 @@ describe('AuthController (E2E) 시나리오', () => {
     expect(
       cookies.some((cookie) => cookie.includes('better-auth.state=stub-state')),
     ).toBe(true);
-    expect(
-      cookies.some((cookie) => cookie.startsWith('better-auth.redirect=')),
-    ).toBe(true);
-    const flowCookie = cookies.find((cookie) =>
-      cookie.startsWith('better-auth.flow='),
-    );
-    expect(flowCookie).toBeDefined();
-    if (flowCookie) {
-      const parsed = decodeFlowCookie(flowCookie);
-      expect(parsed).not.toBeNull();
-      expect(parsed?.redirect).toBe('/dashboard');
-      expect(parsed?.popup).toBe(false);
-      expect(parsed?.parent).toBeNull();
-    }
   });
 
   it('GET /auth/github 요청 시 허용되지 않은 redirect 는 400 오류를 반환해야 한다', async () => {
@@ -261,203 +202,60 @@ describe('AuthController (E2E) 시나리오', () => {
     expect(payload.error?.code).toBe('AUTH_REDIRECT_INVALID');
   });
 
-  it('GET /auth/github 요청 시 popup 모드 정보는 callback URL에 반영돼야 한다', async () => {
+  it('GET /auth/github 요청 시 허용되지 않은 origin 은 무시하고 기본 origin 을 사용해야 한다', async () => {
     const response = await createAgent()
-      .get('/auth/github?popup=1&parent=http://malicious.example.com')
+      .get('/auth/github?redirect=%2Fdashboard')
+      .set('Referer', 'https://malicious.example.com/login')
       .redirects(0);
 
     expect(response.status).toBe(302);
-
     expect(signInSocialMock).toHaveBeenCalledTimes(1);
+
     const callArgs = signInSocialMock.mock.calls[0]?.[0] as {
       body: { callbackURL: string };
     };
     expect(callArgs).toBeDefined();
 
     const callbackUrl = new URL(callArgs.body.callbackURL);
-    expect(callbackUrl.searchParams.get('popup')).toBe('1');
-    expect(callbackUrl.searchParams.get('parent')).toBeNull();
-
-    const cookieHeader = response.headers['set-cookie'];
-    const cookies: string[] = Array.isArray(cookieHeader)
-      ? cookieHeader
-      : typeof cookieHeader === 'string'
-        ? [cookieHeader]
-        : [];
-    const flowCookie = cookies.find((cookie) =>
-      cookie.startsWith('better-auth.flow='),
+    expect(callbackUrl.searchParams.get('origin')).toBe(
+      'http://localhost:4173',
     );
-    expect(flowCookie).toBeDefined();
-    if (flowCookie) {
-      const parsed = decodeFlowCookie(flowCookie);
-      expect(parsed).not.toBeNull();
-      expect(parsed?.popup).toBe(true);
-      expect(parsed?.parent).toBeNull();
-    }
   });
 
-  it('POST /auth/github 요청 시 팝업 플로우 결과를 반환해야 한다', async () => {
+  it('GET /auth/github/redirect 요청 시 최종 목적지로 이동해야 한다', async () => {
     const response = await createAgent()
-      .post('/auth/github')
-      .set('Cookie', [
-        'better-auth.state=stub-state',
-        'better-auth.redirect=%2Fdashboard',
-        `better-auth.flow=${encodeURIComponent(
-          JSON.stringify({
-            redirect: '/dashboard',
-            popup: false,
-            parent: null,
-          }),
-        )}`,
-      ])
-      .send({
-        code: 'stub-code',
-        state: 'stub-state',
-      });
+      .get(
+        '/auth/github/redirect?redirect=%2Fdashboard&origin=http%3A%2F%2Flocalhost%3A4173&mode=success',
+      )
+      .redirects(0);
 
-    expect(response.status).toBe(200);
-    expect(callbackOAuthMock).toHaveBeenCalledTimes(1);
-    expect(getSessionMock).toHaveBeenCalledTimes(1);
-
-    const payload = response.body as {
-      success?: boolean;
-      data?: {
-        redirect?: string;
-        session?: { userId?: string; username?: string; displayName?: string };
-        accessToken?: string;
-      };
-      meta?: { generatedAt?: string };
-    };
-
-    expect(payload.success).toBe(true);
-    expect(payload.data?.redirect).toBe('/dashboard');
-    expect(payload.data?.session?.userId).toBe('user-123');
-    expect(payload.data?.session?.username).toBe('Mocked Adventurer');
-    expect(payload.data?.accessToken).toBe('stub-session-token');
-    expect(payload.meta?.generatedAt).toBeTruthy();
-
-    const cookieHeader = response.headers['set-cookie'];
-    const cookies: string[] = Array.isArray(cookieHeader)
-      ? cookieHeader
-      : typeof cookieHeader === 'string'
-        ? [cookieHeader]
-        : [];
-    expect(
-      cookies.some((cookie) =>
-        cookie.includes('better-auth.session=stub-session-token'),
-      ),
-    ).toBe(true);
-    expect(
-      cookies.some((cookie) =>
-        cookie.includes('better-auth.refresh=stub-refresh-token'),
-      ),
-    ).toBe(true);
-    expect(
-      cookies.some((cookie) => cookie.startsWith('better-auth.redirect=')),
-    ).toBe(true);
-    expect(
-      cookies.some(
-        (cookie) =>
-          cookie.startsWith('better-auth.flow=') &&
-          cookie.includes('Max-Age=0'),
-      ),
-    ).toBe(true);
-
-    const callbackArgs = callbackOAuthMock.mock.calls[0]?.[0] as {
-      body: { code: string; state: string };
-    };
-    expect(callbackArgs.body.code).toBe('stub-code');
-    expect(callbackArgs.body.state).toBe('stub-state');
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('http://localhost:4173/dashboard');
   });
 
-  it('POST /auth/github 요청 시 state 누락이면 400 오류가 발생해야 한다', async () => {
+  it('GET /auth/github/redirect 요청 시 오류 코드가 매핑돼야 한다', async () => {
     const response = await createAgent()
-      .post('/auth/github')
-      .set('Cookie', [
-        'better-auth.state=stub-state',
-        `better-auth.flow=${encodeURIComponent(
-          JSON.stringify({
-            redirect: '/dashboard',
-            popup: false,
-            parent: null,
-          }),
-        )}`,
-      ])
-      .send({ code: 'stub-code' });
+      .get(
+        '/auth/github/redirect?redirect=%2Flogin&origin=http%3A%2F%2Flocalhost%3A4173&mode=error&error=access_denied',
+      )
+      .redirects(0);
 
-    expect(response.status).toBe(400);
-    expect(callbackOAuthMock).not.toHaveBeenCalled();
-    expect(getSessionMock).not.toHaveBeenCalled();
-
-    const payload = response.body as {
-      success?: boolean;
-      error?: { code?: string };
-    };
-    expect(payload.success).toBe(false);
-    expect(payload.error?.code).toBe('AUTH_REDIRECT_INVALID');
-  });
-
-  it('POST /auth/github 요청 시 GitHub 에서 거부되면 401 오류가 반환돼야 한다', async () => {
-    const response = await createAgent()
-      .post('/auth/github')
-      .set('Cookie', [
-        'better-auth.state=stub-state',
-        `better-auth.flow=${encodeURIComponent(
-          JSON.stringify({
-            redirect: '/dashboard',
-            popup: false,
-            parent: null,
-          }),
-        )}`,
-      ])
-      .send({
-        code: 'stub-code',
-        state: 'stub-state',
-        error: 'access_denied',
-        errorDescription: 'User cancelled',
-      });
-
-    expect(response.status).toBe(401);
-    expect(callbackOAuthMock).not.toHaveBeenCalled();
-    expect(getSessionMock).not.toHaveBeenCalled();
-
-    const payload = response.body as {
-      success?: boolean;
-      error?: { code?: string };
-    };
-    expect(payload.success).toBe(false);
-    expect(payload.error?.code).toBe('AUTH_PROVIDER_DENIED');
-  });
-
-  it('POST /auth/github 요청 시 better-auth 콜백 오류는 500으로 매핑해야 한다', async () => {
-    callbackOAuthMock.mockRejectedValueOnce(
-      new APIError('BAD_REQUEST', { message: 'provider error' }),
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(
+      'http://localhost:4173/login?authError=AUTH_PROVIDER_DENIED',
     );
+  });
 
+  it('GET /auth/github/redirect 요청 시 잘못된 redirect 는 기본 경로로 이동해야 한다', async () => {
     const response = await createAgent()
-      .post('/auth/github')
-      .set('Cookie', [
-        'better-auth.state=stub-state',
-        'better-auth.redirect=%2Fdashboard',
-        `better-auth.flow=${encodeURIComponent(
-          JSON.stringify({
-            redirect: '/dashboard',
-            popup: false,
-            parent: null,
-          }),
-        )}`,
-      ])
-      .send({ code: 'stub-code', state: 'stub-state' });
+      .get(
+        '/auth/github/redirect?redirect=//evil.com&origin=http%3A%2F%2Flocalhost%3A4173&mode=error',
+      )
+      .redirects(0);
 
-    expect(response.status).toBe(500);
-    expect(callbackOAuthMock).toHaveBeenCalledTimes(1);
-    expect(getSessionMock).not.toHaveBeenCalled();
-
-    const payload = response.body as {
-      success?: boolean;
-      error?: { code?: string };
-    };
-    expect(payload.success).toBe(false);
-    expect(payload.error?.code).toBe('AUTH_PROVIDER_ERROR');
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe(
+      'http://localhost:4173/dashboard?authError=AUTH_PROVIDER_ERROR',
+    );
   });
 });

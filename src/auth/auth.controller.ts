@@ -1,21 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Post,
-  Query,
-  Req,
-  Res,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Query, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
-import type {
-  GitHubPopupAuthRequest,
-  GitHubPopupAuthResponse,
-} from './auth.interfaces.js';
-import { ApiResponseInterceptor } from '../common/interceptors/api-response.interceptor.js';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -25,14 +10,8 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @Query('redirect') redirect?: string,
-    @Query('popup') popup?: string,
-    @Query('parent') parent?: string,
   ): Promise<void> {
-    const result = await this.authService.startGithubOAuth(request, {
-      redirect,
-      popup,
-      parent,
-    });
+    const result = await this.authService.startGithubOAuth(request, redirect);
 
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Pragma', 'no-cache');
@@ -43,22 +22,23 @@ export class AuthController {
     response.redirect(result.location);
   }
 
-  @Post('github')
-  @UseInterceptors(ApiResponseInterceptor)
-  @HttpCode(200)
-  async githubPopup(
+  @Get('github/redirect')
+  githubRedirectFinalize(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
-    @Body() body: GitHubPopupAuthRequest,
-  ): Promise<GitHubPopupAuthResponse> {
-    const result = await this.authService.completeGithubOAuth(request, body);
-
+    @Query('redirect') redirect?: string,
+    @Query('origin') origin?: string,
+    @Query('error') error?: string,
+    @Query('mode') mode?: string,
+  ): void {
+    const target = this.authService.finalizeGithubRedirect({
+      redirect,
+      origin,
+      mode: mode === 'error' ? 'error' : 'success',
+      error,
+    });
     response.setHeader('Cache-Control', 'no-store');
     response.setHeader('Pragma', 'no-cache');
-    for (const cookie of result.cookies) {
-      response.append('Set-Cookie', cookie);
-    }
-
-    return result.payload;
+    response.redirect(target);
   }
 }

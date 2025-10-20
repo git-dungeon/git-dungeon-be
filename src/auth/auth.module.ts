@@ -28,6 +28,25 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
         );
         const scopeFromConfig =
           configService.get<string[]>('auth.github.scope') ?? [];
+        const rawAllowedOrigins =
+          configService.get<string[]>('app.cors.allowedOrigins') ?? [];
+        const normalizedAllowedOrigins = Array.from(
+          new Set(
+            rawAllowedOrigins
+              .filter(
+                (origin) =>
+                  typeof origin === 'string' && origin.trim().length > 0,
+              )
+              .filter((origin) => origin !== '*')
+              .map((origin) => {
+                try {
+                  return new URL(origin).origin;
+                } catch {
+                  return origin;
+                }
+              }),
+          ),
+        );
 
         const missing: string[] = [];
         if (!clientId) missing.push('auth.github.clientId');
@@ -51,6 +70,9 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
             clientSecret: clientSecret!,
             redirectUri: redirectUri!,
             scope: normalizedScope,
+          },
+          redirect: {
+            allowedOrigins: normalizedAllowedOrigins,
           },
         };
       },

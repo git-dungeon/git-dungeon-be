@@ -3,23 +3,12 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
-import {
-  AUTH_CONFIG_TOKEN,
-  BETTER_AUTH_TOKEN,
-  GITHUB_FLOW_COOKIE,
-  GITHUB_REDIRECT_COOKIE,
-  REDIRECT_COOKIE_MAX_AGE,
-} from './auth.constants.js';
-import type {
-  AuthConfig,
-  GitHubPopupAuthRequest,
-  GitHubPopupAuthResponse,
-} from './auth.interfaces.js';
+import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
+import type { AuthConfig } from './auth.interfaces.js';
 import {
   DEFAULT_REDIRECT_PATH,
   InvalidRedirectError,
@@ -33,274 +22,125 @@ interface HeadersWithRaw extends FetchHeaders {
   raw(): Record<string, string[]>;
 }
 
-type SignInSocialFn = (input: {
-  body: {
-    provider: 'github';
-    callbackURL: string;
-    disableRedirect: boolean;
-    scopes?: string[];
-  };
-  headers: FetchHeaders;
-  returnHeaders: true;
-}) => Promise<{
-  headers?: FetchHeaders;
-  response: {
-    url?: string;
-    redirect?: boolean;
-  };
-}>;
-
-type CallbackOAuthFn = (input: {
-  method: 'POST';
-  params: {
-    id: 'github';
-  };
-  body: {
-    code: string;
-    state: string;
-    device_id?: string;
-    user?: string;
-  };
-  headers: FetchHeaders;
-  returnHeaders: true;
-}) => Promise<{
-  headers?: FetchHeaders;
-  response: unknown;
-}>;
-
-type GetSessionFn = (input: { headers: FetchHeaders }) => Promise<{
-  session: {
-    id: string;
-    token: string;
-    userId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    expiresAt: Date;
-    ipAddress?: string | null;
-    userAgent?: string | null;
-  };
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    image?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    emailVerified: boolean;
-  };
-} | null>;
-
-interface GitHubOAuthOptions {
-  redirect?: string;
-  popup?: string;
-  parent?: string;
-}
-
-interface GitHubOAuthResult {
+interface StartGithubOAuthResult {
   location: string;
   cookies: string[];
 }
 
-interface GitHubPopupAuthResult {
-  payload: GitHubPopupAuthResponse;
-  cookies: string[];
+interface InvokeBetterAuthOptions {
+  request: Request;
+  callbackURL: string;
+  errorCallbackURL: string;
+}
+
+interface FinalizeGithubRedirectOptions {
+  redirect?: string;
+  origin?: string;
+  error?: string;
+  mode?: 'success' | 'error' | string;
 }
 
 @Injectable()
 export class AuthService {
+  private static readonly PROVIDER_DENIED_ERRORS = new Set([
+    'access_denied',
+    'user_cancelled',
+    'user_canceled',
+  ]);
+
+  private static readonly REDIRECT_VALIDATION_ERRORS = new Set([
+    'state_mismatch',
+    'invalid_callback_request',
+    'please_restart_the_process',
+    'no_code',
+    'state_not_found',
+  ]);
+
+  private readonly backendOrigin: string;
+
   constructor(
     @Inject(BETTER_AUTH_TOKEN) private readonly betterAuth: GitDungeonAuth,
     @Inject(AUTH_CONFIG_TOKEN) private readonly authConfig: AuthConfig,
-  ) {}
+  ) {
+    this.backendOrigin = this.resolveBackendOrigin();
+  }
 
   async startGithubOAuth(
     request: Request,
-    options: GitHubOAuthOptions,
-  ): Promise<GitHubOAuthResult> {
-    const { redirect: redirectParam, popup, parent } = options;
+    redirect?: string,
+  ): Promise<StartGithubOAuthResult> {
+    const { value: redirectPath } = this.resolveRedirectOrThrow(redirect);
+    const clientOrigin =
+      this.resolveClientOrigin(request) ?? this.defaultClientOrigin();
 
-    const { value: redirectPath } = this.resolveRedirect(redirectParam);
-    const isPopup = this.isPopupMode(popup);
-    const parentOrigin = this.normalizeParentOrigin(parent, request);
-
-    const callbackURL = this.buildCallbackURL(redirectPath, {
-      isPopup,
-      parentOrigin,
+    const callbackURL = this.buildBridgeURL({
+      request,
+      redirectPath,
+      clientOrigin,
+      mode: 'success',
+    });
+    const errorCallbackURL = this.buildBridgeURL({
+      request,
+      redirectPath,
+      clientOrigin,
+      mode: 'error',
     });
 
-    const { headers, response } = await this.invokeBetterAuth(request, {
+    const { headers, response } = await this.invokeBetterAuth({
+      request,
       callbackURL,
+      errorCallbackURL,
     });
 
-    if (!response?.url) {
+    if (!response) {
       throw new InternalServerErrorException({
         code: 'AUTH_PROVIDER_ERROR',
-        message: 'Failed to resolve GitHub authorization URL.',
+        message: 'GitHub OAuth provider returned an empty response.',
       });
     }
 
-    const cookies = this.collectCookies(headers);
-    const flowCookie = this.buildFlowCookie(
-      {
-        redirect: redirectPath,
-        popup: isPopup,
-        parent: parentOrigin,
-      },
-      request,
-    );
-    if (flowCookie) {
-      cookies.push(flowCookie);
+    if ('token' in response && response.redirect === false) {
+      throw new InternalServerErrorException({
+        code: 'AUTH_PROVIDER_ERROR',
+        message: 'Unexpected session payload returned from GitHub OAuth flow.',
+      });
     }
-    cookies.push(this.buildRedirectCookie(redirectPath, request));
+
+    if (!response.redirect || !response.url) {
+      throw new InternalServerErrorException({
+        code: 'AUTH_PROVIDER_ERROR',
+        message: 'GitHub OAuth redirect URL is missing.',
+      });
+    }
 
     return {
       location: response.url,
-      cookies,
+      cookies: this.collectCookies(headers),
     };
   }
 
-  async completeGithubOAuth(
-    request: Request,
-    payload: GitHubPopupAuthRequest,
-  ): Promise<GitHubPopupAuthResult> {
-    const { code, state, error, errorDescription, deviceId, user } = payload;
+  finalizeGithubRedirect({
+    redirect,
+    origin,
+    error,
+    mode,
+  }: FinalizeGithubRedirectOptions): string {
+    const redirectPath = this.resolveRedirectOrFallback(redirect);
+    const originCandidate =
+      this.normalizeClientOrigin(origin) ?? this.defaultClientOrigin();
 
-    if (!state) {
-      throw new BadRequestException({
-        code: 'AUTH_REDIRECT_INVALID',
-        message: 'Missing state parameter.',
-      });
+    const target = new URL(redirectPath, originCandidate);
+    const mappedError = this.mapProviderError(
+      mode === 'error' ? (error ?? 'unknown') : undefined,
+    );
+    if (mappedError) {
+      target.searchParams.set('authError', mappedError);
     }
 
-    if (error) {
-      throw new UnauthorizedException({
-        code: 'AUTH_PROVIDER_DENIED',
-        message: errorDescription ?? 'GitHub authorization was denied.',
-        details: {
-          provider: 'github',
-          reason: error,
-        },
-      });
-    }
-
-    if (!code) {
-      throw new UnauthorizedException({
-        code: 'AUTH_PROVIDER_DENIED',
-        message: 'Missing authorization code.',
-      });
-    }
-
-    const callbackHeaders = this.buildForwardHeaders(request);
-    const callbackOAuth = this.betterAuth.api
-      .callbackOAuth as unknown as CallbackOAuthFn;
-
-    let resolvedHeaders: FetchHeaders | undefined;
-
-    try {
-      const result = await callbackOAuth({
-        method: 'POST',
-        params: { id: 'github' },
-        body: {
-          code,
-          state,
-          device_id: deviceId,
-          user,
-        },
-        headers: callbackHeaders,
-        returnHeaders: true,
-      });
-      resolvedHeaders = result.headers;
-    } catch (err) {
-      const headersFromError = this.extractHeadersFromUnknown(err);
-      if (headersFromError) {
-        resolvedHeaders = headersFromError;
-      } else if (err instanceof APIError) {
-        throw new InternalServerErrorException({
-          code: 'AUTH_PROVIDER_ERROR',
-          message: 'GitHub OAuth provider returned an error.',
-          details: {
-            provider: 'github',
-            reason: err.message,
-          },
-        });
-      } else {
-        throw err;
-      }
-    }
-
-    if (!resolvedHeaders) {
-      throw new InternalServerErrorException({
-        code: 'AUTH_PROVIDER_ERROR',
-        message: 'Failed to finalize GitHub OAuth callback.',
-      });
-    }
-
-    const cookies = this.collectCookies(resolvedHeaders);
-
-    const sessionHeaders = this.buildForwardHeaders(request);
-    const mergedCookie = this.mergeCookies(request.get('cookie'), cookies);
-    if (mergedCookie) {
-      sessionHeaders.set('cookie', mergedCookie);
-    } else {
-      sessionHeaders.delete('cookie');
-    }
-
-    const getSession = this.betterAuth.api
-      .getSession as unknown as GetSessionFn;
-
-    let sessionResult: Awaited<ReturnType<GetSessionFn>>;
-    try {
-      sessionResult = await getSession({
-        headers: sessionHeaders,
-      });
-    } catch (err) {
-      throw new InternalServerErrorException({
-        code: 'AUTH_PROVIDER_ERROR',
-        message: 'Failed to retrieve session after GitHub OAuth callback.',
-        details: {
-          provider: 'github',
-          reason: err instanceof Error ? err.message : String(err),
-        },
-      });
-    }
-
-    if (!sessionResult) {
-      throw new InternalServerErrorException({
-        code: 'AUTH_PROVIDER_ERROR',
-        message: 'GitHub OAuth session was not created.',
-      });
-    }
-
-    const redirectPath = this.getRedirectFromCookies(request);
-    const cleanupCookies = this.buildCleanupCookies(request);
-    if (cleanupCookies.length > 0) {
-      cookies.push(...cleanupCookies);
-    }
-
-    const popupPayload: GitHubPopupAuthResponse = {
-      redirect: redirectPath,
-      session: {
-        userId: sessionResult.user.id,
-        username:
-          sessionResult.user.name?.trim() ??
-          sessionResult.user.email?.split('@')[0] ??
-          sessionResult.user.id,
-        displayName:
-          sessionResult.user.name?.trim() ??
-          sessionResult.user.email ??
-          sessionResult.user.id,
-        avatarUrl: sessionResult.user.image ?? null,
-      },
-      accessToken: sessionResult.session.token,
-    };
-
-    return {
-      cookies,
-      payload: popupPayload,
-    };
+    return target.toString();
   }
 
-  private resolveRedirect(redirect?: string) {
+  private resolveRedirectOrThrow(redirect?: string) {
     try {
       return validateRedirectParam(redirect);
     } catch (error) {
@@ -315,102 +155,108 @@ export class AuthService {
     }
   }
 
-  private isPopupMode(popup?: string): boolean {
-    if (!popup) {
-      return false;
+  private resolveRedirectOrFallback(redirect?: string): string {
+    try {
+      return validateRedirectParam(redirect).value;
+    } catch {
+      return DEFAULT_REDIRECT_PATH;
     }
-
-    const normalized = popup.toLowerCase();
-    return normalized === '1' || normalized === 'true';
   }
 
-  private normalizeParentOrigin(
-    parent: string | undefined,
-    request: Request,
-  ): string | undefined {
-    if (!parent) {
+  private resolveClientOrigin(request: Request): string | undefined {
+    const allowed = this.getAllowedClientOrigins();
+    const originHeader = this.extractOrigin(request.get('origin'));
+    if (originHeader && this.isOriginAllowed(originHeader, allowed)) {
+      return originHeader;
+    }
+
+    const referer = this.extractOrigin(request.get('referer'));
+    if (referer && this.isOriginAllowed(referer, allowed)) {
+      return referer;
+    }
+
+    return undefined;
+  }
+
+  private normalizeClientOrigin(origin?: string): string | undefined {
+    if (!origin) {
+      return undefined;
+    }
+
+    const normalized = this.extractOrigin(origin);
+    if (!normalized) {
+      return undefined;
+    }
+
+    const allowed = this.getAllowedClientOrigins();
+    return this.isOriginAllowed(normalized, allowed) ? normalized : undefined;
+  }
+
+  private defaultClientOrigin(): string {
+    const allowed = this.getAllowedClientOrigins();
+    if (allowed.length > 0) {
+      return allowed[0];
+    }
+
+    return this.backendOrigin;
+  }
+
+  private getAllowedClientOrigins(): string[] {
+    return this.authConfig.redirect.allowedOrigins;
+  }
+
+  private extractOrigin(value: string | undefined): string | undefined {
+    if (!value) {
       return undefined;
     }
 
     try {
-      const parsed = new URL(parent);
-      if (!['http:', 'https:'].includes(parsed.protocol)) {
-        return undefined;
-      }
-
-      const requestOrigin = this.getRequestOrigin(request);
-      if (requestOrigin && parsed.origin !== requestOrigin) {
-        return undefined;
-      }
-
-      return parsed.origin;
+      return new URL(value).origin;
     } catch {
       return undefined;
     }
   }
 
-  private getRequestOrigin(request: Request): string | undefined {
-    const forwardedHost =
-      request.get('x-forwarded-host') ?? request.get('x-original-host');
-    const host = forwardedHost ?? request.get('host');
-    if (!host) {
-      return undefined;
-    }
-
-    const protoHeader = request.get('x-forwarded-proto');
-    const protocol = protoHeader ?? (request.secure ? 'https' : 'http');
-
-    const hostname = host.split(',')[0]?.trim();
-    if (!hostname) {
-      return undefined;
-    }
-
-    return `${protocol}://${hostname}`;
+  private isOriginAllowed(origin: string, allowed: string[]): boolean {
+    return allowed.includes(origin);
   }
 
-  private buildCallbackURL(
-    redirectPath: string,
-    options: { isPopup: boolean; parentOrigin?: string },
-  ): string {
-    const callbackBase = this.authConfig.github.redirectUri;
-
-    let url: URL;
-    try {
-      url = new URL(callbackBase);
-    } catch {
-      throw new InternalServerErrorException({
-        code: 'AUTH_PROVIDER_ERROR',
-        message: 'Invalid GitHub callback configuration.',
-      });
-    }
-
+  private buildBridgeURL({
+    request,
+    redirectPath,
+    clientOrigin,
+    mode,
+  }: {
+    request: Request;
+    redirectPath: string;
+    clientOrigin?: string;
+    mode: 'success' | 'error';
+  }): string {
+    const backendOrigin = this.getRequestOrigin(request) ?? this.backendOrigin;
+    const url = new URL('/auth/github/redirect', backendOrigin);
     url.searchParams.set('redirect', redirectPath);
-    if (options.isPopup) {
-      url.searchParams.set('popup', '1');
-    }
-    if (options.parentOrigin) {
-      url.searchParams.set('parent', options.parentOrigin);
+    url.searchParams.set('mode', mode);
+    if (clientOrigin) {
+      url.searchParams.set('origin', clientOrigin);
     }
 
     return url.toString();
   }
 
-  private async invokeBetterAuth(
-    request: Request,
-    input: {
-      callbackURL: string;
-    },
-  ) {
+  private async invokeBetterAuth({
+    request,
+    callbackURL,
+    errorCallbackURL,
+  }: InvokeBetterAuthOptions) {
     const headers = this.buildForwardHeaders(request);
-    const signInSocial = this.betterAuth.api
-      .signInSocial as unknown as SignInSocialFn;
+    const signInSocial = this.betterAuth.api.signInSocial;
 
     try {
       return await signInSocial({
         body: {
           provider: 'github',
-          callbackURL: input.callbackURL,
-          disableRedirect: true,
+          callbackURL,
+          errorCallbackURL,
           scopes: this.authConfig.github.scope,
         },
         headers,
@@ -497,237 +343,55 @@ export class AuthService {
     return typeof single === 'string' ? [single] : [];
   }
 
-  private getRedirectFromCookies(request: Request): string {
-    const cookies = this.parseCookieHeader(request.get('cookie'));
-    const raw = cookies.get(GITHUB_REDIRECT_COOKIE);
-    if (!raw) {
-      return DEFAULT_REDIRECT_PATH;
-    }
-
-    try {
-      const decoded = decodeURIComponent(raw);
-      return validateRedirectParam(decoded, DEFAULT_REDIRECT_PATH).value;
-    } catch {
-      return DEFAULT_REDIRECT_PATH;
-    }
-  }
-
-  private mergeCookies(
-    existingCookieHeader: string | undefined,
-    setCookies: string[],
-  ): string {
-    const jar = this.parseCookieHeader(existingCookieHeader);
-
-    for (const cookie of setCookies) {
-      const [pair] = cookie.split(';');
-      if (!pair) continue;
-
-      const separatorIndex = pair.indexOf('=');
-      if (separatorIndex === -1) continue;
-
-      const name = pair.slice(0, separatorIndex).trim();
-      const value = pair.slice(separatorIndex + 1);
-
-      if (!name) continue;
-      jar.set(name, value);
-    }
-
-    return Array.from(jar.entries())
-      .map(([name, value]) => `${name}=${value}`)
-      .join('; ');
-  }
-
-  private parseCookieHeader(
-    cookieHeader: string | undefined | null,
-  ): Map<string, string> {
-    const jar = new Map<string, string>();
-    if (!cookieHeader) {
-      return jar;
-    }
-
-    const parts = cookieHeader.split(';');
-    for (const part of parts) {
-      const trimmed = part.trim();
-      if (!trimmed) {
-        continue;
-      }
-
-      const separatorIndex = trimmed.indexOf('=');
-      if (separatorIndex === -1) {
-        continue;
-      }
-
-      const name = trimmed.slice(0, separatorIndex);
-      const value = trimmed.slice(separatorIndex + 1);
-      jar.set(name, value);
-    }
-
-    return jar;
-  }
-
-  private buildRedirectCookie(redirectPath: string, request: Request): string {
-    const secure =
-      request.secure ||
-      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
-
-    const parts = [
-      `${GITHUB_REDIRECT_COOKIE}=${encodeURIComponent(redirectPath)}`,
-      'Path=/',
-      'HttpOnly',
-      'SameSite=Lax',
-      `Max-Age=${REDIRECT_COOKIE_MAX_AGE}`,
-    ];
-
-    if (secure) {
-      parts.push('Secure');
-    }
-
-    return parts.join('; ');
-  }
-
-  private buildFlowCookie(
-    payload: { redirect: string; popup: boolean; parent?: string | null },
-    request: Request,
-  ): string | undefined {
-    const secure =
-      request.secure ||
-      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
-
-    try {
-      const serialized = JSON.stringify({
-        redirect: payload.redirect,
-        popup: payload.popup,
-        parent: payload.parent ?? null,
-      });
-      const encoded = encodeURIComponent(serialized);
-
-      const parts = [
-        `${GITHUB_FLOW_COOKIE}=${encoded}`,
-        'Path=/',
-        'HttpOnly',
-        'SameSite=Lax',
-        `Max-Age=${REDIRECT_COOKIE_MAX_AGE}`,
-      ];
-
-      if (secure) {
-        parts.push('Secure');
-      }
-
-      return parts.join('; ');
-    } catch {
-      return undefined;
-    }
-  }
-
-  private buildCleanupCookies(request: Request): string[] {
-    const results: string[] = [];
-    const redirectCleanup = this.buildRedirectCleanupCookie(request);
-    if (redirectCleanup) {
-      results.push(redirectCleanup);
-    }
-
-    const flowCleanup = this.buildFlowCleanupCookie(request);
-    if (flowCleanup) {
-      results.push(flowCleanup);
-    }
-
-    return results;
-  }
-
-  private buildRedirectCleanupCookie(request: Request): string | undefined {
-    const cookies = this.parseCookieHeader(request.get('cookie'));
-    if (!cookies.has(GITHUB_REDIRECT_COOKIE)) {
+  private mapProviderError(error?: string): string | undefined {
+    if (!error) {
       return undefined;
     }
 
-    const secure =
-      request.secure ||
-      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
-
-    const parts = [
-      `${GITHUB_REDIRECT_COOKIE}=`,
-      'Path=/',
-      'HttpOnly',
-      'SameSite=Lax',
-      'Max-Age=0',
-    ];
-
-    if (secure) {
-      parts.push('Secure');
+    const normalized = error.trim().toLowerCase();
+    if (!normalized) {
+      return 'AUTH_PROVIDER_ERROR';
     }
 
-    return parts.join('; ');
+    if (AuthService.PROVIDER_DENIED_ERRORS.has(normalized)) {
+      return 'AUTH_PROVIDER_DENIED';
+    }
+
+    if (AuthService.REDIRECT_VALIDATION_ERRORS.has(normalized)) {
+      return 'AUTH_REDIRECT_INVALID';
+    }
+
+    return 'AUTH_PROVIDER_ERROR';
   }
 
-  private buildFlowCleanupCookie(request: Request): string | undefined {
-    const cookies = this.parseCookieHeader(request.get('cookie'));
-    if (!cookies.has(GITHUB_FLOW_COOKIE)) {
+  private getRequestOrigin(request: Request): string | undefined {
+    const forwardedHost =
+      request.get('x-forwarded-host') ?? request.get('x-original-host');
+    const host = forwardedHost ?? request.get('host');
+    if (!host) {
       return undefined;
     }
 
-    const secure =
-      request.secure ||
-      (request.get('x-forwarded-proto') ?? '').toLowerCase().includes('https');
+    const protoHeader = request.get('x-forwarded-proto');
+    const protocol = protoHeader ?? (request.secure ? 'https' : 'http');
 
-    const parts = [
-      `${GITHUB_FLOW_COOKIE}=`,
-      'Path=/',
-      'HttpOnly',
-      'SameSite=Lax',
-      'Max-Age=0',
-    ];
-
-    if (secure) {
-      parts.push('Secure');
+    const hostname = host.split(',')[0]?.trim();
+    if (!hostname) {
+      return undefined;
     }
 
-    return parts.join('; ');
-  }
-
-  private extractHeadersFromUnknown(input: unknown): FetchHeaders | undefined {
-    if (
-      typeof Response !== 'undefined' &&
-      input instanceof Response &&
-      input.headers
-    ) {
-      return input.headers;
-    }
-
-    if (
-      input &&
-      typeof input === 'object' &&
-      'headers' in input &&
-      (input as { headers?: unknown }).headers
-    ) {
-      const candidate = (input as { headers?: unknown }).headers;
-      if (candidate instanceof Headers) {
-        return candidate;
-      }
-      if (candidate && typeof (candidate as FetchHeaders).get === 'function') {
-        return candidate as FetchHeaders;
-      }
-    }
-
-    if (
-      input &&
-      typeof input === 'object' &&
-      'response' in input &&
-      (input as { response?: unknown }).response
-    ) {
-      const candidate = (input as { response?: unknown }).response;
-      if (
-        typeof Response !== 'undefined' &&
-        candidate instanceof Response &&
-        candidate.headers
-      ) {
-        return candidate.headers;
-      }
-    }
-
-    return undefined;
+    return `${protocol}://${hostname}`;
   }
 
   private hasRaw(headers: FetchHeaders): headers is HeadersWithRaw {
     return typeof (headers as { raw?: unknown }).raw === 'function';
+  }
+
+  private resolveBackendOrigin(): string {
+    try {
+      return new URL(this.authConfig.github.redirectUri).origin;
+    } catch {
+      return 'http://localhost:3000';
+    }
   }
 }
