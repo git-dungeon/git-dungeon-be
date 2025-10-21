@@ -122,7 +122,15 @@ export class AuthSessionService {
   describeSessionCookies(): SessionCookieDescriptor[] {
     const cookies = getCookies(this.betterAuth.options);
 
-    return [cookies.sessionToken, cookies.sessionData].map((cookie) => ({
+    const sessionCookies = [
+      cookies.sessionToken,
+      cookies.sessionData,
+      cookies.dontRememberToken,
+    ].filter((cookie): cookie is (typeof cookies)['sessionToken'] =>
+      Boolean(cookie),
+    );
+
+    return sessionCookies.map((cookie) => ({
       name: cookie.name,
       httpOnly: cookie.options.httpOnly ?? true,
       sameSite: cookie.options.sameSite as string | undefined,
