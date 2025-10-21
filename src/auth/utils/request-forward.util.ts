@@ -40,10 +40,8 @@ export const buildForwardHeaders = (request: Request): globalThis.Headers => {
   copy('x-request-id');
   copy('cookie');
 
-  const host = request.get('host');
-  if (host) {
-    headers.set('host', host);
-  }
+  // Host 헤더는 대상 URL을 기반으로 undici(fetch)가 자동 설정한다.
+  // 직접 설정하면 `TypeError: forbidden header name`가 발생하므로 제외한다.
 
   const forwardedHost = request.get('x-forwarded-host');
   if (forwardedHost) {

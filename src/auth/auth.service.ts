@@ -54,12 +54,14 @@ export class AuthService {
   ]);
 
   private readonly backendOrigin: string;
+  private readonly publicBaseUrl: string;
 
   constructor(
     @Inject(BETTER_AUTH_TOKEN) private readonly betterAuth: GitDungeonAuth,
     @Inject(AUTH_CONFIG_TOKEN) private readonly authConfig: AuthConfig,
   ) {
     this.backendOrigin = this.resolveBackendOrigin();
+    this.publicBaseUrl = this.resolvePublicBaseUrl();
   }
 
   async startGithubOAuth(
@@ -71,13 +73,11 @@ export class AuthService {
       this.resolveClientOrigin(request) ?? this.defaultClientOrigin();
 
     const callbackURL = this.buildBridgeURL({
-      request,
       redirectPath,
       clientOrigin,
       mode: 'success',
     });
     const errorCallbackURL = this.buildBridgeURL({
-      request,
       redirectPath,
       clientOrigin,
       mode: 'error',
@@ -195,7 +195,7 @@ export class AuthService {
       return allowed[0];
     }
 
-    return this.backendOrigin;
+    return this.publicBaseUrl ?? this.backendOrigin;
   }
 
   private getAllowedClientOrigins(): string[] {
@@ -219,18 +219,16 @@ export class AuthService {
   }
 
   private buildBridgeURL({
-    request,
     redirectPath,
     clientOrigin,
     mode,
   }: {
-    request: Request;
     redirectPath: string;
     clientOrigin?: string;
     mode: 'success' | 'error';
   }): string {
-    const backendOrigin = this.getRequestOrigin(request) ?? this.backendOrigin;
-    const url = new URL('/auth/github/redirect', backendOrigin);
+    const origin = this.publicBaseUrl ?? this.backendOrigin;
+    const url = new URL('/auth/github/redirect', origin);
     url.searchParams.set('redirect', redirectPath);
     url.searchParams.set('mode', mode);
     if (clientOrigin) {
@@ -296,30 +294,19 @@ export class AuthService {
     return 'AUTH_PROVIDER_ERROR';
   }
 
-  private getRequestOrigin(request: Request): string | undefined {
-    const forwardedHost =
-      request.get('x-forwarded-host') ?? request.get('x-original-host');
-    const host = forwardedHost ?? request.get('host');
-    if (!host) {
-      return undefined;
-    }
-
-    const protoHeader = request.get('x-forwarded-proto');
-    const protocol = protoHeader ?? (request.secure ? 'https' : 'http');
-
-    const hostname = host.split(',')[0]?.trim();
-    if (!hostname) {
-      return undefined;
-    }
-
-    return `${protocol}://${hostname}`;
-  }
-
   private resolveBackendOrigin(): string {
     try {
       return new URL(this.authConfig.github.redirectUri).origin;
     } catch {
       return 'http://localhost:3000';
+    }
+  }
+
+  private resolvePublicBaseUrl(): string {
+    try {
+      return new URL(this.authConfig.publicBaseUrl).origin;
+    } catch {
+      return this.backendOrigin;
     }
   }
 }

@@ -7,6 +7,7 @@ export interface Environment {
   logPretty: boolean;
   corsAllowedOrigins: (string & tags.MinLength<1>)[];
   corsAllowCredentials: boolean;
+  publicBaseUrl: string & tags.MinLength<1>;
   databaseUrl: string & tags.MinLength<1>;
   databaseShadowUrl: string & tags.MinLength<1>;
   databaseLogQueries: boolean;
@@ -83,6 +84,9 @@ export const loadEnvironment = (): Environment => {
       process.env.CORS_ALLOW_CREDENTIALS,
       true,
     ),
+    publicBaseUrl:
+      process.env.PUBLIC_BASE_URL ??
+      (nodeEnv === 'production' ? '' : 'http://localhost:3000'),
     databaseUrl,
     databaseShadowUrl,
     databaseLogQueries: parseBoolean(

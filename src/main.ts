@@ -41,14 +41,69 @@ async function bootstrap() {
       credentials: corsAllowCredentials,
     });
 
-    const betterAuth = app.get<Auth<any>>(BETTER_AUTH_TOKEN);
-    const httpAdapter = app.getHttpAdapter();
-    if (httpAdapter?.getType?.() === 'express') {
-      const instance = httpAdapter.getInstance?.() as Express | undefined;
-      instance?.use(
-        '/api/auth',
-        createBetterAuthExpressMiddleware(betterAuth.handler),
+    const raiseBetterAuthError = (reason: string, err?: unknown): never => {
+      const message = `[BetterAuth] ${reason}`;
+      const stackTrace = err instanceof Error ? err.stack : undefined;
+      bootstrapLogger.error(message, stackTrace);
+      logger.error(
+        {
+          err: err instanceof Error ? err : undefined,
+        },
+        message,
       );
+      throw new Error(message);
+    };
+
+    const betterAuth = (() => {
+      try {
+        return app.get<Auth<any>>(BETTER_AUTH_TOKEN);
+      } catch (error) {
+        return raiseBetterAuthError(
+          'missing provider: BETTER_AUTH_TOKEN is not bound',
+          error,
+        );
+      }
+    })();
+
+    if (typeof betterAuth.handler !== 'function') {
+      raiseBetterAuthError('missing handler on BetterAuth instance');
+    }
+
+    const httpAdapter = app.getHttpAdapter();
+    if (!httpAdapter) {
+      raiseBetterAuthError('HTTP adapter is not available');
+    }
+
+    if (httpAdapter.getType?.() !== 'express') {
+      raiseBetterAuthError('HTTP adapter is not Express-compatible');
+    }
+
+    const isExpressInstance = (instance: unknown): instance is Express => {
+      return (
+        typeof instance === 'function' &&
+        typeof (instance as Express).use === 'function'
+      );
+    };
+
+    const rawInstance: unknown = httpAdapter.getInstance?.();
+    if (!isExpressInstance(rawInstance)) {
+      raiseBetterAuthError('Express instance could not be resolved');
+    }
+
+    const expressInstance = rawInstance as Express;
+
+    const middleware = createBetterAuthExpressMiddleware(betterAuth.handler);
+    let middlewareMounted = false;
+
+    try {
+      expressInstance.use('/api/auth', middleware);
+      middlewareMounted = true;
+    } catch (error) {
+      raiseBetterAuthError('failed to mount BetterAuth middleware', error);
+    }
+
+    if (!middlewareMounted) {
+      raiseBetterAuthError('middleware mounting exited without completion');
     }
 
     await app.listen(port);

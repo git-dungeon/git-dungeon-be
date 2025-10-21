@@ -39,6 +39,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const error: ApiErrorBody = this.normalizeError(exception);
 
+    const errorMessage = error.message;
+
     if (this.logger) {
       this.logger.error(
         {
@@ -46,13 +48,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
           requestId,
           path: request?.url,
         },
-        error.message,
+        errorMessage,
       );
     } else {
-      this.fallbackLogger.error(
-        { requestId, path: request?.url },
-        error.message,
-      );
+      const trace =
+        exception instanceof Error
+          ? exception.stack
+          : JSON.stringify({ requestId, path: request?.url });
+      this.fallbackLogger.error(errorMessage, trace);
     }
 
     response.status(status).json(errorResponse(error, meta));

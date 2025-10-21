@@ -7,6 +7,7 @@ const configuration = () => {
     app: {
       env: env.nodeEnv,
       port: env.port,
+      publicBaseUrl: env.publicBaseUrl,
       cors: {
         allowedOrigins: env.corsAllowedOrigins,
         allowCredentials: env.corsAllowCredentials,
@@ -28,7 +29,8 @@ const configuration = () => {
         clientSecret: env.authGithubClientSecret,
         redirectUri: env.authGithubRedirectUri,
         scope: (() => {
-          const scopes = env.authGithubScope
+          const scopeSource = env.authGithubScope ?? '';
+          const scopes = scopeSource
             .split(',')
             .map((item) => item.trim())
             .filter((item) => item.length > 0);

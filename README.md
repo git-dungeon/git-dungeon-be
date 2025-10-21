@@ -28,6 +28,7 @@ pnpm contract:swagger   # Swagger 문서만 생성
 | `LOG_PRETTY`               | 개발용 컬러/단일라인 로그 출력 여부         | `true` (dev)                                                                         |
 | `CORS_ALLOWED_ORIGINS`     | 허용할 오리진 목록(콤마 구분)                | `http://localhost:4173,http://localhost:5173,https://staging.gitdungeon.com,https://app.gitdungeon.com` |
 | `CORS_ALLOW_CREDENTIALS`   | 쿠키 등 credentials 포함 요청 허용 여부     | `true`                                                                               |
+| `PUBLIC_BASE_URL`          | 외부에 공개된 백엔드 기본 Origin (OAuth 브리지/미들웨어 기준) | `http://localhost:3000` (dev), 배포 환경 필수 설정                                   |
 | `DATABASE_URL`             | Prisma 기본 데이터베이스 접속 문자열        | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon?schema=public`        |
 | `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열 | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public` |
 | `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                       | `false` (prod), `true` (dev)                                                         |

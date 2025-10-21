@@ -12,4 +12,5 @@ export interface AuthRedirectConfig {
 export interface AuthConfig {
   github: GitHubAuthConfig;
   redirect: AuthRedirectConfig;
+  publicBaseUrl: string;
 }

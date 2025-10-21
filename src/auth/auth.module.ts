@@ -49,16 +49,29 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
               }),
           ),
         );
+        const rawPublicBaseUrl = configService.get<string>('app.publicBaseUrl');
 
         const missing: string[] = [];
         if (!clientId) missing.push('auth.github.clientId');
         if (!clientSecret) missing.push('auth.github.clientSecret');
         if (!redirectUri) missing.push('auth.github.redirectUri');
+        if (!rawPublicBaseUrl) missing.push('app.publicBaseUrl');
 
         if (missing.length > 0) {
           throw new Error(
             `[AuthModule] missing configuration: ${missing.join(', ')}`,
           );
+        }
+
+        let normalizedPublicBaseUrl: string | undefined;
+        if (rawPublicBaseUrl) {
+          try {
+            normalizedPublicBaseUrl = new URL(rawPublicBaseUrl).origin;
+          } catch {
+            throw new Error(
+              '[AuthModule] invalid configuration: app.publicBaseUrl must be a valid absolute URL',
+            );
+          }
         }
 
         const normalizedScope =
@@ -76,6 +89,7 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
           redirect: {
             allowedOrigins: normalizedAllowedOrigins,
           },
+          publicBaseUrl: normalizedPublicBaseUrl!,
         };
       },
     },
