@@ -8,13 +8,14 @@ import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
 import type { AuthConfig } from './auth.interfaces.js';
 import { AuthService } from './auth.service.js';
 import { AuthController } from './auth.controller.js';
+import { AuthSessionController } from './auth-session.controller.js';
 import { AuthSessionService } from './auth-session.service.js';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
 @Module({
   imports: [ConfigModule, PrismaModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthSessionController],
   providers: [
     {
       provide: AUTH_CONFIG_TOKEN,

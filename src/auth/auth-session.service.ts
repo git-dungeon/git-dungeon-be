@@ -1,5 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import type { Request } from 'express';
+import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { getCookies } from 'better-auth/cookies';
 import { BETTER_AUTH_TOKEN } from './auth.constants.js';
@@ -17,10 +22,29 @@ interface SessionPayload {
   user: Record<string, unknown>;
 }
 
+export interface AuthSessionUserView {
+  userId: string;
+  username: string | null;
+  displayName: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+}
+
+export interface AuthSessionView {
+  session: AuthSessionUserView;
+  refreshed: boolean;
+}
+
 export interface ActiveSessionResult {
   payload: SessionPayload;
   cookies: string[];
   refreshed: boolean;
+  view: AuthSessionView;
+}
+
+export interface SignOutResult {
+  cookies: string[];
+  success: boolean;
 }
 
 export interface SessionCookieDescriptor {
@@ -70,10 +94,14 @@ export class AuthSessionService {
     }
 
     const cookies = collectSetCookies(responseHeaders);
+    const payload = response as SessionPayload;
+    const refreshed = cookies.length > 0;
+
     return {
-      payload: response as SessionPayload,
+      payload,
       cookies,
-      refreshed: cookies.length > 0,
+      refreshed,
+      view: this.buildSessionView(payload, refreshed),
     };
   }
 
@@ -100,6 +128,85 @@ export class AuthSessionService {
       secure: cookie.options.secure,
       path: cookie.options.path,
     }));
+  }
+
+  async signOut(request: Request): Promise<SignOutResult> {
+    const headers = buildForwardHeaders(request);
+
+    try {
+      const { headers: responseHeaders, response } =
+        await this.betterAuth.api.signOut({
+          headers,
+          returnHeaders: true,
+        });
+
+      return {
+        cookies: collectSetCookies(responseHeaders),
+        success: Boolean(
+          (response as { success?: boolean } | undefined)?.success ?? true,
+        ),
+      };
+    } catch (error) {
+      if (error instanceof APIError) {
+        throw new InternalServerErrorException({
+          code: 'AUTH_PROVIDER_ERROR',
+          message: 'GitHub OAuth provider returned an error.',
+          details: {
+            provider: 'github',
+            reason: error.message,
+          },
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  private buildSessionView(
+    payload: SessionPayload,
+    refreshed: boolean,
+  ): AuthSessionView {
+    const session = payload.session ?? {};
+    const user = payload.user ?? {};
+
+    const sessionUserId = this.readString(session, 'userId');
+    const userId =
+      sessionUserId ??
+      this.readString(user, 'id') ??
+      this.readString(user, 'userId') ??
+      '';
+
+    const username =
+      this.readString(user, 'username') ??
+      this.readString(user, 'login') ??
+      this.readString(user, 'name');
+    const displayName = this.readString(user, 'name');
+    const email = this.readString(user, 'email');
+    const avatarUrl = this.readString(user, 'image');
+
+    return {
+      session: {
+        userId,
+        username: username ?? null,
+        displayName: displayName ?? null,
+        email: email ?? null,
+        avatarUrl: avatarUrl ?? null,
+      },
+      refreshed,
+    };
+  }
+
+  private readString(
+    source: Record<string, unknown>,
+    key: string,
+  ): string | null {
+    const value = source?.[key];
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 
   private hasSessionCookie(request: Request): boolean {

@@ -70,6 +70,30 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
 
       if (typeof res === 'object' && res) {
+        if (
+          'error' in res &&
+          typeof (res as { error?: unknown }).error === 'object' &&
+          (
+            res as {
+              error?: { code?: unknown; message?: unknown; details?: unknown };
+            }
+          ).error
+        ) {
+          const nested = (
+            res as {
+              error: { code?: unknown; message?: unknown; details?: unknown };
+            }
+          ).error;
+
+          return {
+            code:
+              typeof nested.code === 'string' ? nested.code : exception.name,
+            message:
+              typeof nested.message === 'string' ? nested.message : 'Error',
+            details: nested.details,
+          };
+        }
+
         const { error, message, code, ...details } = res as Record<
           string,
           unknown

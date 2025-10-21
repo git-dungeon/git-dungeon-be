@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Logger } from 'nestjs-pino';
-import request from 'supertest';
+import request, { Response as SupertestResponse } from 'supertest';
 import {
   afterAll,
   beforeAll,
@@ -16,6 +16,8 @@ import { AppModule } from '../app.module.js';
 import { BETTER_AUTH_TOKEN } from './auth.constants.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { AuthSessionController } from './auth-session.controller.js';
+import { AuthSessionService } from './auth-session.service.js';
 
 vi.mock('typia', () => ({
   __esModule: true,
@@ -59,6 +61,64 @@ const setupTestEnv = () => {
   process.env.DATABASE_SKIP_CONNECTION = 'true';
 };
 
+const createHeaders = (cookies: string[] = []) => {
+  const headers = new Headers();
+  for (const cookie of cookies) {
+    headers.append('set-cookie', cookie);
+  }
+
+  Object.defineProperty(headers, 'getSetCookie', {
+    configurable: true,
+    value: () => cookies,
+  });
+
+  return headers as Headers & { getSetCookie: () => string[] };
+};
+
+const extractCookies = (response: SupertestResponse): string[] => {
+  const cookieHeader = response.headers['set-cookie'];
+  if (!cookieHeader) {
+    return [];
+  }
+
+  return Array.isArray(cookieHeader) ? cookieHeader : [cookieHeader];
+};
+
+interface ApiResponseMeta {
+  requestId?: string;
+  generatedAt?: string;
+}
+
+interface ApiSuccessResponse<T> {
+  success: true;
+  data: T;
+  meta: ApiResponseMeta;
+}
+
+interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message?: string;
+    details?: unknown;
+  };
+  meta: ApiResponseMeta;
+}
+
+const expectSuccessBody = <T>(
+  response: SupertestResponse,
+): ApiSuccessResponse<T> => {
+  const body = response.body as ApiSuccessResponse<T>;
+  expect(body.success).toBe(true);
+  return body;
+};
+
+const expectErrorBody = (response: SupertestResponse): ApiErrorResponse => {
+  const body = response.body as ApiErrorResponse;
+  expect(body.success).toBe(false);
+  return body;
+};
+
 describe('AuthController (E2E)', () => {
   const originalEnv = Object.entries(process.env).reduce<
     Record<string, string | undefined>
@@ -69,6 +129,8 @@ describe('AuthController (E2E)', () => {
   let app: INestApplication;
   let signInSocialMock: ReturnType<typeof vi.fn>;
   let handlerMock: ReturnType<typeof vi.fn>;
+  let getSessionMock: ReturnType<typeof vi.fn>;
+  let signOutMock: ReturnType<typeof vi.fn>;
 
   const createAgent = () =>
     request(app.getHttpServer() as Parameters<typeof request>[0]);
@@ -89,6 +151,16 @@ describe('AuthController (E2E)', () => {
       Promise.resolve(new Response(null, { status: 404 })),
     );
 
+    getSessionMock = vi.fn().mockResolvedValue({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    signOutMock = vi.fn().mockResolvedValue({
+      response: { success: true },
+      headers: createHeaders(),
+    });
+
     const stubAuth = {
       handler: handlerMock,
       api: {
@@ -99,6 +171,8 @@ describe('AuthController (E2E)', () => {
             redirect: true,
           },
         }),
+        getSession: getSessionMock,
+        signOut: signOutMock,
       },
       options: {
         baseURL: 'http://localhost:3000/api/auth',
@@ -129,11 +203,29 @@ describe('AuthController (E2E)', () => {
     const service = app.get<AuthService>(AuthService);
     (controller as unknown as { authService: AuthService }).authService =
       service;
+
+    const sessionController = app.get<AuthSessionController>(
+      AuthSessionController,
+    );
+    const sessionService = app.get<AuthSessionService>(AuthSessionService);
+    (
+      sessionController as unknown as { authSessionService: AuthSessionService }
+    ).authSessionService = sessionService;
   });
 
   beforeEach(() => {
     signInSocialMock.mockClear();
     handlerMock.mockClear();
+    getSessionMock.mockReset();
+    getSessionMock.mockResolvedValue({
+      response: null,
+      headers: createHeaders(),
+    });
+    signOutMock.mockReset();
+    signOutMock.mockResolvedValue({
+      response: { success: true },
+      headers: createHeaders(),
+    });
   });
 
   afterAll(async () => {
@@ -264,5 +356,160 @@ describe('AuthController (E2E)', () => {
     expect(response.headers.location).toBe(
       'http://localhost:4173/dashboard?authError=AUTH_PROVIDER_ERROR',
     );
+  });
+
+  it('GET /api/auth/session 요청 시 활성 세션 정보를 반환해야 한다', async () => {
+    const refreshedCookies = [
+      'better-auth.session_token=renewed-session; Path=/; HttpOnly',
+      'better-auth.session_data=renewed-data; Path=/; HttpOnly',
+    ];
+    const payload = {
+      session: {
+        id: 'sess-123',
+        userId: 'user-123',
+        expiresAt: new Date().toISOString(),
+      },
+      user: {
+        id: 'user-123',
+        name: 'Test User',
+        email: 'user@example.com',
+        image: 'https://example.com/avatar.png',
+      },
+    };
+
+    getSessionMock.mockResolvedValueOnce({
+      response: payload,
+      headers: createHeaders(refreshedCookies),
+    });
+
+    const response = await createAgent()
+      .get('/api/auth/session')
+      .set(
+        'Cookie',
+        'better-auth.session_token=stub; better-auth.session_data=stub-data',
+      )
+      .expect(200);
+
+    const body = expectSuccessBody<{
+      session: {
+        userId: string;
+        username: string | null;
+        displayName: string | null;
+        email: string | null;
+        avatarUrl: string | null;
+      };
+      refreshed: boolean;
+    }>(response);
+
+    expect(body.data.session).toEqual({
+      userId: 'user-123',
+      username: 'Test User',
+      displayName: 'Test User',
+      email: 'user@example.com',
+      avatarUrl: 'https://example.com/avatar.png',
+    });
+    expect(body.data.refreshed).toBe(true);
+    expect(body.meta.requestId).toBeDefined();
+
+    const cookies = extractCookies(response);
+    expect(cookies).toEqual(expect.arrayContaining(refreshedCookies));
+  });
+
+  it('GET /api/auth/session 요청 시 만료된 세션이면 AUTH_SESSION_EXPIRED 오류를 반환해야 한다', async () => {
+    getSessionMock.mockResolvedValueOnce({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    const response = await createAgent()
+      .get('/api/auth/session')
+      .set('Cookie', 'better-auth.session_token=expired')
+      .expect(401);
+
+    const body = expectErrorBody(response);
+    expect(body.error.code).toBe('AUTH_SESSION_EXPIRED');
+  });
+
+  it('GET /api/auth/session 요청 시 쿠키가 없으면 AUTH_SESSION_INVALID 오류를 반환해야 한다', async () => {
+    getSessionMock.mockResolvedValueOnce({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    const response = await createAgent().get('/api/auth/session').expect(401);
+    const body = expectErrorBody(response);
+    expect(body.error.code).toBe('AUTH_SESSION_INVALID');
+  });
+
+  it('POST /api/auth/logout 요청 시 세션이 해제되고 쿠키가 제거되어야 한다', async () => {
+    const sessionPayload = {
+      session: {
+        id: 'sess-logout',
+        userId: 'user-logout',
+        expiresAt: new Date().toISOString(),
+      },
+      user: {
+        id: 'user-logout',
+        name: 'Logout User',
+      },
+    };
+
+    const clearedCookies = [
+      'better-auth.session_token=; Path=/; HttpOnly; Max-Age=0',
+      'better-auth.session_data=; Path=/; HttpOnly; Max-Age=0',
+    ];
+
+    getSessionMock.mockResolvedValueOnce({
+      response: sessionPayload,
+      headers: createHeaders(),
+    });
+
+    signOutMock.mockResolvedValueOnce({
+      response: { success: true },
+      headers: createHeaders(clearedCookies),
+    });
+
+    const response = await createAgent()
+      .post('/api/auth/logout')
+      .set(
+        'Cookie',
+        'better-auth.session_token=active; better-auth.session_data=active-data',
+      )
+      .expect(200);
+
+    const body = expectSuccessBody<{ success: true }>(response);
+
+    expect(body.data.success).toBe(true);
+    expect(body.meta.requestId).toBeDefined();
+
+    const cookies = extractCookies(response);
+    expect(cookies.some((cookie) => cookie.includes('Max-Age=0'))).toBe(true);
+  });
+
+  it('POST /api/auth/logout 요청 시 세션이 없으면 AUTH_SESSION_INVALID 오류를 반환해야 한다', async () => {
+    getSessionMock.mockResolvedValueOnce({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    const response = await createAgent().post('/api/auth/logout').expect(401);
+
+    const body = expectErrorBody(response);
+    expect(body.error.code).toBe('AUTH_SESSION_INVALID');
+  });
+
+  it('POST /api/auth/logout 요청 시 쿠키는 있으나 세션이 없으면 AUTH_SESSION_EXPIRED 오류를 반환해야 한다', async () => {
+    getSessionMock.mockResolvedValueOnce({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    const response = await createAgent()
+      .post('/api/auth/logout')
+      .set('Cookie', 'better-auth.session_token=expired')
+      .expect(401);
+
+    const body = expectErrorBody(response);
+    expect(body.error.code).toBe('AUTH_SESSION_EXPIRED');
   });
 });

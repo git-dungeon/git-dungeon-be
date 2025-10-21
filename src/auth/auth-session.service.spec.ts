@@ -88,6 +88,16 @@ describe('AuthSessionService', () => {
     expect(result?.payload).toEqual(payload);
     expect(result?.cookies).toEqual(cookies);
     expect(result?.refreshed).toBe(true);
+    expect(result?.view).toEqual({
+      session: {
+        userId: 'user',
+        username: null,
+        displayName: null,
+        email: 'user@example.com',
+        avatarUrl: null,
+      },
+      refreshed: true,
+    });
 
     const lastCall = getSessionMock.mock.calls.at(-1) as
       | GetSessionArgs

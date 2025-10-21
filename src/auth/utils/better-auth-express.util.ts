@@ -143,6 +143,13 @@ export const createBetterAuthExpressMiddleware =
     try {
       const request = toFetchRequest(req);
       const response = await handler(request);
+
+      if (response.status === 404) {
+        await response.body?.cancel?.().catch(() => undefined);
+        next();
+        return;
+      }
+
       await sendExpressResponse(res, response);
     } catch (error) {
       next(error);
