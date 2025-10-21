@@ -6,7 +6,7 @@ import {
   Res,
   UseInterceptors,
 } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { CookieOptions, Request, Response } from 'express';
 import { TypedRoute } from '@nestia/core';
 import { ApiResponseInterceptor } from '../common/interceptors/api-response.interceptor.js';
 import { AuthSessionService } from './auth-session.service.js';
@@ -61,14 +61,20 @@ export class AuthSessionController {
   private clearSessionCookies(response: Response): void {
     const cookies = this.authSessionService.describeSessionCookies();
     for (const cookie of cookies) {
-      response.cookie(cookie.name, '', {
+      const options: CookieOptions = {
         httpOnly: cookie.httpOnly,
         sameSite: this.normalizeSameSite(cookie.sameSite),
         secure: cookie.secure,
         path: cookie.path ?? '/',
         expires: new Date(0),
         maxAge: 0,
-      });
+      };
+
+      if (cookie.domain) {
+        options.domain = cookie.domain;
+      }
+
+      response.cookie(cookie.name, '', options);
     }
   }
 

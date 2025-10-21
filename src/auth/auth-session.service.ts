@@ -53,6 +53,7 @@ export interface SessionCookieDescriptor {
   sameSite?: string;
   secure?: boolean;
   path?: string;
+  domain?: string;
 }
 
 @Injectable()
@@ -127,6 +128,7 @@ export class AuthSessionService {
       sameSite: cookie.options.sameSite as string | undefined,
       secure: cookie.options.secure,
       path: cookie.options.path,
+      domain: cookie.options.domain,
     }));
   }
 
