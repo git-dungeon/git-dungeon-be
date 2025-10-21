@@ -48,10 +48,10 @@ better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 �
 1. **GitHub OAuth App 생성**
    - Organization → *Settings* → *Developer settings* → *OAuth Apps* 에서 새 앱을 생성합니다.
    - Homepage URL: `https://app.gitdungeon.com`
-   - Authorization callback URL:
-     - 개발: `http://localhost:4173/auth/github/callback`
-     - 스테이징: `https://staging.gitdungeon.com/auth/github/callback`
-     - 프로덕션: `https://app.gitdungeon.com/auth/github/callback`
+   - Authorization callback URL (better-auth 서버 콜백 기준):
+     - 개발: `http://localhost:3000/api/auth/callback/github`
+     - 스테이징: `https://staging-api.gitdungeon.com/api/auth/callback/github`
+     - 프로덕션: `https://api.gitdungeon.com/api/auth/callback/github`
    - *Client ID*와 *Client Secret*을 발급받아 비밀 관리 스토리지(예: AWS Secrets Manager)에 저장합니다.
 
 2. **환경 변수 주입**
@@ -61,14 +61,14 @@ better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 �
      | ---- | ---- |
      | `AUTH_GITHUB_CLIENT_ID` | GitHub OAuth Client ID |
      | `AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret |
-     | `AUTH_GITHUB_REDIRECT_URI` | better-auth가 GitHub 인증 완료 후 호출할 callback URL |
+     | `AUTH_GITHUB_REDIRECT_URI` | better-auth가 GitHub 인증 완료 후 호출할 callback URL (`/api/auth/callback/github`) |
      | `AUTH_GITHUB_SCOPE` | 추가 OAuth scope 목록 (기본값 `read:user,user:email`) |
 
    - 값이 누락되면 부팅 시점에 Typia 검증이 실패하므로, 배포 전에 Secrets/ConfigMap 등을 통해 주입 여부를 확인합니다.
 
 3. **보안 체크**
    - `/auth/github` 엔드포인트는 내부 경로(`/...`)만 redirect 대상으로 허용하므로, 프런트엔드는 `sanitizeRedirectPath`를 사용해 동일 규칙을 준수합니다.
-   - 팝업 모드에서 사용하는 `parent` 파라미터는 서버 오리진과 일치할 때만 callback URL로 전달되므로, 프런트 postMessage 수신 시에도 동일하게 origin 검증을 수행합니다.
+   - better-auth 콜백(`/api/auth/callback/github`) 이후에는 백엔드 브릿지(`/auth/github/redirect`)가 최종 SPA 경로로 리다이렉트하므로, 허용된 origin(`CORS_ALLOWED_ORIGINS`) 구성이 최신인지 확인합니다.
    - GitHub 비밀키는 저장소에 커밋하지 말고, `.env` 대신 운영 전용 Secret으로 관리합니다.
 
 4. **연동 검증**
