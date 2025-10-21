@@ -7,6 +7,11 @@ const configuration = () => {
     app: {
       env: env.nodeEnv,
       port: env.port,
+      publicBaseUrl: env.publicBaseUrl,
+      cors: {
+        allowedOrigins: env.corsAllowedOrigins,
+        allowCredentials: env.corsAllowCredentials,
+      },
     },
     logger: {
       level: env.logLevel,
@@ -17,6 +22,22 @@ const configuration = () => {
       shadowUrl: env.databaseShadowUrl,
       logQueries: env.databaseLogQueries,
       skipConnection: env.databaseSkipConnection,
+    },
+    auth: {
+      github: {
+        clientId: env.authGithubClientId,
+        clientSecret: env.authGithubClientSecret,
+        redirectUri: env.authGithubRedirectUri,
+        scope: (() => {
+          const scopeSource = env.authGithubScope ?? '';
+          const scopes = scopeSource
+            .split(',')
+            .map((item) => item.trim())
+            .filter((item) => item.length > 0);
+
+          return scopes.length > 0 ? scopes : ['read:user', 'user:email'];
+        })(),
+      },
     },
   };
 };

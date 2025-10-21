@@ -4,6 +4,8 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
+  Optional,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { errorResponse } from '../http/api-response.js';
@@ -15,7 +17,9 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: PinoLogger) {}
+  private readonly fallbackLogger = new Logger(HttpExceptionFilter.name);
+
+  constructor(@Optional() private readonly logger?: PinoLogger) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -35,14 +39,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const error: ApiErrorBody = this.normalizeError(exception);
 
-    this.logger.error(
-      {
-        err: exception instanceof Error ? exception : undefined,
-        requestId,
-        path: request?.url,
-      },
-      error.message,
-    );
+    const errorMessage = error.message;
+
+    if (this.logger) {
+      this.logger.error(
+        {
+          err: exception instanceof Error ? exception : undefined,
+          requestId,
+          path: request?.url,
+        },
+        errorMessage,
+      );
+    } else {
+      const trace =
+        exception instanceof Error
+          ? exception.stack
+          : JSON.stringify({ requestId, path: request?.url });
+      this.fallbackLogger.error(errorMessage, trace);
+    }
 
     response.status(status).json(errorResponse(error, meta));
   }
@@ -59,6 +73,30 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
 
       if (typeof res === 'object' && res) {
+        if (
+          'error' in res &&
+          typeof (res as { error?: unknown }).error === 'object' &&
+          (
+            res as {
+              error?: { code?: unknown; message?: unknown; details?: unknown };
+            }
+          ).error
+        ) {
+          const nested = (
+            res as {
+              error: { code?: unknown; message?: unknown; details?: unknown };
+            }
+          ).error;
+
+          return {
+            code:
+              typeof nested.code === 'string' ? nested.code : exception.name,
+            message:
+              typeof nested.message === 'string' ? nested.message : 'Error',
+            details: nested.details,
+          };
+        }
+
         const { error, message, code, ...details } = res as Record<
           string,
           unknown
