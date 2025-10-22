@@ -76,6 +76,17 @@ better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 �
    - 로컬에서 `pnpm start:dev` 실행 후 `http://localhost:3000/auth/github?redirect=/dashboard` 호출 시 GitHub authorize 화면으로 리다이렉트되는지 확인합니다.
    - `pnpm test` 수행 시 `/auth/github` Supertest 케이스가 redirect/보안 검사 시나리오를 검증합니다.
 
+### 인증 Guard 적용 가이드
+
+- 보호가 필요한 API 핸들러에는 `@Authenticated()` 데코레이터를 적용해 `AuthGuard`를 연결합니다. (파일: `src/auth/decorators/authenticated.decorator.ts`)
+- Guard는 성공한 세션 정보를 `request.authSession`으로 주입하므로, 핸들러에서는 `@CurrentAuthSession()`을 사용해 세션 뷰를 재사용할 수 있습니다.
+- 기본적으로 보호돼야 하는 라우트는 다음과 같습니다.
+  - `GET /api/auth/session`
+  - `POST /api/auth/logout`
+  - `GET /api/auth/whoami`
+- 새 API 추가 시 인증이 필요하면 `@Authenticated()`와 `@CurrentAuthSession()`을 함께 사용하고, 공개 API라면 데코레이터 없이 구현합니다.
+- 현재 Guard/데코레이터 조합은 HTTP 요청 전용이며, WebSocket/RPC 등 다른 컨텍스트에는 별도 어댑터가 필요합니다.
+
 ## 데이터베이스
 
 ### Docker Compose로 PostgreSQL 실행

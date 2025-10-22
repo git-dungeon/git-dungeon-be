@@ -441,6 +441,53 @@ describe('AuthController (E2E)', () => {
     expect(body.error.code).toBe('AUTH_SESSION_INVALID');
   });
 
+  it('GET /api/auth/whoami 요청 시 현재 사용자명을 반환해야 한다', async () => {
+    const refreshedCookies = [
+      'better-auth.session_token=renewed-session; Path=/; HttpOnly',
+    ];
+    const payload = {
+      session: {
+        id: 'sess-whoami',
+        userId: 'user-whoami',
+      },
+      user: {
+        id: 'user-whoami',
+        login: 'hero',
+        name: 'Guild Hero',
+      },
+    };
+
+    getSessionMock.mockResolvedValueOnce({
+      response: payload,
+      headers: createHeaders(refreshedCookies),
+    });
+
+    const response = await createAgent()
+      .get('/api/auth/whoami')
+      .set(
+        'Cookie',
+        'better-auth.session_token=stub; better-auth.session_data=stub-data',
+      )
+      .expect(200);
+
+    const body = expectSuccessBody<{ username: string | null }>(response);
+
+    expect(body.data.username).toBe('hero');
+    const cookies = extractCookies(response);
+    expect(cookies).toEqual(expect.arrayContaining(refreshedCookies));
+  });
+
+  it('GET /api/auth/whoami 요청 시 인증 정보가 없으면 AUTH_SESSION_INVALID 오류를 반환해야 한다', async () => {
+    getSessionMock.mockResolvedValueOnce({
+      response: null,
+      headers: createHeaders(),
+    });
+
+    const response = await createAgent().get('/api/auth/whoami').expect(401);
+    const body = expectErrorBody(response);
+    expect(body.error.code).toBe('AUTH_SESSION_INVALID');
+  });
+
   it('POST /api/auth/logout 요청 시 세션이 해제되고 쿠키가 제거되어야 한다', async () => {
     const sessionPayload = {
       session: {
