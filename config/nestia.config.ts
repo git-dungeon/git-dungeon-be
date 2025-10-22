@@ -2,10 +2,15 @@ import type { INestiaConfig } from '@nestia/sdk';
 import { NestFactory } from '@nestjs/core';
 import { NoTransformConfigurationError } from '@nestia/core/lib/decorators/NoTransformConfigurationError.js';
 
+type AppModuleConstructor = typeof import('../src/app.module.js').AppModule;
+
 const config: INestiaConfig = {
   input: async () => {
     NoTransformConfigurationError.throws = false;
-    const { AppModule } = await import('../dist/app.module.js');
+    const moduleUrl = new URL('../dist/app.module.js', import.meta.url);
+    const { AppModule } = (await import(moduleUrl.href)) as {
+      AppModule: AppModuleConstructor;
+    };
     const app = await NestFactory.create(AppModule, {
       logger: false,
     });
