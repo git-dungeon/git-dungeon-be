@@ -5,7 +5,6 @@ import {
   InternalServerErrorException,
   Req,
   Res,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
@@ -16,7 +15,8 @@ import type {
   ActiveSessionResult,
   AuthSessionView,
 } from './auth-session.service.js';
-import { AuthGuard } from './guards/auth.guard.js';
+import { Authenticated } from './decorators/authenticated.decorator.js';
+import { CurrentAuthSession } from './decorators/current-auth-session.decorator.js';
 import type { AuthenticatedRequest } from './auth-session.request.js';
 
 @Controller('api/auth')
@@ -25,7 +25,7 @@ export class AuthSessionController {
   constructor(private readonly authSessionService: AuthSessionService) {}
 
   @TypedRoute.Get('session')
-  @UseGuards(AuthGuard)
+  @Authenticated()
   getSession(
     @Req() request: AuthenticatedRequest,
     @Res({ passthrough: true }) response: Response,
@@ -52,7 +52,7 @@ export class AuthSessionController {
   }
 
   @TypedRoute.Post('logout')
-  @UseGuards(AuthGuard)
+  @Authenticated()
   @HttpCode(HttpStatus.OK)
   async logout(
     @Req() request: AuthenticatedRequest,
@@ -67,6 +67,20 @@ export class AuthSessionController {
 
     return {
       success: true,
+    };
+  }
+
+  @TypedRoute.Get('whoami')
+  @Authenticated()
+  whoAmI(
+    @CurrentAuthSession() session: ActiveSessionResult,
+    @Res({ passthrough: true }) response: Response,
+  ): { username: string | null } {
+    this.applyNoCacheHeaders(response);
+    this.appendCookies(response, session.cookies);
+
+    return {
+      username: session.view.session.username,
     };
   }
 
