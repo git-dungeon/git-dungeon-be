@@ -2,9 +2,9 @@ import 'reflect-metadata';
 import process from 'node:process';
 import fs from 'node:fs';
 import path from 'node:path';
-import config from '../config/nestia.config.ts';
 import { NoTransformConfigurationError } from '@nestia/core/lib/decorators/NoTransformConfigurationError.js';
 import { NestiaSdkApplication, type INestiaConfig } from '@nestia/sdk';
+import { pathToFileURL } from 'node:url';
 
 NoTransformConfigurationError.throws = false;
 
@@ -35,7 +35,10 @@ const isModuleWithDefault = (
 
 const main = async () => {
   const mode = process.argv[2] ?? 'all';
-  const moduleValue = config as ConfigModule;
+  const configPath = path.resolve(__dirname, '../config/nestia.config.ts');
+  const moduleValue = (await import(
+    pathToFileURL(configPath).href
+  )) as ConfigModule;
   const rawConfig = isModuleWithDefault(moduleValue)
     ? moduleValue.default
     : moduleValue;
