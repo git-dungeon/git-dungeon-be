@@ -83,6 +83,7 @@ better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 �
 - 기본적으로 보호돼야 하는 라우트는 다음과 같습니다.
   - `GET /api/auth/session`
   - `POST /api/auth/logout`
+  - `GET /api/auth/whoami`
 - 새 API 추가 시 인증이 필요하면 `@Authenticated()`와 `@CurrentAuthSession()`을 함께 사용하고, 공개 API라면 데코레이터 없이 구현합니다.
 - 현재 Guard/데코레이터 조합은 HTTP 요청 전용이며, WebSocket/RPC 등 다른 컨텍스트에는 별도 어댑터가 필요합니다.
 
