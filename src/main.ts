@@ -12,6 +12,7 @@ import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-expr
 async function bootstrap() {
   const bootstrapLogger = new NestLogger('Bootstrap');
   let app: INestApplication | undefined;
+  let appLogger: PinoLogger | undefined;
 
   try {
     app = await NestFactory.create(AppModule, {
@@ -19,6 +20,7 @@ async function bootstrap() {
     });
 
     const logger = app.get(PinoLogger);
+    appLogger = logger;
     app.useLogger(logger);
     app.enableShutdownHooks();
 
@@ -114,6 +116,10 @@ async function bootstrap() {
       error instanceof Error ? error.message : JSON.stringify(error);
 
     bootstrapLogger.error(`Failed to bootstrap application: ${message}`, stack);
+    console.error('[Bootstrap] Failed to bootstrap application:', message);
+    if (stack) {
+      console.error(stack);
+    }
 
     if (app) {
       try {
@@ -126,6 +132,21 @@ async function bootstrap() {
           closeStack,
         );
       }
+    }
+
+    if (appLogger) {
+      await flushApplicationLogger(appLogger).catch((flushError) => {
+        const flushStack =
+          flushError instanceof Error ? flushError.stack : undefined;
+        bootstrapLogger.warn(
+          'Failed to flush application logger before exit',
+          flushStack,
+        );
+        console.warn(
+          '[Bootstrap] Failed to flush application logger before exit',
+          flushError,
+        );
+      });
     }
 
     process.exit(1);
@@ -142,6 +163,7 @@ function registerShutdownSignals(
     try {
       await app.close();
       logger.log('Application shutdown complete.');
+      await flushApplicationLogger(logger);
       process.exit(0);
     } catch (error) {
       logger.error(
@@ -150,6 +172,7 @@ function registerShutdownSignals(
         },
         'Error during application shutdown.',
       );
+      await flushApplicationLogger(logger).catch(() => undefined);
       process.exit(1);
     }
   };
@@ -163,3 +186,17 @@ function registerShutdownSignals(
 }
 
 void bootstrap();
+
+async function flushApplicationLogger(logger: PinoLogger): Promise<void> {
+  // Pino logger를 강제로 flush하여 종료 직전 로그 유실을 방지한다.
+  const firstLevel = (logger as unknown as { logger?: unknown }).logger;
+  const secondLevel = (firstLevel as { logger?: unknown })?.logger;
+  const target = secondLevel ?? firstLevel ?? logger;
+
+  const flush = (target as { flush?: () => Promise<void> }).flush;
+  if (typeof flush !== 'function') {
+    return;
+  }
+
+  await flush.call(target);
+}
