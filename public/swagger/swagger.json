@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "servers": [
     {
-      "url": "https://github.com/samchon/nestia",
-      "description": "insert your server url"
+      "url": "https://api.gitdungeon.com",
+      "description": "production Server"
     }
   ],
   "info": {

@@ -16,6 +16,14 @@ const config: INestiaConfig = {
   swagger: {
     output: 'generated/swagger.json',
     beautify: true,
+    servers: [
+      {
+        url: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
+        description: process.env.NODE_ENV
+          ? `${process.env.NODE_ENV.charAt(0).toUpperCase() + process.env.NODE_ENV.slice(1)} Server`
+          : 'Development Server',
+      },
+    ],
   },
   primitive: true,
 };

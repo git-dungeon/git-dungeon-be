@@ -35,7 +35,7 @@ const isModuleWithDefault = (
 
 const main = async () => {
   const mode = process.argv[2] ?? 'all';
-  const configPath = path.resolve(__dirname, '../config/nestia.config.ts');
+  const configPath = path.resolve(__dirname, '../nestia.config.ts');
   const moduleValue = (await import(
     pathToFileURL(configPath).href
   )) as ConfigModule;
