@@ -129,7 +129,6 @@ describe('SettingsService', () => {
         github: {
           connected: true,
           lastSyncAt: '2025-10-17T01:15:00.000Z',
-          profileUrl: 'https://github.com/mock-user',
         },
       },
     });
@@ -247,7 +246,6 @@ describe('SettingsController', () => {
         github: {
           connected: true,
           lastSyncAt: '2025-10-17T01:15:00.000Z',
-          profileUrl: 'https://github.com/mock-user',
         },
       },
     };

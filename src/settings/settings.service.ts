@@ -34,7 +34,6 @@ export class SettingsService {
         accounts: {
           where: { providerId: 'github' },
           select: {
-            accountId: true,
             updatedAt: true,
           },
         },
@@ -64,10 +63,6 @@ export class SettingsService {
         github: {
           connected: Boolean(githubAccount),
           lastSyncAt: githubAccount?.updatedAt.toISOString() ?? null,
-          profileUrl: this.resolveGithubProfileUrl(
-            sessionView.username,
-            githubAccount?.accountId,
-          ),
         },
       },
     };
@@ -89,20 +84,5 @@ export class SettingsService {
 
       throw error;
     }
-  }
-
-  private resolveGithubProfileUrl(
-    username: string | null,
-    accountId?: string,
-  ): string | null {
-    if (username && username.trim().length > 0) {
-      return `https://github.com/${username}`;
-    }
-
-    if (accountId && accountId.trim().length > 0) {
-      return `https://github.com/${accountId}`;
-    }
-
-    return null;
   }
 }

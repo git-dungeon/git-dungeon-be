@@ -19,5 +19,4 @@ export interface SettingsConnections {
 export interface GithubConnectionStatus {
   connected: boolean;
   lastSyncAt: string | null;
-  profileUrl: string | null;
 }
