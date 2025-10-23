@@ -2,12 +2,14 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { INestApplication, Logger as NestLogger } from '@nestjs/common';
+import { SwaggerModule } from '@nestjs/swagger';
+import { NestiaSwaggerComposer } from '@nestia/sdk';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import type { Auth } from 'better-auth';
 import type { Express } from 'express';
-import { AppModule } from './app.module.js';
-import { BETTER_AUTH_TOKEN } from './auth/auth.constants.js';
-import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-express.util.js';
+import { AppModule } from './app.module';
+import { BETTER_AUTH_TOKEN } from './auth/auth.constants';
+import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-express.util';
 
 async function bootstrap() {
   const bootstrapLogger = new NestLogger('Bootstrap');
@@ -106,6 +108,25 @@ async function bootstrap() {
 
     if (!middlewareMounted) {
       raiseBetterAuthError('middleware mounting exited without completion');
+    }
+
+    // Setup Swagger UI at runtime
+    try {
+      const document = await NestiaSwaggerComposer.document(app, {
+        openapi: '3.1',
+        servers: [
+          {
+            url: `http://localhost:${port}`,
+            description: 'Local Server',
+          },
+        ],
+      });
+      SwaggerModule.setup('api', app, document as any);
+      logger.log(
+        'Swagger UI is available at http://localhost:' + port + '/api',
+      );
+    } catch (error) {
+      logger.warn('Failed to generate Swagger documentation:', error);
     }
 
     await app.listen(port);

@@ -1,7 +1,7 @@
 import type { INestiaConfig } from '@nestia/sdk';
 import { NestFactory } from '@nestjs/core';
 import { NoTransformConfigurationError } from '@nestia/core/lib/decorators/NoTransformConfigurationError.js';
-import { AppModule } from '../src/app.module';
+import { AppModule } from './src/app.module';
 
 const config: INestiaConfig = {
   input: async () => {

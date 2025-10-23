@@ -7,15 +7,15 @@ import {
 import { Request } from 'express';
 import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
-import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
-import type { AuthConfig } from './auth.interfaces.js';
+import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants';
+import type { AuthConfig } from './auth.interfaces';
 import {
   DEFAULT_REDIRECT_PATH,
   InvalidRedirectError,
   validateRedirectParam,
-} from './utils/redirect.util.js';
-import { buildForwardHeaders } from './utils/request-forward.util.js';
-import { collectSetCookies } from './utils/set-cookie.util.js';
+} from './utils/redirect.util';
+import { buildForwardHeaders } from './utils/request-forward.util';
+import { collectSetCookies } from './utils/set-cookie.util';
 
 type GitDungeonAuth = Auth<any>;
 

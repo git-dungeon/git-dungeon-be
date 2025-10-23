@@ -8,8 +8,8 @@ import {
   Optional,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { errorResponse } from '../http/api-response.js';
-import type { ApiErrorBody } from '../http/api-response.js';
+import { errorResponse } from '../http/api-response';
+import type { ApiErrorBody } from '../http/api-response';
 import { PinoLogger } from 'nestjs-pino';
 
 const DEFAULT_ERROR_CODE = 'INTERNAL_SERVER_ERROR';

@@ -1,11 +1,11 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import type { Request } from 'express';
 import type { Auth } from 'better-auth';
-import { AuthSessionService } from './auth-session.service.js';
+import { AuthSessionService } from './auth-session.service';
 import {
   AuthSessionExpiredException,
   AuthSessionInvalidException,
-} from './errors/auth-session.exception.js';
+} from './errors/auth-session.exception';
 
 type GitDungeonAuth = Auth<any>;
 type GetSessionArgs = Parameters<GitDungeonAuth['api']['getSession']>;

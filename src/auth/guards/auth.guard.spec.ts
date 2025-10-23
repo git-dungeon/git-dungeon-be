@@ -1,13 +1,13 @@
 import type { ExecutionContext } from '@nestjs/common';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { Request } from 'express';
-import { AuthGuard } from './auth.guard.js';
-import { AuthSessionService } from '../auth-session.service.js';
-import type { ActiveSessionResult } from '../auth-session.service.js';
+import { AuthGuard } from './auth.guard';
+import { AuthSessionService } from '../auth-session.service';
+import type { ActiveSessionResult } from '../auth-session.service';
 import {
   AuthSessionExpiredException,
   AuthSessionInvalidException,
-} from '../errors/auth-session.exception.js';
+} from '../errors/auth-session.exception';
 
 const createHttpContext = (request: Request): ExecutionContext => {
   return {

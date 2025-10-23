@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
-    "module": "node16",
-    "moduleResolution": "node16",
-    "resolvePackageJsonExports": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
     "esModuleInterop": true,
-    "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,18 +17,17 @@
       "node"
     ],
     "plugins": [
-      {
-        "transform": "typia/lib/transform",
-        "type": "program"
-      },
+      { "transform": "typia/lib/transform" },
       {
         "transform": "@nestia/core/lib/transform",
-        "type": "program"
-      }
+        "validate": "validate",
+        "stringify": "assert"
+      },
+      { "transform": "@nestia/sdk/lib/transform" }
     ],
     "rootDir": "./src",
-    "incremental": true,
     "skipLibCheck": true,
+    "strict": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,

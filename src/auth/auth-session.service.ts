@@ -7,13 +7,13 @@ import type { Request } from 'express';
 import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { getCookies } from 'better-auth/cookies';
-import { BETTER_AUTH_TOKEN } from './auth.constants.js';
-import { buildForwardHeaders } from './utils/request-forward.util.js';
-import { collectSetCookies } from './utils/set-cookie.util.js';
+import { BETTER_AUTH_TOKEN } from './auth.constants';
+import { buildForwardHeaders } from './utils/request-forward.util';
+import { collectSetCookies } from './utils/set-cookie.util';
 import {
   AuthSessionExpiredException,
   AuthSessionInvalidException,
-} from './errors/auth-session.exception.js';
+} from './errors/auth-session.exception';
 
 type GitDungeonAuth = Auth<any>;
 

@@ -4,8 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import type { ActiveSessionResult } from '../auth-session.service.js';
-import type { AuthenticatedRequest } from '../auth-session.request.js';
+import type { ActiveSessionResult } from '../auth-session.service';
+import type { AuthenticatedRequest } from '../auth-session.request';
 
 export interface CurrentAuthSessionOptions {
   optional?: boolean;
