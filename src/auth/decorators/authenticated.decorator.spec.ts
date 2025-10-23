@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it } from 'vitest';
-import { AuthGuard } from '../guards/auth.guard.js';
-import { Authenticated } from './authenticated.decorator.js';
+import { AuthGuard } from '../guards/auth.guard';
+import { Authenticated } from './authenticated.decorator';
 
 describe('Authenticated decorator', () => {
   it('메서드에 AuthGuard 메타데이터를 부여해야 한다', () => {

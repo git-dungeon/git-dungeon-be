@@ -9,12 +9,38 @@ NestJS 기반 백엔드 서비스의 인프라/계약 구성을 위한 초기 �
 
 ## 주요 스크립트
 
+### 개발 & 빌드
 ```bash
+pnpm dev                # 개발 서버 (watch) - 가장 많이 사용
 pnpm start:dev          # 개발 서버 (watch)
-pnpm build && pnpm start # 프로덕션 빌드 및 실행
+pnpm start:debug        # 디버그 모드 개발 서버
+pnpm build              # 프로덕션 빌드
+pnpm start:prod         # 프로덕션 빌드된 앱 실행
+pnpm build && pnpm start # 빌드 후 실행
+```
+
+### 테스트
+```bash
 pnpm test               # Vitest 단위 테스트
-pnpm contract:generate  # Nestia SDK + Swagger 생성
-pnpm contract:swagger   # Swagger 문서만 생성
+pnpm test:watch         # Watch 모드 테스트
+pnpm test:cov           # 커버리지 테스트
+```
+
+### 코드 품질
+```bash
+pnpm format             # 코드 포매팅 (Prettier)
+pnpm lint               # ESLint 검사 및 수정
+pnpm prepare            # ts-patch 및 typia 설정
+```
+
+### 데이터베이스 & API
+```bash
+pnpm contract:generate  # Nestia SDK 생성
+pnpm sdk:generate       # 타입 안전 SDK 생성
+pnpm swagger:generate   # Swagger 문서 생성 (개발 환경)
+pnpm swagger:generate:prod # Swagger 문서 생성 (프로덕션 환경)
+pnpm swagger:generate:staging # Swagger 문서 생성 (스테이징 환경)
+pnpm swagger:open       # Swagger UI 브라우저에서 열기
 ```
 
 ## 환경 변수
@@ -33,6 +59,7 @@ pnpm contract:swagger   # Swagger 문서만 생성
 | `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열 | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public` |
 | `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                       | `false` (prod), `true` (dev)                                                         |
 | `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용) | `false` (dev), `true` (test)                                                         |
+| `NODE_ENV`                  | 환경 구분 (dev/production/staging)          | `development` (dev)                                                                 |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
 
@@ -105,10 +132,12 @@ docker compose ps postgres
 ### 마이그레이션 & 시드
 
 ```bash
-pnpm prisma:generate   # Prisma Client 재생성
-pnpm prisma:migrate:dev  # 개발 환경에서 스키마 싱크 & 마이그레이션 파일 생성
+pnpm db:generate       # Prisma Client 재생성 (권장)
+pnpm prisma:generate   # Prisma Client 직접 실행 (별칭)
+pnpm db:migrate:dev    # 개발 환경에서 스키마 싱크 & 마이그레이션 파일 생성
 pnpm db:migrate        # 프로덕션/CI 배포용 마이그레이션 실행
 pnpm db:seed           # prisma/seed.ts 실행
+pnpm db:reset          # 데이터베이스 전체 리셋 및 마이그레이션/시드 재적용
 ```
 
 - 스키마 수정 후에는 `prisma/migrations/` 폴더에 SQL이 생성되며, PR에 포함해야 합니다.
@@ -121,10 +150,26 @@ pnpm db:seed           # prisma/seed.ts 실행
 - `nestjs-pino` + `pino-http`를 사용해 모든 HTTP 요청을 JSON 로그로 남깁니다.
 - `x-request-id` 헤더를 자동 발급/전파하며 에러 및 응답 메타데이터에 포함합니다.
 
-## API 계약
+## API 계약 (Nestia)
 
 - 컨트롤러는 `@TypedRoute`, `@TypedBody` 등 Nestia 데코레이터를 사용합니다.
-- `pnpm contract:generate` 실행 시 `generated/` 디렉터리에 SDK와 Swagger 파일이 생성됩니다.
+- SDK 생성: `pnpm sdk:generate` 실행 시 `generated/sdk/` 디렉터리에 타입 안전 클라이언트 SDK가 생성됩니다.
+- Swagger 문서 생성: `pnpm swagger:generate` 실행 시 `generated/swagger.json`가 생성됩니다.
+- 런타임 Swagger UI: 앱 실행 후 `http://localhost:3000/api`에서 실시간 API 문서를 확인할 수 있습니다.
+
+## Swagger 문서 활용
+
+### 개발 환경
+- **런타임 UI**: `pnpm dev` 실행 후 `http://localhost:3000/api` 접속
+- **실시간 업데이트**: 코드 변경 시 자동으로 최신 API 문서 반영
+
+### 배포 환경
+- **프로덕션용 정적 문서**: `pnpm swagger:generate:prod`
+- **스테이징용 정적 문서**: `pnpm swagger:generate:staging`
+
+### 외부 툴 연동
+- 생성된 `generated/swagger.json` 파일을 API 테스트 툴(Postman, Insomnia 등)에서 가져올 수 있습니다
+- Frontend SDK 생성: `pnpm sdk:generate`으로 타입 안전 클라이언트 라이브러리 생성
 
 ## 테스트
 

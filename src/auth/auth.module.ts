@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { PrismaModule } from '../prisma/prisma.module.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants.js';
-import type { AuthConfig } from './auth.interfaces.js';
-import { AuthService } from './auth.service.js';
-import { AuthController } from './auth.controller.js';
-import { AuthSessionController } from './auth-session.controller.js';
-import { AuthSessionService } from './auth-session.service.js';
-import { AuthGuard } from './guards/auth.guard.js';
+import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaService } from '../prisma/prisma.service';
+import { AUTH_CONFIG_TOKEN, BETTER_AUTH_TOKEN } from './auth.constants';
+import type { AuthConfig } from './auth.interfaces';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { AuthSessionController } from './auth-session.controller';
+import { AuthSessionService } from './auth-session.service';
+import { AuthGuard } from './guards/auth.guard';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 

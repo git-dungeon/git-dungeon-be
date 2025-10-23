@@ -2,7 +2,7 @@ import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import type { Response } from 'express';
 import type { PinoLogger } from 'nestjs-pino';
-import { HttpExceptionFilter } from './http-exception.filter.js';
+import { HttpExceptionFilter } from './http-exception.filter';
 
 const createHost = (response: Response, request: unknown): ArgumentsHost =>
   ({

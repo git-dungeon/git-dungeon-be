@@ -1,7 +1,7 @@
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
 import { firstValueFrom, of } from 'rxjs';
-import { ApiResponseInterceptor } from './api-response.interceptor.js';
+import { ApiResponseInterceptor } from './api-response.interceptor';
 
 type RequestStub = { id?: string } | undefined;
 

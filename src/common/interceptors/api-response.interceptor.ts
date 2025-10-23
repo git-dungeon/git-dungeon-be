@@ -6,8 +6,8 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
-import { successResponse } from '../http/api-response.js';
-import type { ApiResponse } from '../http/api-response.js';
+import { successResponse } from '../http/api-response';
+import type { ApiResponse } from '../http/api-response';
 import type { Request } from 'express';
 
 @Injectable()

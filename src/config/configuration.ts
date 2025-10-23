@@ -1,4 +1,4 @@
-import { loadEnvironment } from './environment.js';
+import { loadEnvironment } from './environment';
 
 const configuration = () => {
   const env = loadEnvironment();

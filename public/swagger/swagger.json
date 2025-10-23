@@ -1,0 +1,316 @@
+{
+  "openapi": "3.1.0",
+  "servers": [
+    {
+      "url": "https://api.gitdungeon.com",
+      "description": "production Server"
+    }
+  ],
+  "info": {
+    "version": "0.0.1",
+    "title": "git-dungeon-backend",
+    "description": "",
+    "license": {
+      "name": "UNLICENSED"
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "health"
+        ],
+        "x-samchon-controller": "AppController"
+      }
+    },
+    "/auth/github": {
+      "get": {
+        "tags": [],
+        "parameters": [
+          {
+            "name": "redirect",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "auth",
+          "github",
+          "githubRedirect"
+        ],
+        "x-samchon-controller": "AuthController"
+      }
+    },
+    "/auth/github/redirect": {
+      "get": {
+        "tags": [],
+        "parameters": [
+          {
+            "name": "redirect",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "origin",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "auth",
+          "github",
+          "redirect",
+          "githubRedirectFinalize"
+        ],
+        "x-samchon-controller": "AuthController"
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthSessionView"
+                }
+              }
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "api",
+          "auth",
+          "session",
+          "getSession"
+        ],
+        "x-samchon-controller": "AuthSessionController"
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "api",
+          "auth",
+          "logout"
+        ],
+        "x-samchon-controller": "AuthSessionController"
+      }
+    },
+    "/api/auth/whoami": {
+      "get": {
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "oneOf": [
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "username"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-samchon-accessor": [
+          "api",
+          "auth",
+          "whoami",
+          "whoAmI"
+        ],
+        "x-samchon-controller": "AuthSessionController"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthCheckResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "version": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "timestamp"
+        ]
+      },
+      "AuthSessionView": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/AuthSessionUserView"
+          },
+          "refreshed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session",
+          "refreshed"
+        ]
+      },
+      "AuthSessionUserView": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "username": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "displayName": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "email": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "avatarUrl": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "displayName",
+          "email",
+          "avatarUrl"
+        ]
+      }
+    }
+  },
+  "tags": [],
+  "x-samchon-emended-v4": true
+}

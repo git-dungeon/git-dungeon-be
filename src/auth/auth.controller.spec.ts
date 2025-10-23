@@ -12,12 +12,12 @@ import {
   it,
   vi,
 } from 'vitest';
-import { AppModule } from '../app.module.js';
-import { BETTER_AUTH_TOKEN } from './auth.constants.js';
-import { AuthController } from './auth.controller.js';
-import { AuthService } from './auth.service.js';
-import { AuthSessionController } from './auth-session.controller.js';
-import { AuthSessionService } from './auth-session.service.js';
+import { AppModule } from '../app.module';
+import { BETTER_AUTH_TOKEN } from './auth.constants';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { AuthSessionController } from './auth-session.controller';
+import { AuthSessionService } from './auth-session.service';
 
 vi.mock('typia', () => ({
   __esModule: true,

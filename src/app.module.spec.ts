@@ -39,7 +39,7 @@ import { Logger } from 'nestjs-pino';
 
 describe('AppModule 테스트', () => {
   it('헬스 체크 응답을 반환해야 한다', async () => {
-    const { AppModule } = await import('./app.module.js');
+    const { AppModule } = await import('./app.module');
     const testingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

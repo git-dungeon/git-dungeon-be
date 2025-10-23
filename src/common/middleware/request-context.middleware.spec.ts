@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Request, Response } from 'express';
-import { RequestContextMiddleware } from './request-context.middleware.js';
+import { RequestContextMiddleware } from './request-context.middleware';
 
 const createResponse = () => {
   const headers: Record<string, string> = {};

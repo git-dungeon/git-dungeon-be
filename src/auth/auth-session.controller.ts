@@ -9,15 +9,15 @@ import {
 } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
 import { TypedRoute } from '@nestia/core';
-import { ApiResponseInterceptor } from '../common/interceptors/api-response.interceptor.js';
-import { AuthSessionService } from './auth-session.service.js';
+import { ApiResponseInterceptor } from '../common/interceptors/api-response.interceptor';
+import { AuthSessionService } from './auth-session.service';
 import type {
   ActiveSessionResult,
   AuthSessionView,
-} from './auth-session.service.js';
-import { Authenticated } from './decorators/authenticated.decorator.js';
-import { CurrentAuthSession } from './decorators/current-auth-session.decorator.js';
-import type { AuthenticatedRequest } from './auth-session.request.js';
+} from './auth-session.service';
+import { Authenticated } from './decorators/authenticated.decorator';
+import { CurrentAuthSession } from './decorators/current-auth-session.decorator';
+import type { AuthenticatedRequest } from './auth-session.request';
 
 @Controller('api/auth')
 @UseInterceptors(ApiResponseInterceptor)

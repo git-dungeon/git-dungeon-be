@@ -5,8 +5,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { AuthSessionService } from '../auth-session.service.js';
-import type { ActiveSessionResult } from '../auth-session.service.js';
+import { AuthSessionService } from '../auth-session.service';
+import type { ActiveSessionResult } from '../auth-session.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

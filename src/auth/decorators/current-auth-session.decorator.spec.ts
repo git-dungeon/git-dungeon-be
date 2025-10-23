@@ -2,9 +2,9 @@ import type { ExecutionContext } from '@nestjs/common';
 import { InternalServerErrorException } from '@nestjs/common';
 import type { Request } from 'express';
 import { describe, expect, it } from 'vitest';
-import type { ActiveSessionResult } from '../auth-session.service.js';
-import type { AuthenticatedRequest } from '../auth-session.request.js';
-import { resolveCurrentAuthSession } from './current-auth-session.decorator.js';
+import type { ActiveSessionResult } from '../auth-session.service';
+import type { AuthenticatedRequest } from '../auth-session.request';
+import { resolveCurrentAuthSession } from './current-auth-session.decorator';
 
 const createHttpContext = (
   request: Partial<AuthenticatedRequest>,
