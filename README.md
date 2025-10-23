@@ -9,15 +9,37 @@ NestJS 기반 백엔드 서비스의 인프라/계약 구성을 위한 초기 �
 
 ## 주요 스크립트
 
+### 개발 & 빌드
 ```bash
-pnpm dev                # 개발 서버 (watch)
+pnpm dev                # 개발 서버 (watch) - 가장 많이 사용
 pnpm start:dev          # 개발 서버 (watch)
-pnpm build && pnpm start # 프로덕션 빌드 및 실행
+pnpm start:debug        # 디버그 모드 개발 서버
+pnpm build              # 프로덕션 빌드
+pnpm start:prod         # 프로덕션 빌드된 앱 실행
+pnpm build && pnpm start # 빌드 후 실행
+```
+
+### 테스트
+```bash
 pnpm test               # Vitest 단위 테스트
+pnpm test:watch         # Watch 모드 테스트
+pnpm test:cov           # 커버리지 테스트
+```
+
+### 코드 품질
+```bash
+pnpm format             # 코드 포매팅 (Prettier)
+pnpm lint               # ESLint 검사 및 수정
+pnpm prepare            # ts-patch 및 typia 설정
+```
+
+### 데이터베이스 & API
+```bash
 pnpm contract:generate  # Nestia SDK 생성
 pnpm sdk:generate       # 타입 안전 SDK 생성
 pnpm swagger:generate   # Swagger 문서 생성 (개발 환경)
 pnpm swagger:generate:prod # Swagger 문서 생성 (프로덕션 환경)
+pnpm swagger:generate:staging # Swagger 문서 생성 (스테이징 환경)
 pnpm swagger:open       # Swagger UI 브라우저에서 열기
 ```
 
@@ -110,9 +132,9 @@ docker compose ps postgres
 ### 마이그레이션 & 시드
 
 ```bash
-pnpm db:generate       # Prisma Client 재생성 (별칭)
-pnpm prisma:generate   # Prisma Client 재생성
-pnpm prisma:migrate:dev  # 개발 환경에서 스키마 싱크 & 마이그레이션 파일 생성
+pnpm db:generate       # Prisma Client 재생성 (권장)
+pnpm prisma:generate   # Prisma Client 직접 실행 (별칭)
+pnpm db:migrate:dev    # 개발 환경에서 스키마 싱크 & 마이그레이션 파일 생성
 pnpm db:migrate        # 프로덕션/CI 배포용 마이그레이션 실행
 pnpm db:seed           # prisma/seed.ts 실행
 pnpm db:reset          # 데이터베이스 전체 리셋 및 마이그레이션/시드 재적용

@@ -27,6 +27,7 @@
     "sdk:generate": "npx nestia sdk",
     "swagger:generate": "npx nestia swagger",
     "swagger:generate:prod": "PUBLIC_BASE_URL=https://api.gitdungeon.com npx nestia swagger",
+    "swagger:generate:staging": "PUBLIC_BASE_URL=https://staging-api.gitdungeon.com npx nestia swagger",
     "swagger:open": "open http://localhost:3000/api",
     "contract:generate": "pnpm build && tsx scripts/contract.ts all",
     "pretest": "pnpm db:generate"
