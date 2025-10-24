@@ -157,6 +157,11 @@ pnpm db:reset          # 데이터베이스 전체 리셋 및 마이그레이션
 - Swagger 문서 생성: `pnpm swagger:generate` 실행 시 `generated/swagger.json`가 생성됩니다.
 - 런타임 Swagger UI: 앱 실행 후 `http://localhost:3000/api`에서 실시간 API 문서를 확인할 수 있습니다.
 
+### Typia 런타임 검증
+
+- 모든 신규·기존 API는 입력·출력 DTO에 대해 `typia.assert`(또는 `typia.validate`) 기반 런타임 검증을 적용하도록 권장합니다.
+- Typia `tags`를 활용하면 길이, 패턴, 범위 등 필드별 제약을 명시할 수 있으며, 계약에 구체적 규칙이 추가될 때 DTO에 함께 도입합니다.
+
 ## Swagger 문서 활용
 
 ### 개발 환경

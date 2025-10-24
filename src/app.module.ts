@@ -8,6 +8,7 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     PrismaModule,
     AuthModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [
