@@ -22,15 +22,25 @@ describe('api-response 헬퍼', () => {
     });
   });
 
+  it('successResponseWithGeneratedAt는 requestId 없으면 예외를 던진다', () => {
+    expect(() => successResponseWithGeneratedAt({ ok: true })).toThrow(
+      'successResponseWithGeneratedAt requires `meta.requestId`. Please pass the current request id explicitly.',
+    );
+  });
+
   it('successResponseWithGeneratedAt는 ISO 타임스탬프를 주입한다', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-10-27T07:00:00.000Z'));
 
-    const result = successResponseWithGeneratedAt({ ok: true });
+    const result = successResponseWithGeneratedAt(
+      { ok: true },
+      { requestId: 'req-1' },
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toEqual({ ok: true });
     expect(result.meta.generatedAt).toBe('2025-10-27T07:00:00.000Z');
+    expect(result.meta.requestId).toBe('req-1');
   });
 
   it('successResponseWithGeneratedAt는 추가 meta를 병합한다', () => {

@@ -2,7 +2,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import type { PrismaService } from '../prisma/prisma.service';
@@ -199,6 +199,10 @@ describe('SettingsController', () => {
     };
   };
 
+  const createRequest = (overrides: Partial<{ id: string }> = {}) => ({
+    id: overrides.id ?? 'request-id',
+  });
+
   beforeEach(() => {
     serviceMock.getProfile.mockReset();
     typiaAssertMock.mockReset();
@@ -237,8 +241,12 @@ describe('SettingsController', () => {
     serviceMock.getProfile.mockResolvedValue(profileResponse);
 
     const response = createResponse();
+    const request = createRequest({ id: 'req-123' }) as Request & {
+      id?: string;
+    };
     const result = await controller.getProfile(
       session,
+      request,
       response as unknown as Response,
     );
 
@@ -251,5 +259,9 @@ describe('SettingsController', () => {
     expect(response.append).toHaveBeenCalledTimes(2);
     expect(result.success).toBe(true);
     expect(result.data).toEqual(profileResponse);
+    expect(result.meta.generatedAt).toEqual(expect.any(String));
+    const generatedAt = result.meta.generatedAt!;
+    expect(new Date(generatedAt).toISOString()).toBe(generatedAt);
+    expect(result.meta.requestId).toBe('req-123');
   });
 });

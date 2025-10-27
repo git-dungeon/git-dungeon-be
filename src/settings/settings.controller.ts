@@ -1,5 +1,5 @@
-import { Controller, Inject, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Inject, Req, Res } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { TypedException, TypedRoute } from '@nestia/core';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
@@ -31,6 +31,7 @@ export class SettingsController {
   @Authenticated()
   async getProfile(
     @CurrentAuthSession() session: ActiveSessionResult,
+    @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<SettingsProfileResponse>> {
     this.applyNoCacheHeaders(response);
@@ -38,7 +39,9 @@ export class SettingsController {
 
     const profile = await this.settingsService.getProfile(session);
 
-    return successResponseWithGeneratedAt(profile);
+    return successResponseWithGeneratedAt(profile, {
+      requestId: request.id,
+    });
   }
 
   private applyNoCacheHeaders(response: Response): void {
