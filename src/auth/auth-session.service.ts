@@ -24,10 +24,10 @@ interface SessionPayload {
 
 export interface AuthSessionUserView {
   userId: string;
-  username: string | null;
-  displayName: string | null;
-  email: string | null;
-  avatarUrl: string | null;
+  username: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string;
 }
 
 export interface AuthSessionView {
@@ -197,10 +197,10 @@ export class AuthSessionService {
     return {
       session: {
         userId,
-        username: username ?? null,
-        displayName: displayName ?? null,
-        email: email ?? null,
-        avatarUrl: avatarUrl ?? null,
+        username: username ?? '',
+        displayName: displayName ?? '',
+        email: email ?? '',
+        avatarUrl: avatarUrl ?? '',
       },
       refreshed,
     };

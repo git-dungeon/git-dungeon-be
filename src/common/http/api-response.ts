@@ -32,6 +32,22 @@ export const successResponse = <T>(
   meta,
 });
 
+export const successResponseWithGeneratedAt = <T>(
+  data: T,
+  meta: ApiResponseMeta = {},
+): ApiSuccessResponse<T> => {
+  if (!meta.requestId) {
+    throw new Error(
+      'successResponseWithGeneratedAt requires `meta.requestId`. Please pass the current request id explicitly.',
+    );
+  }
+
+  return successResponse(data, {
+    ...meta,
+    generatedAt: new Date().toISOString(),
+  });
+};
+
 export const errorResponse = (
   error: ApiErrorBody,
   meta: ApiResponseMeta,
