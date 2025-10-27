@@ -91,10 +91,10 @@ describe('AuthSessionService', () => {
     expect(result?.view).toEqual({
       session: {
         userId: 'user',
-        username: null,
-        displayName: null,
+        username: '',
+        displayName: '',
         email: 'user@example.com',
-        avatarUrl: null,
+        avatarUrl: '',
       },
       refreshed: true,
     });

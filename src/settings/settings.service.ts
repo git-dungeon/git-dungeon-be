@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import typia, { TypeGuardError } from 'typia';
@@ -10,6 +11,8 @@ import type { SettingsProfileResponse } from './dto/settings-profile.response';
 
 @Injectable()
 export class SettingsService {
+  private readonly logger = new Logger(SettingsService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async getProfile(
@@ -53,16 +56,16 @@ export class SettingsService {
     const response: SettingsProfileResponse = {
       profile: {
         userId: user.id,
-        username: sessionView.username ?? null,
-        displayName: sessionView.displayName ?? user.name ?? null,
-        avatarUrl: sessionView.avatarUrl ?? user.image ?? null,
-        email: user.email ?? sessionView.email ?? null,
+        username: sessionView.username,
+        displayName: sessionView.displayName,
+        avatarUrl: sessionView.avatarUrl,
+        email: user.email,
         joinedAt: user.createdAt.toISOString(),
       },
       connections: {
         github: {
           connected: Boolean(githubAccount),
-          lastSyncAt: githubAccount?.updatedAt.toISOString() ?? null,
+          lastSyncAt: githubAccount?.updatedAt.toISOString() ?? '',
         },
       },
     };
@@ -71,13 +74,21 @@ export class SettingsService {
       return typia.assert<SettingsProfileResponse>(response);
     } catch (error) {
       if (error instanceof TypeGuardError) {
+        // 로거로만 에러의 상세를 남기고, 외부로는 일반적인 에러만 반환한다.
+        this.logger.error(
+          `SettingsProfileResponse validation failed: ${JSON.stringify({
+            path: error.path,
+            expected: error.expected,
+            value: error.value,
+          })}`,
+        );
+
         throw new InternalServerErrorException({
           code: 'SETTINGS_PROFILE_UNEXPECTED',
           message: '프로필 응답 스키마가 유효하지 않습니다.',
           details: {
             path: error.path,
             expected: error.expected,
-            value: error.value,
           },
         });
       }

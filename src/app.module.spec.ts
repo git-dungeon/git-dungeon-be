@@ -19,6 +19,8 @@ vi.mock('@nestia/core', async () => {
     (...params: Parameters<T>): ReturnType<T> =>
       decorator(...params) as ReturnType<T>;
 
+  const typedExceptionMock = vi.fn(() => () => undefined);
+
   return {
     __esModule: true,
     TypedRoute: {
@@ -32,6 +34,7 @@ vi.mock('@nestia/core', async () => {
     TypedParam: wrap(decorators.Param),
     TypedQuery: wrap(decorators.Query),
     TypedHeaders: wrap(decorators.Headers),
+    TypedException: typedExceptionMock,
   } as const;
 });
 

@@ -32,6 +32,15 @@ export const successResponse = <T>(
   meta,
 });
 
+export const successResponseWithGeneratedAt = <T>(
+  data: T,
+  meta: ApiResponseMeta = {},
+): ApiSuccessResponse<T> =>
+  successResponse(data, {
+    generatedAt: new Date().toISOString(),
+    ...meta,
+  });
+
 export const errorResponse = (
   error: ApiErrorBody,
   meta: ApiResponseMeta,

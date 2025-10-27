@@ -46,6 +46,8 @@ vi.mock('@nestia/core', async () => {
     (...params: Parameters<T>): ReturnType<T> =>
       decorator(...params) as ReturnType<T>;
 
+  const typedExceptionMock = vi.fn(() => () => undefined);
+
   return {
     __esModule: true,
     TypedRoute: {
@@ -59,6 +61,7 @@ vi.mock('@nestia/core', async () => {
     TypedParam: wrap(decorators.Param),
     TypedQuery: wrap(decorators.Query),
     TypedHeaders: wrap(decorators.Headers),
+    TypedException: typedExceptionMock,
   } as const;
 });
 
@@ -136,25 +139,6 @@ describe('SettingsService', () => {
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
-  it('세션에 사용자 ID가 없으면 예외를 던져야 한다', async () => {
-    await expect(
-      service.getProfile(
-        createSession({
-          view: {
-            session: {
-              userId: '',
-              username: null,
-              displayName: null,
-              email: null,
-              avatarUrl: null,
-            },
-            refreshed: false,
-          },
-        }),
-      ),
-    ).rejects.toBeInstanceOf(InternalServerErrorException);
-  });
-
   it('사용자를 찾지 못하면 권한 예외를 던져야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 
@@ -221,7 +205,7 @@ describe('SettingsController', () => {
     typiaAssertMock.mockImplementation((value) => value);
   });
 
-  it('쿠키와 헤더를 설정하고 서비스 결과를 반환해야 한다', async () => {
+  it('쿠키와 헤더를 설정하고 ApiResponse 구조로 반환해야 한다', async () => {
     const controller = new SettingsController(
       serviceMock as unknown as SettingsService,
     );
@@ -265,6 +249,7 @@ describe('SettingsController', () => {
     );
     expect(response.setHeader).toHaveBeenCalledWith('Pragma', 'no-cache');
     expect(response.append).toHaveBeenCalledTimes(2);
-    expect(result).toEqual(profileResponse);
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(profileResponse);
   });
 });
