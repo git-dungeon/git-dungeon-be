@@ -14,7 +14,30 @@ async function main() {
     },
   });
 
+  await prisma.dungeonState.upsert({
+    where: { userId: user.id },
+    update: {},
+    create: {
+      userId: user.id,
+      level: 1,
+      exp: 0,
+      hp: 30,
+      maxHp: 30,
+      atk: 5,
+      def: 3,
+      luck: 1,
+      floor: 1,
+      maxFloor: 1,
+      floorProgress: 0,
+      gold: 0,
+      ap: 5,
+      currentAction: 'IDLE',
+      currentActionStartedAt: null,
+    },
+  });
+
   console.info('Seeded user:', user.email);
+  console.info('Seeded dungeon state for:', user.email);
 }
 
 main()
