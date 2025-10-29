@@ -20,6 +20,7 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+  state         DungeonState?
 }
 
 model Account {
@@ -77,4 +78,39 @@ model RateLimit {
   lastRequest BigInt
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum DungeonAction {
+  IDLE
+  EXPLORING
+  BATTLE
+  REST
+  TREASURE
+  TRAP
+}
+
+model DungeonState {
+  userId                  String         @id
+  level                   Int            @default(1)
+  exp                     Int            @default(0)
+  hp                      Int            @default(0)
+  maxHp                   Int            @default(0)
+  atk                     Int            @default(0)
+  def                     Int            @default(0)
+  luck                    Int            @default(0)
+  floor                   Int            @default(1)
+  maxFloor                Int            @default(1)
+  floorProgress           Int            @default(0)
+  gold                    Int            @default(0)
+  ap                      Int            @default(0)
+  currentAction           DungeonAction  @default(IDLE)
+  currentActionStartedAt  DateTime?
+  createdAt               DateTime       @default(now())
+  version                 Int            @default(1)
+  updatedAt               DateTime       @updatedAt
+
+  user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([updatedAt])
+  @@index([version])
 }
