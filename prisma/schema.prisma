@@ -124,6 +124,7 @@ enum DungeonLogCategory {
 
 enum DungeonLogAction {
   BATTLE
+  DEFEAT
   MOVE
   REST
   TRAP
@@ -134,6 +135,7 @@ enum DungeonLogAction {
   DISCARD_ITEM
   BUFF_APPLIED
   BUFF_EXPIRED
+  LEVEL_UP
 }
 
 enum DungeonLogStatus {
