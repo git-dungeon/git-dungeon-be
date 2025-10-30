@@ -46,8 +46,85 @@ async function main() {
 
   await prisma.dungeonLog.deleteMany({ where: { userId: user.id } });
   await prisma.dungeonStateSnapshot.deleteMany({ where: { userId: user.id } });
+  await prisma.inventoryItem.deleteMany({ where: { userId: user.id } });
 
   const baseTime = new Date();
+
+  const inventoryItems: Prisma.InventoryItemUncheckedCreateInput[] = [
+    {
+      id: 'weapon-longsword',
+      userId: user.id,
+      code: 'weapon-longsword',
+      slot: 'WEAPON',
+      rarity: 'RARE',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 10),
+      version: 3,
+    },
+    {
+      id: 'weapon-rusty-sword',
+      userId: user.id,
+      code: 'weapon-rusty-sword',
+      slot: 'WEAPON',
+      rarity: 'COMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 1 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: false,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 30),
+      version: 2,
+    },
+    {
+      id: 'ring-topaz',
+      userId: user.id,
+      code: 'ring-topaz',
+      slot: 'RING',
+      rarity: 'UNCOMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'luck', mode: 'flat', value: 2 },
+        { kind: 'stat', stat: 'hp', mode: 'flat', value: 2 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 25),
+      version: 4,
+    },
+    {
+      id: 'armor-steel-armor',
+      userId: user.id,
+      code: 'armor-steel-armor',
+      slot: 'ARMOR',
+      rarity: 'UNCOMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'def', mode: 'flat', value: 4 },
+        { kind: 'stat', stat: 'luck', mode: 'percent', value: 0.05 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 40),
+      version: 5,
+    },
+    {
+      id: 'potion-healing-small',
+      userId: user.id,
+      code: 'potion-healing-small',
+      slot: 'CONSUMABLE',
+      rarity: 'COMMON',
+      modifiers: [
+        {
+          kind: 'effect',
+          effectCode: 'restore-hp',
+          params: { amount: 20 },
+        },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: false,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 15),
+      version: 1,
+    },
+  ];
+
+  await prisma.inventoryItem.createMany({ data: inventoryItems });
 
   const snapshots: Prisma.DungeonStateSnapshotUncheckedCreateInput[] = [
     {
@@ -357,6 +434,7 @@ async function main() {
   console.info('Seeded user:', user.email);
   console.info('Seeded dungeon state for:', user.email);
   console.info('Seeded dungeon logs:', logs.length);
+  console.info('Seeded inventory items:', inventoryItems.length);
 }
 
 main()
