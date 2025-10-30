@@ -21,6 +21,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   state         DungeonState?
+  logs          DungeonLog[]
+  stateSnapshots DungeonStateSnapshot[]
 }
 
 model Account {
@@ -113,4 +115,67 @@ model DungeonState {
 
   @@index([updatedAt])
   @@index([version])
+}
+
+enum DungeonLogCategory {
+  EXPLORATION
+  STATUS
+}
+
+enum DungeonLogAction {
+  BATTLE
+  DEATH
+  MOVE
+  REST
+  TRAP
+  TREASURE
+  ACQUIRE_ITEM
+  EQUIP_ITEM
+  UNEQUIP_ITEM
+  DISCARD_ITEM
+  BUFF_APPLIED
+  BUFF_EXPIRED
+  LEVEL_UP
+}
+
+enum DungeonLogStatus {
+  STARTED
+  COMPLETED
+}
+
+model DungeonLog {
+  id                  String              @id @default(uuid())
+  userId              String
+  category            DungeonLogCategory
+  action              DungeonLogAction
+  status              DungeonLogStatus    @default(STARTED)
+  floor               Int?
+  turnNumber          Int?
+  stateVersionBefore  Int?
+  stateVersionAfter   Int?
+  delta               Json?
+  extra               Json?
+  createdAt           DateTime            @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([category, action])
+  @@index([createdAt])
+}
+
+model DungeonStateSnapshot {
+  id           String   @id @default(uuid())
+  userId       String
+  version      Int
+  turnNumber   Int?
+  createdAt    DateTime @default(now())
+  statePayload Json
+  reason       String?
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, version])
+  @@index([userId, turnNumber])
+  @@index([createdAt])
 }
