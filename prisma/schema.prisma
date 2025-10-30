@@ -23,6 +23,7 @@ model User {
   state         DungeonState?
   logs          DungeonLog[]
   stateSnapshots DungeonStateSnapshot[]
+  inventoryItems InventoryItem[]
 }
 
 model Account {
@@ -89,6 +90,22 @@ enum DungeonAction {
   REST
   TREASURE
   TRAP
+}
+
+enum InventorySlot {
+  WEAPON
+  ARMOR
+  HELMET
+  RING
+  CONSUMABLE
+}
+
+enum InventoryRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  EPIC
+  LEGENDARY
 }
 
 model DungeonState {
@@ -178,4 +195,25 @@ model DungeonStateSnapshot {
   @@unique([userId, version])
   @@index([userId, turnNumber])
   @@index([createdAt])
+}
+
+model InventoryItem {
+  id         String           @id @default(uuid())
+  userId     String
+  code       String
+  slot       InventorySlot
+  rarity     InventoryRarity
+  modifiers  Json
+  isEquipped Boolean          @default(false)
+  obtainedAt DateTime         @default(now())
+  version    Int              @default(1)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, slot])
+  @@index([userId, code])
+  @@index([userId, isEquipped])
+  // Partial unique index for equipped slot enforced via raw SQL migration.
 }
