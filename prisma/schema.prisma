@@ -124,7 +124,7 @@ enum DungeonLogCategory {
 
 enum DungeonLogAction {
   BATTLE
-  DEFEAT
+  DEATH
   MOVE
   REST
   TRAP

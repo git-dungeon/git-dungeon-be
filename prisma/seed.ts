@@ -255,6 +255,49 @@ async function main() {
       } as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60),
     },
+    {
+      userId: user.id,
+      category: DungeonLogCategory.EXPLORATION,
+      action: DungeonLogAction.DEATH,
+      status: DungeonLogStatus.COMPLETED,
+      floor: 5,
+      turnNumber: 205,
+      stateVersionBefore: 23,
+      stateVersionAfter: 24,
+      delta: {
+        stats: { hp: 20 },
+        progress: { floor: 1, floorProgress: 0 },
+      } as Prisma.InputJsonValue,
+      extra: {
+        death: {
+          cause: 'TRAP_SPIKE',
+          handledBy: 'resurrection',
+        },
+      } as Prisma.InputJsonValue,
+      createdAt: new Date(baseTime.getTime() - 1000 * 45),
+    },
+    {
+      userId: user.id,
+      category: DungeonLogCategory.STATUS,
+      action: DungeonLogAction.LEVEL_UP,
+      status: DungeonLogStatus.COMPLETED,
+      floor: null,
+      turnNumber: 210,
+      stateVersionBefore: 24,
+      stateVersionAfter: 25,
+      delta: {
+        stats: { level: 3, maxHp: 24, atk: 2 },
+        rewards: { skillPoints: 1 },
+      } as Prisma.InputJsonValue,
+      extra: {
+        levelUp: {
+          previousLevel: 2,
+          currentLevel: 3,
+          threshold: 120,
+        },
+      } as Prisma.InputJsonValue,
+      createdAt: new Date(baseTime.getTime() - 1000 * 30),
+    },
   ];
 
   for (const log of logs) {
