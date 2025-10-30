@@ -5,6 +5,8 @@ import {
   DungeonLogAction,
   DungeonLogStatus,
 } from '@prisma/client';
+import { toJsonExtra } from '../src/common/logs/dungeon-log-extra';
+import { toJsonDelta } from '../src/common/logs/dungeon-log-delta';
 
 const prisma = new PrismaClient();
 
@@ -106,17 +108,24 @@ async function main() {
       turnNumber: 200,
       stateVersionBefore: 20,
       stateVersionAfter: 20,
-      delta: { ap: -1 } as Prisma.InputJsonValue,
-      extra: {
-        type: 'battle',
-        monster: {
-          id: 'monster-giant-rat',
-          name: '거대 쥐',
-          hp: 24,
-          atk: 3,
-          spriteId: 'monster-giant-rat',
+      delta: toJsonDelta({
+        type: 'BATTLE',
+        detail: {
+          stats: { ap: -1 },
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'BATTLE',
+        detail: {
+          monster: {
+            id: 'monster-giant-rat',
+            name: '거대 쥐',
+            hp: 24,
+            atk: 3,
+            spriteId: 'monster-giant-rat',
+          },
+        },
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60 * 4),
     },
     {
@@ -128,18 +137,26 @@ async function main() {
       turnNumber: 200,
       stateVersionBefore: 20,
       stateVersionAfter: 20,
-      delta: { hp: -5, ap: -1, gold: 35 } as Prisma.InputJsonValue,
-      extra: {
-        type: 'battle',
-        result: 'VICTORY',
-        monster: {
-          id: 'monster-giant-rat',
-          name: '거대 쥐',
-          hp: 0,
-          atk: 3,
-          spriteId: 'monster-giant-rat',
+      delta: toJsonDelta({
+        type: 'BATTLE',
+        detail: {
+          stats: { hp: -5, ap: -1 },
+          gold: 35,
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'BATTLE',
+        detail: {
+          monster: {
+            id: 'monster-giant-rat',
+            name: '거대 쥐',
+            hp: 0,
+            atk: 3,
+            spriteId: 'monster-giant-rat',
+          },
+          result: 'VICTORY',
+        },
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60 * 4 + 10_000),
     },
     {
@@ -151,23 +168,29 @@ async function main() {
       turnNumber: 201,
       stateVersionBefore: 20,
       stateVersionAfter: 20,
-      delta: {
-        inventory: {
-          added: [
-            {
-              itemId: 'potion-small',
-              slot: 'consumable',
-              rarity: 'common',
-              quantity: 1,
-            },
-          ],
+      delta: toJsonDelta({
+        type: 'ACQUIRE_ITEM',
+        detail: {
+          inventory: {
+            added: [
+              {
+                itemId: 'potion-small',
+                slot: 'consumable',
+                rarity: 'common',
+                quantity: 1,
+              },
+            ],
+          },
         },
-      } as Prisma.InputJsonValue,
-      extra: {
-        reward: {
-          source: 'battle-drop',
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'ACQUIRE_ITEM',
+        detail: {
+          reward: {
+            source: 'battle-drop',
+          },
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60 * 3 + 5_000),
     },
     {
@@ -179,21 +202,27 @@ async function main() {
       turnNumber: 201,
       stateVersionBefore: 20,
       stateVersionAfter: 21,
-      delta: {
-        inventory: {
-          equipped: { slot: 'weapon', itemId: 'weapon-longsword' },
-          unequipped: { slot: 'weapon', itemId: 'weapon-rusty-sword' },
+      delta: toJsonDelta({
+        type: 'EQUIP_ITEM',
+        detail: {
+          inventory: {
+            equipped: { slot: 'weapon', itemId: 'weapon-longsword' },
+            unequipped: { slot: 'weapon', itemId: 'weapon-rusty-sword' },
+          },
+          stats: { atk: 5, ap: -1 },
         },
-        stats: { atk: 5, ap: -1 },
-      } as Prisma.InputJsonValue,
-      extra: {
-        item: {
-          id: 'weapon-longsword',
-          name: 'Longsword',
-          rarity: 'rare',
-          modifiers: [{ stat: 'atk', value: 5 }],
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'EQUIP_ITEM',
+        detail: {
+          item: {
+            id: 'weapon-longsword',
+            name: 'Longsword',
+            rarity: 'rare',
+            modifiers: [{ stat: 'atk', value: 5 }],
+          },
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60 * 3),
     },
     {
@@ -205,26 +234,30 @@ async function main() {
       turnNumber: 201,
       stateVersionBefore: 21,
       stateVersionAfter: 21,
-      delta: {
-        buffs: {
+      delta: toJsonDelta({
+        type: 'BUFF_APPLIED',
+        detail: {
           applied: [
             {
               buffId: 'angel-ring-resurrection',
+              source: 'angel-ring',
               totalTurns: null,
               remainingTurns: null,
-              source: 'angel-ring',
             },
           ],
         },
-      } as Prisma.InputJsonValue,
-      extra: {
-        buff: {
-          id: 'angel-ring-resurrection',
-          name: '천사의 가호',
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'BUFF_APPLIED',
+        detail: {
+          buffId: 'angel-ring-resurrection',
+          source: 'angel-ring',
           effect: 'HP가 0이 되면 한 번 부활',
           spriteId: 'buff-angel-ring',
+          totalTurns: null,
+          remainingTurns: null,
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60 * 2),
     },
     {
@@ -236,23 +269,26 @@ async function main() {
       turnNumber: 205,
       stateVersionBefore: 23,
       stateVersionAfter: 23,
-      delta: {
-        buffs: {
+      delta: toJsonDelta({
+        type: 'BUFF_EXPIRED',
+        detail: {
           expired: [
             {
               buffId: 'angel-ring-resurrection',
               expiredAtTurn: 205,
+              consumedBy: 'resurrection',
             },
           ],
         },
-        stats: { hp: 10 },
-      } as Prisma.InputJsonValue,
-      extra: {
-        buff: {
-          id: 'angel-ring-resurrection',
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'BUFF_EXPIRED',
+        detail: {
+          buffId: 'angel-ring-resurrection',
           consumedBy: 'resurrection',
+          expiredAtTurn: 205,
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 60),
     },
     {
@@ -264,16 +300,26 @@ async function main() {
       turnNumber: 205,
       stateVersionBefore: 23,
       stateVersionAfter: 24,
-      delta: {
-        stats: { hp: 20 },
-        progress: { floor: 1, floorProgress: 0 },
-      } as Prisma.InputJsonValue,
-      extra: {
-        death: {
+      delta: toJsonDelta({
+        type: 'DEATH',
+        detail: {
+          stats: { hp: 20 },
+          progress: { floor: 1, floorProgress: 0 },
+          buffs: [
+            {
+              buffId: 'angel-ring-resurrection',
+              consumedBy: 'resurrection',
+            },
+          ],
+        },
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'DEATH',
+        detail: {
           cause: 'TRAP_SPIKE',
           handledBy: 'resurrection',
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 45),
     },
     {
@@ -285,17 +331,21 @@ async function main() {
       turnNumber: 210,
       stateVersionBefore: 24,
       stateVersionAfter: 25,
-      delta: {
-        stats: { level: 3, maxHp: 24, atk: 2 },
-        rewards: { skillPoints: 1 },
-      } as Prisma.InputJsonValue,
-      extra: {
-        levelUp: {
+      delta: toJsonDelta({
+        type: 'LEVEL_UP',
+        detail: {
+          stats: { level: 3, maxHp: 24, atk: 2 },
+          rewards: { skillPoints: 1 },
+        },
+      }) as Prisma.InputJsonValue,
+      extra: toJsonExtra({
+        type: 'LEVEL_UP',
+        detail: {
           previousLevel: 2,
           currentLevel: 3,
           threshold: 120,
         },
-      } as Prisma.InputJsonValue,
+      }) as Prisma.InputJsonValue,
       createdAt: new Date(baseTime.getTime() - 1000 * 30),
     },
   ];
