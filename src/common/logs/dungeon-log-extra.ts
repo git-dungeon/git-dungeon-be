@@ -1,5 +1,3 @@
-import type { DungeonLogAction } from '@prisma/client';
-
 type BattleResult = 'VICTORY' | 'DEFEAT';
 
 export type BattleExtra = {
@@ -78,7 +76,3 @@ export type DungeonLogExtra =
   | BuffExtra;
 
 export const toJsonExtra = (extra: DungeonLogExtra) => extra;
-
-export type DungeonLogActionForExtra =
-  | DungeonLogExtra['type']
-  | DungeonLogAction;

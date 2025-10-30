@@ -95,10 +95,15 @@ export type LevelUpDelta = {
   };
 };
 
-export type BuffDelta = {
-  type: 'BUFF_APPLIED' | 'BUFF_EXPIRED';
-  detail: BuffAppliedDelta['detail'] | BuffExpiredDelta['detail'];
-};
+export type BuffDelta =
+  | {
+      type: 'BUFF_APPLIED';
+      detail: BuffAppliedDelta['detail'];
+    }
+  | {
+      type: 'BUFF_EXPIRED';
+      detail: BuffExpiredDelta['detail'];
+    };
 
 export type DungeonLogDelta =
   | BattleDelta
