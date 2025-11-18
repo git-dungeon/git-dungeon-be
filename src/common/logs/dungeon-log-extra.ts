@@ -37,6 +37,7 @@ export type EquipItemExtra = {
   detail: {
     item: {
       id: string;
+      code: string;
       name: string;
       rarity: string;
       modifiers: Array<{ stat: string; value: number }>;

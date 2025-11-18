@@ -252,6 +252,7 @@ async function main() {
             added: [
               {
                 itemId: 'potion-small',
+                code: 'potion-healing-small',
                 slot: 'consumable',
                 rarity: 'common',
                 quantity: 1,
@@ -283,8 +284,16 @@ async function main() {
         type: 'EQUIP_ITEM',
         detail: {
           inventory: {
-            equipped: { slot: 'weapon', itemId: 'weapon-longsword' },
-            unequipped: { slot: 'weapon', itemId: 'weapon-rusty-sword' },
+            equipped: {
+              slot: 'weapon',
+              itemId: 'weapon-longsword',
+              code: 'weapon-longsword',
+            },
+            unequipped: {
+              slot: 'weapon',
+              itemId: 'weapon-rusty-sword',
+              code: 'weapon-rusty-sword',
+            },
           },
           stats: { atk: 5, ap: -1 },
         },
@@ -294,6 +303,7 @@ async function main() {
         detail: {
           item: {
             id: 'weapon-longsword',
+            code: 'weapon-longsword',
             name: 'Longsword',
             rarity: 'rare',
             modifiers: [{ stat: 'atk', value: 5 }],

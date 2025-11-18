@@ -11,13 +11,14 @@ export type StatsDelta = Partial<{
 export type InventoryDelta = {
   added?: Array<{
     itemId: string;
+    code: string;
     slot: string;
     rarity?: string;
     quantity?: number;
   }>;
-  removed?: Array<{ itemId: string; quantity?: number }>;
-  equipped?: { slot: string; itemId: string };
-  unequipped?: { slot: string; itemId: string };
+  removed?: Array<{ itemId: string; code: string; quantity?: number }>;
+  equipped?: { slot: string; itemId: string; code: string };
+  unequipped?: { slot: string; itemId: string; code: string };
 };
 
 export type BuffAppliedDelta = {
