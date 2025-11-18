@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { INestApplication, Logger as NestLogger } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
+import type { OpenAPIObject } from '@nestjs/swagger';
 import { NestiaSwaggerComposer } from '@nestia/sdk';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import type { Auth } from 'better-auth';
@@ -112,7 +113,7 @@ async function bootstrap() {
 
     // Setup Swagger UI at runtime
     try {
-      const document = await NestiaSwaggerComposer.document(app, {
+      const document = (await NestiaSwaggerComposer.document(app, {
         openapi: '3.1',
         servers: [
           {
@@ -120,8 +121,8 @@ async function bootstrap() {
             description: 'Local Server',
           },
         ],
-      });
-      SwaggerModule.setup('api', app, document as any);
+      })) as OpenAPIObject;
+      SwaggerModule.setup('api', app, document);
       logger.log(
         'Swagger UI is available at http://localhost:' + port + '/api',
       );
