@@ -5,7 +5,7 @@ import {
   DungeonLogAction,
   DungeonLogStatus,
 } from '@prisma/client';
-import { toJsonExtra } from '../src/common/logs/dungeon-log-extra';
+import { toJsonDetails } from '../src/common/logs/dungeon-log-extra';
 import { toJsonDelta } from '../src/common/logs/dungeon-log-delta';
 
 const prisma = new PrismaClient();
@@ -191,9 +191,9 @@ async function main() {
           stats: { ap: -1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BATTLE',
-        detail: {
+        details: {
           monster: {
             id: 'monster-giant-rat',
             name: '거대 쥐',
@@ -221,9 +221,9 @@ async function main() {
           gold: 35,
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BATTLE',
-        detail: {
+        details: {
           monster: {
             id: 'monster-giant-rat',
             name: '거대 쥐',
@@ -261,9 +261,9 @@ async function main() {
           },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'ACQUIRE_ITEM',
-        detail: {
+        details: {
           reward: {
             source: 'battle-drop',
           },
@@ -298,9 +298,9 @@ async function main() {
           stats: { atk: 5, ap: -1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'EQUIP_ITEM',
-        detail: {
+        details: {
           item: {
             id: 'weapon-longsword',
             code: 'weapon-longsword',
@@ -334,9 +334,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BUFF_APPLIED',
-        detail: {
+        details: {
           buffId: 'angel-ring-resurrection',
           source: 'angel-ring',
           effect: 'HP가 0이 되면 한 번 부활',
@@ -368,9 +368,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BUFF_EXPIRED',
-        detail: {
+        details: {
           buffId: 'angel-ring-resurrection',
           consumedBy: 'resurrection',
           expiredAtTurn: 205,
@@ -400,9 +400,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'DEATH',
-        detail: {
+        details: {
           cause: 'TRAP_SPIKE',
           handledBy: 'resurrection',
         },
@@ -425,9 +425,9 @@ async function main() {
           rewards: { skillPoints: 1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'LEVEL_UP',
-        detail: {
+        details: {
           previousLevel: 2,
           currentLevel: 3,
           threshold: 120,

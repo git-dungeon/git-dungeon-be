@@ -65,7 +65,7 @@ export class SettingsService {
       connections: {
         github: {
           connected: Boolean(githubAccount),
-          lastSyncAt: githubAccount?.updatedAt.toISOString() ?? '',
+          lastSyncAt: githubAccount?.updatedAt.toISOString() ?? null,
         },
       },
     };

@@ -139,6 +139,24 @@ describe('SettingsService', () => {
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
+  it('GitHub 연결이 없으면 lastSyncAt이 null이어야 한다', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'mock@example.com',
+      name: 'Mock User',
+      image: 'https://example.com/avatar.png',
+      createdAt: new Date('2023-11-02T12:00:00.000Z'),
+      accounts: [],
+    });
+
+    const result = await service.getProfile(createSession());
+
+    expect(result.connections.github).toEqual({
+      connected: false,
+      lastSyncAt: null,
+    });
+  });
+
   it('사용자를 찾지 못하면 권한 예외를 던져야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 

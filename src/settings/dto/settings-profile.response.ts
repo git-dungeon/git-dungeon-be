@@ -24,7 +24,9 @@ export interface SettingsConnections {
 
 export interface GithubConnectionStatus {
   connected: boolean & tags.Example<true>;
-  lastSyncAt: string &
-    tags.Format<'date-time'> &
-    tags.Example<'2025-10-17T01:15:00.000Z'>;
+  lastSyncAt:
+    | (string &
+        tags.Format<'date-time'> &
+        tags.Example<'2025-10-17T01:15:00.000Z'>)
+    | null;
 }
