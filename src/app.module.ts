@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
+import { ThrottlerModule } from '@nestjs/throttler';
 import configuration from './config/configuration';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
@@ -43,6 +44,14 @@ import { DashboardModule } from './dashboard/dashboard.module';
           },
         };
       },
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60_000,
+          limit: 60,
+        },
+      ],
     }),
     PrismaModule,
     AuthModule,

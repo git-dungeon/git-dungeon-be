@@ -18,9 +18,15 @@ export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getState(userId: string): Promise<DashboardStateResponse> {
-    const state = await this.prisma.dungeonState.findUnique({
-      where: { userId },
-    });
+    const [state, equippedItems] = await Promise.all([
+      this.prisma.dungeonState.findUnique({
+        where: { userId },
+      }),
+      this.prisma.inventoryItem.findMany({
+        where: { userId, isEquipped: true },
+        orderBy: { obtainedAt: 'asc' },
+      }),
+    ]);
 
     if (!state) {
       throw new UnauthorizedException({
@@ -28,11 +34,6 @@ export class DashboardService {
         message: '던전 상태를 찾을 수 없습니다.',
       });
     }
-
-    const equippedItems = await this.prisma.inventoryItem.findMany({
-      where: { userId, isEquipped: true },
-      orderBy: { obtainedAt: 'asc' },
-    });
 
     const response: DashboardStateResponse = {
       state: {
