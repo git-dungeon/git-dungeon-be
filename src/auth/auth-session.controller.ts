@@ -5,11 +5,9 @@ import {
   InternalServerErrorException,
   Req,
   Res,
-  UseInterceptors,
 } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
 import { TypedRoute } from '@nestia/core';
-import { ApiResponseInterceptor } from '../common/interceptors/api-response.interceptor';
 import { AuthSessionService } from './auth-session.service';
 import type {
   ActiveSessionResult,
@@ -18,24 +16,30 @@ import type {
 import { Authenticated } from './decorators/authenticated.decorator';
 import { CurrentAuthSession } from './decorators/current-auth-session.decorator';
 import type { AuthenticatedRequest } from './auth-session.request';
+import {
+  successResponse,
+  type ApiSuccessResponse,
+} from '../common/http/api-response';
+import type { ApiResponseMeta } from '../common/http/api-response';
+
+type TrackedAuthenticatedRequest = AuthenticatedRequest & { id?: string };
 
 @Controller('api/auth')
-@UseInterceptors(ApiResponseInterceptor)
 export class AuthSessionController {
   constructor(private readonly authSessionService: AuthSessionService) {}
 
-  @TypedRoute.Get('session')
+  @TypedRoute.Get<ApiSuccessResponse<AuthSessionView>>('session')
   @Authenticated()
   getSession(
-    @Req() request: AuthenticatedRequest,
+    @Req() request: TrackedAuthenticatedRequest,
     @Res({ passthrough: true }) response: Response,
-  ): AuthSessionView {
+  ): ApiSuccessResponse<AuthSessionView> {
     const session = this.readSession(request);
 
     this.applyNoCacheHeaders(response);
     this.appendCookies(response, session.cookies);
 
-    return session.view;
+    return successResponse(session.view, this.buildMeta(request));
   }
 
   private readSession({
@@ -51,13 +55,13 @@ export class AuthSessionController {
     return authSession;
   }
 
-  @TypedRoute.Post('logout')
+  @TypedRoute.Post<ApiSuccessResponse<{ success: boolean }>>('logout')
   @Authenticated()
   @HttpCode(HttpStatus.OK)
   async logout(
-    @Req() request: AuthenticatedRequest,
+    @Req() request: TrackedAuthenticatedRequest,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<{ success: true }> {
+  ): Promise<ApiSuccessResponse<{ success: boolean }>> {
     this.readSession(request);
     const result = await this.authSessionService.signOut(request);
 
@@ -65,23 +69,26 @@ export class AuthSessionController {
     this.appendCookies(response, result.cookies);
     this.clearSessionCookies(response);
 
-    return {
-      success: true,
-    };
+    return successResponse(
+      { success: result.success },
+      this.buildMeta(request),
+    );
   }
 
-  @TypedRoute.Get('whoami')
+  @TypedRoute.Get<ApiSuccessResponse<{ username: string | null }>>('whoami')
   @Authenticated()
   whoAmI(
     @CurrentAuthSession() session: ActiveSessionResult,
+    @Req() request: TrackedAuthenticatedRequest,
     @Res({ passthrough: true }) response: Response,
-  ): { username: string | null } {
+  ): ApiSuccessResponse<{ username: string | null }> {
     this.applyNoCacheHeaders(response);
     this.appendCookies(response, session.cookies);
 
-    return {
-      username: session.view.session.username,
-    };
+    return successResponse(
+      { username: session.view.session.username },
+      this.buildMeta(request),
+    );
   }
 
   private applyNoCacheHeaders(response: Response): void {
@@ -132,5 +139,12 @@ export class AuthSessionController {
     }
 
     return undefined;
+  }
+
+  private buildMeta(request: { id?: string }): ApiResponseMeta {
+    return {
+      requestId: request.id,
+      generatedAt: new Date().toISOString(),
+    };
   }
 }

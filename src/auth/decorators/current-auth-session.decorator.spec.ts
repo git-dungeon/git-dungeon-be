@@ -34,11 +34,11 @@ describe('resolveCurrentAuthSession', () => {
     view: {
       refreshed: false,
       session: {
-        avatarUrl: null,
-        displayName: null,
-        email: null,
+        avatarUrl: '',
+        displayName: '',
+        email: '',
         userId: 'user-1',
-        username: null,
+        username: '',
       },
     },
   } satisfies ActiveSessionResult;

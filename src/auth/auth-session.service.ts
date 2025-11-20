@@ -67,7 +67,7 @@ export class AuthSessionService {
   constructor(
     @Inject(BETTER_AUTH_TOKEN) private readonly betterAuth: GitDungeonAuth,
   ) {
-    const cookies = getCookies(this.betterAuth.options);
+    const cookies = this.getBetterAuthCookies();
     this.cookieNames = {
       sessionToken: cookies.sessionToken.name,
       sessionData: cookies.sessionData.name,
@@ -120,7 +120,7 @@ export class AuthSessionService {
   }
 
   describeSessionCookies(): SessionCookieDescriptor[] {
-    const cookies = getCookies(this.betterAuth.options);
+    const cookies = this.getBetterAuthCookies();
 
     const sessionCookies = [
       cookies.sessionToken,
@@ -236,5 +236,11 @@ export class AuthSessionService {
       const [name] = token.split('=').map((value) => value.trim());
       return targetNames.has(name ?? '');
     });
+  }
+
+  private getBetterAuthCookies() {
+    return getCookies(
+      this.betterAuth.options as Parameters<typeof getCookies>[0],
+    );
   }
 }

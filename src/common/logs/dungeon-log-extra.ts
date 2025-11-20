@@ -1,8 +1,8 @@
 type BattleResult = 'VICTORY' | 'DEFEAT';
 
-export type BattleExtra = {
+export type BattleDetails = {
   type: 'BATTLE';
-  detail: {
+  details: {
     monster: {
       id: string;
       name: string;
@@ -15,28 +15,29 @@ export type BattleExtra = {
   };
 };
 
-export type DeathExtra = {
+export type DeathDetails = {
   type: 'DEATH';
-  detail: {
+  details: {
     cause: string;
     handledBy?: string;
   };
 };
 
-export type AcquireItemExtra = {
+export type AcquireItemDetails = {
   type: 'ACQUIRE_ITEM';
-  detail: {
+  details: {
     reward: {
       source: string;
     };
   };
 };
 
-export type EquipItemExtra = {
+export type EquipItemDetails = {
   type: 'EQUIP_ITEM';
-  detail: {
+  details: {
     item: {
       id: string;
+      code: string;
       name: string;
       rarity: string;
       modifiers: Array<{ stat: string; value: number }>;
@@ -44,18 +45,18 @@ export type EquipItemExtra = {
   };
 };
 
-export type LevelUpExtra = {
+export type LevelUpDetails = {
   type: 'LEVEL_UP';
-  detail: {
+  details: {
     previousLevel: number;
     currentLevel: number;
     threshold: number;
   };
 };
 
-export type BuffExtra = {
+export type BuffDetails = {
   type: 'BUFF_APPLIED' | 'BUFF_EXPIRED';
-  detail: {
+  details: {
     buffId: string;
     source?: string;
     spriteId?: string;
@@ -67,12 +68,12 @@ export type BuffExtra = {
   };
 };
 
-export type DungeonLogExtra =
-  | BattleExtra
-  | DeathExtra
-  | AcquireItemExtra
-  | EquipItemExtra
-  | LevelUpExtra
-  | BuffExtra;
+export type DungeonLogDetails =
+  | BattleDetails
+  | DeathDetails
+  | AcquireItemDetails
+  | EquipItemDetails
+  | LevelUpDetails
+  | BuffDetails;
 
-export const toJsonExtra = (extra: DungeonLogExtra) => extra;
+export const toJsonDetails = (details: DungeonLogDetails) => details;

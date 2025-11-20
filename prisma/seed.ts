@@ -5,7 +5,7 @@ import {
   DungeonLogAction,
   DungeonLogStatus,
 } from '@prisma/client';
-import { toJsonExtra } from '../src/common/logs/dungeon-log-extra';
+import { toJsonDetails } from '../src/common/logs/dungeon-log-extra';
 import { toJsonDelta } from '../src/common/logs/dungeon-log-delta';
 
 const prisma = new PrismaClient();
@@ -46,8 +46,85 @@ async function main() {
 
   await prisma.dungeonLog.deleteMany({ where: { userId: user.id } });
   await prisma.dungeonStateSnapshot.deleteMany({ where: { userId: user.id } });
+  await prisma.inventoryItem.deleteMany({ where: { userId: user.id } });
 
   const baseTime = new Date();
+
+  const inventoryItems: Prisma.InventoryItemUncheckedCreateInput[] = [
+    {
+      id: 'weapon-longsword',
+      userId: user.id,
+      code: 'weapon-longsword',
+      slot: 'WEAPON',
+      rarity: 'RARE',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 10),
+      version: 3,
+    },
+    {
+      id: 'weapon-rusty-sword',
+      userId: user.id,
+      code: 'weapon-rusty-sword',
+      slot: 'WEAPON',
+      rarity: 'COMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 1 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: false,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 30),
+      version: 2,
+    },
+    {
+      id: 'ring-topaz',
+      userId: user.id,
+      code: 'ring-topaz',
+      slot: 'RING',
+      rarity: 'UNCOMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'luck', mode: 'flat', value: 2 },
+        { kind: 'stat', stat: 'hp', mode: 'flat', value: 2 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 25),
+      version: 4,
+    },
+    {
+      id: 'armor-steel-armor',
+      userId: user.id,
+      code: 'armor-steel-armor',
+      slot: 'ARMOR',
+      rarity: 'UNCOMMON',
+      modifiers: [
+        { kind: 'stat', stat: 'def', mode: 'flat', value: 4 },
+        { kind: 'stat', stat: 'luck', mode: 'percent', value: 0.05 },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: true,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 40),
+      version: 5,
+    },
+    {
+      id: 'potion-healing-small',
+      userId: user.id,
+      code: 'potion-healing-small',
+      slot: 'CONSUMABLE',
+      rarity: 'COMMON',
+      modifiers: [
+        {
+          kind: 'effect',
+          effectCode: 'restore-hp',
+          params: { amount: 20 },
+        },
+      ] as unknown as Prisma.InputJsonValue,
+      isEquipped: false,
+      obtainedAt: new Date(baseTime.getTime() - 1000 * 60 * 15),
+      version: 1,
+    },
+  ];
+
+  await prisma.inventoryItem.createMany({ data: inventoryItems });
 
   const snapshots: Prisma.DungeonStateSnapshotUncheckedCreateInput[] = [
     {
@@ -114,9 +191,9 @@ async function main() {
           stats: { ap: -1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BATTLE',
-        detail: {
+        details: {
           monster: {
             id: 'monster-giant-rat',
             name: '거대 쥐',
@@ -144,9 +221,9 @@ async function main() {
           gold: 35,
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BATTLE',
-        detail: {
+        details: {
           monster: {
             id: 'monster-giant-rat',
             name: '거대 쥐',
@@ -175,6 +252,7 @@ async function main() {
             added: [
               {
                 itemId: 'potion-small',
+                code: 'potion-healing-small',
                 slot: 'consumable',
                 rarity: 'common',
                 quantity: 1,
@@ -183,9 +261,9 @@ async function main() {
           },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'ACQUIRE_ITEM',
-        detail: {
+        details: {
           reward: {
             source: 'battle-drop',
           },
@@ -206,17 +284,26 @@ async function main() {
         type: 'EQUIP_ITEM',
         detail: {
           inventory: {
-            equipped: { slot: 'weapon', itemId: 'weapon-longsword' },
-            unequipped: { slot: 'weapon', itemId: 'weapon-rusty-sword' },
+            equipped: {
+              slot: 'weapon',
+              itemId: 'weapon-longsword',
+              code: 'weapon-longsword',
+            },
+            unequipped: {
+              slot: 'weapon',
+              itemId: 'weapon-rusty-sword',
+              code: 'weapon-rusty-sword',
+            },
           },
           stats: { atk: 5, ap: -1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'EQUIP_ITEM',
-        detail: {
+        details: {
           item: {
             id: 'weapon-longsword',
+            code: 'weapon-longsword',
             name: 'Longsword',
             rarity: 'rare',
             modifiers: [{ stat: 'atk', value: 5 }],
@@ -247,9 +334,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BUFF_APPLIED',
-        detail: {
+        details: {
           buffId: 'angel-ring-resurrection',
           source: 'angel-ring',
           effect: 'HP가 0이 되면 한 번 부활',
@@ -281,9 +368,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'BUFF_EXPIRED',
-        detail: {
+        details: {
           buffId: 'angel-ring-resurrection',
           consumedBy: 'resurrection',
           expiredAtTurn: 205,
@@ -313,9 +400,9 @@ async function main() {
           ],
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'DEATH',
-        detail: {
+        details: {
           cause: 'TRAP_SPIKE',
           handledBy: 'resurrection',
         },
@@ -338,9 +425,9 @@ async function main() {
           rewards: { skillPoints: 1 },
         },
       }) as Prisma.InputJsonValue,
-      extra: toJsonExtra({
+      extra: toJsonDetails({
         type: 'LEVEL_UP',
-        detail: {
+        details: {
           previousLevel: 2,
           currentLevel: 3,
           threshold: 120,
@@ -357,6 +444,7 @@ async function main() {
   console.info('Seeded user:', user.email);
   console.info('Seeded dungeon state for:', user.email);
   console.info('Seeded dungeon logs:', logs.length);
+  console.info('Seeded inventory items:', inventoryItems.length);
 }
 
 main()
