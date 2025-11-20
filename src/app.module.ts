@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { SettingsModule } from './settings/settings.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SettingsModule } from './settings/settings.module';
     PrismaModule,
     AuthModule,
     SettingsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
