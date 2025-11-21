@@ -10,6 +10,7 @@ NestJS 기반 백엔드 서비스의 인프라/계약 구성을 위한 초기 �
 ## 주요 스크립트
 
 ### 개발 & 빌드
+
 ```bash
 pnpm dev                # 개발 서버 (watch) - 가장 많이 사용
 pnpm start:dev          # 개발 서버 (watch)
@@ -20,6 +21,7 @@ pnpm build && pnpm start # 빌드 후 실행
 ```
 
 ### 테스트
+
 ```bash
 pnpm test               # Vitest 단위 테스트
 pnpm test:watch         # Watch 모드 테스트
@@ -27,6 +29,7 @@ pnpm test:cov           # 커버리지 테스트
 ```
 
 ### 코드 품질
+
 ```bash
 pnpm format             # 코드 포매팅 (Prettier)
 pnpm lint               # ESLint 검사 및 수정
@@ -34,6 +37,7 @@ pnpm prepare            # ts-patch 및 typia 설정
 ```
 
 ### 데이터베이스 & API
+
 ```bash
 pnpm contract:generate  # Nestia SDK 생성
 pnpm sdk:generate       # 타입 안전 SDK 생성
@@ -47,19 +51,19 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 
 `.env.example`을 참고하여 필요한 값을 설정합니다.
 
-| 변수                       | 설명                                        | 기본값                                                                               |
-| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `PORT`                     | HTTP 서버 포트                              | `3000`                                                                               |
-| `LOG_LEVEL`                | Pino 로그 레벨 (`fatal` ~ `trace`)          | `info`                                                                               |
-| `LOG_PRETTY`               | 개발용 컬러/단일라인 로그 출력 여부         | `true` (dev)                                                                         |
-| `CORS_ALLOWED_ORIGINS`     | 허용할 오리진 목록(콤마 구분)                | `http://localhost:4173,http://localhost:5173,https://staging.gitdungeon.com,https://app.gitdungeon.com` |
-| `CORS_ALLOW_CREDENTIALS`   | 쿠키 등 credentials 포함 요청 허용 여부     | `true`                                                                               |
-| `PUBLIC_BASE_URL`          | 외부에 공개된 백엔드 기본 Origin (OAuth 브리지/미들웨어 기준) | `http://localhost:3000` (dev), 배포 환경 필수 설정                                   |
-| `DATABASE_URL`             | Prisma 기본 데이터베이스 접속 문자열        | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon?schema=public`        |
-| `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열 | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public` |
-| `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                       | `false` (prod), `true` (dev)                                                         |
-| `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용) | `false` (dev), `true` (test)                                                         |
-| `NODE_ENV`                  | 환경 구분 (dev/production/staging)          | `development` (dev)                                                                 |
+| 변수                       | 설명                                                          | 기본값                                                                                                  |
+| -------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `PORT`                     | HTTP 서버 포트                                                | `3000`                                                                                                  |
+| `LOG_LEVEL`                | Pino 로그 레벨 (`fatal` ~ `trace`)                            | `info`                                                                                                  |
+| `LOG_PRETTY`               | 개발용 컬러/단일라인 로그 출력 여부                           | `true` (dev)                                                                                            |
+| `CORS_ALLOWED_ORIGINS`     | 허용할 오리진 목록(콤마 구분)                                 | `http://localhost:4173,http://localhost:5173,https://staging.gitdungeon.com,https://app.gitdungeon.com` |
+| `CORS_ALLOW_CREDENTIALS`   | 쿠키 등 credentials 포함 요청 허용 여부                       | `true`                                                                                                  |
+| `PUBLIC_BASE_URL`          | 외부에 공개된 백엔드 기본 Origin (OAuth 브리지/미들웨어 기준) | `http://localhost:3000` (dev), 배포 환경 필수 설정                                                      |
+| `DATABASE_URL`             | Prisma 기본 데이터베이스 접속 문자열                          | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon?schema=public`                           |
+| `DATABASE_SHADOW_URL`      | Prisma 마이그레이션용 섀도우 DB 접속 문자열                   | `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_shadow?schema=public`                    |
+| `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                                         | `false` (prod), `true` (dev)                                                                            |
+| `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용)                   | `false` (dev), `true` (test)                                                                            |
+| `NODE_ENV`                 | 환경 구분 (dev/production/staging)                            | `development` (dev)                                                                                     |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
 
@@ -74,7 +78,7 @@ Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애�
 better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 수행합니다.
 
 1. **GitHub OAuth App 생성**
-   - Organization → *Settings* → *Developer settings* → *OAuth Apps* 에서 새 앱을 생성합니다.
+   - Organization → _Settings_ → _Developer settings_ → _OAuth Apps_ 에서 새 앱을 생성합니다.
    - Homepage URL: `https://app.gitdungeon.com`
    - Authorization callback URL (better-auth 서버 콜백 기준):
      - 개발: `http://localhost:3000/api/auth/callback/github`
@@ -85,12 +89,12 @@ better-auth 기반 GitHub OAuth 플로우를 사용하려면 다음 단계를 �
 2. **환경 변수 주입**
    - 서버 실행 환경에 아래 값을 설정합니다.
 
-     | 변수 | 설명 |
-     | ---- | ---- |
-     | `AUTH_GITHUB_CLIENT_ID` | GitHub OAuth Client ID |
-     | `AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret |
-     | `AUTH_GITHUB_REDIRECT_URI` | better-auth가 GitHub 인증 완료 후 호출할 callback URL (`/api/auth/callback/github`) |
-     | `AUTH_GITHUB_SCOPE` | 추가 OAuth scope 목록 (기본값 `read:user,user:email`) |
+     | 변수                        | 설명                                                                                |
+     | --------------------------- | ----------------------------------------------------------------------------------- |
+     | `AUTH_GITHUB_CLIENT_ID`     | GitHub OAuth Client ID                                                              |
+     | `AUTH_GITHUB_CLIENT_SECRET` | GitHub OAuth Client Secret                                                          |
+     | `AUTH_GITHUB_REDIRECT_URI`  | better-auth가 GitHub 인증 완료 후 호출할 callback URL (`/api/auth/callback/github`) |
+     | `AUTH_GITHUB_SCOPE`         | 추가 OAuth scope 목록 (기본값 `read:user,user:email`)                               |
 
    - 값이 누락되면 부팅 시점에 Typia 검증이 실패하므로, 배포 전에 Secrets/ConfigMap 등을 통해 주입 여부를 확인합니다.
 
@@ -165,14 +169,17 @@ pnpm db:reset          # 데이터베이스 전체 리셋 및 마이그레이션
 ## Swagger 문서 활용
 
 ### 개발 환경
+
 - **런타임 UI**: `pnpm dev` 실행 후 `http://localhost:3000/api` 접속
 - **실시간 업데이트**: 코드 변경 시 자동으로 최신 API 문서 반영
 
 ### 배포 환경
+
 - **프로덕션용 정적 문서**: `pnpm swagger:generate:prod`
 - **스테이징용 정적 문서**: `pnpm swagger:generate:staging`
 
 ### 외부 툴 연동
+
 - 생성된 `generated/swagger.json` 파일을 API 테스트 툴(Postman, Insomnia 등)에서 가져올 수 있습니다
 - Frontend SDK 생성: `pnpm sdk:generate`으로 타입 안전 클라이언트 라이브러리 생성
 
