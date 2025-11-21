@@ -37,7 +37,7 @@ export const createDashboardStateResponse = (
     luck: 7,
     floor: 3,
     maxFloor: 10,
-    floorProgress: 0.5,
+    floorProgress: 50,
     gold: 500,
     ap: 8,
     currentAction: 'idle',
