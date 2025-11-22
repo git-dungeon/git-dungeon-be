@@ -148,7 +148,7 @@ export class InventoryService {
     const flat = this.createEmptyStats();
     const percent = this.createEmptyStats();
 
-    const equippedItems = INVENTORY_SLOTS.map((slot) => equipped[slot]).filter(
+    const equippedItems = Object.values(equipped).filter(
       (item): item is EquipmentItem => Boolean(item),
     );
 

@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { Request } from 'express';
+import { randomUUID } from 'node:crypto';
 import type { ActiveSessionResult } from '../../auth/auth-session.service';
 
 export interface RateLimitConfig {
@@ -21,7 +22,8 @@ export class AuthenticatedThrottlerGuard extends ThrottlerGuard {
     };
 
     const userId = request.authSession?.view.session.userId;
-    const tracker = userId ?? request.ip ?? '';
+    const requestIdHeader = request.header('x-request-id');
+    const tracker = userId ?? request.ip ?? requestIdHeader ?? randomUUID();
 
     return Promise.resolve(tracker);
   }

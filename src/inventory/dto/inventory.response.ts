@@ -39,13 +39,7 @@ export interface EquipmentSummary {
   equipmentBonus: EquipmentStats;
 }
 
-export interface EquippedItems {
-  helmet?: EquipmentItem;
-  armor?: EquipmentItem;
-  weapon?: EquipmentItem;
-  ring?: EquipmentItem;
-  consumable?: EquipmentItem;
-}
+export type EquippedItems = Partial<Record<InventorySlot, EquipmentItem>>;
 
 export interface InventoryResponse {
   version: number & tags.Minimum<0> & tags.Example<7>;

@@ -48,7 +48,7 @@ describe('InventoryService', () => {
         id: 'item-weapon',
         userId: 'user-1',
         code: 'weapon-longsword',
-        slot: 'WEAPON',
+        slot: 'weapon',
         rarity: 'RARE',
         modifiers: [
           { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
