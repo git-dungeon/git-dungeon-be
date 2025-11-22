@@ -1,0 +1,242 @@
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import type { InventoryItem } from '@prisma/client';
+import typia, { TypeGuardError } from 'typia';
+import {
+  INVENTORY_STATS,
+  normalizeInventoryModifier,
+  type InventoryModifier,
+  type InventoryStat,
+} from '../common/inventory/inventory-modifier';
+import { PrismaService } from '../prisma/prisma.service';
+import type {
+  EquipmentItem,
+  EquipmentStats,
+  EquippedItems,
+  InventoryResponse,
+  InventorySlot,
+} from './dto/inventory.response';
+
+const INVENTORY_SLOTS: InventorySlot[] = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+  'consumable',
+];
+
+@Injectable()
+export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getInventory(userId: string): Promise<InventoryResponse> {
+    const [dungeonState, inventoryItems] = await Promise.all([
+      this.prisma.dungeonState.findUnique({ where: { userId } }),
+      this.prisma.inventoryItem.findMany({
+        where: { userId },
+        orderBy: { obtainedAt: 'asc' },
+      }),
+    ]);
+
+    if (!dungeonState) {
+      throw new UnauthorizedException({
+        code: 'INVENTORY_UNAUTHORIZED',
+        message: '인벤토리를 조회할 수 없습니다.',
+      });
+    }
+
+    const items = inventoryItems.map((item) => this.mapInventoryItem(item));
+    const equipped = this.mapEquipped(items);
+    const baseStats = this.getBaseStats(dungeonState);
+    const equipmentBonus = this.calculateEquipmentBonus(baseStats, equipped);
+    const summary = {
+      equipmentBonus,
+      total: this.addStats(baseStats, equipmentBonus),
+    };
+
+    const version =
+      inventoryItems.length === 0
+        ? 0
+        : Math.max(...inventoryItems.map((item) => item.version ?? 0));
+
+    const response: InventoryResponse = {
+      version,
+      items,
+      equipped,
+      summary,
+    };
+
+    try {
+      return typia.assert<InventoryResponse>(response);
+    } catch (error) {
+      if (error instanceof TypeGuardError) {
+        this.logger.error(
+          'InventoryResponse validation failed',
+          JSON.stringify({
+            path: error.path,
+            expected: error.expected,
+            value: error.value,
+            userId,
+          }),
+        );
+
+        throw new InternalServerErrorException({
+          code: 'INVENTORY_INVALID_RESPONSE',
+          message: '인벤토리 응답 스키마가 유효하지 않습니다.',
+          details: {
+            path: error.path,
+            expected: error.expected,
+          },
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  private mapInventoryItem(item: InventoryItem): EquipmentItem {
+    const modifiers = this.toInventoryModifiers(item.modifiers);
+
+    return {
+      id: item.id,
+      code: item.code,
+      name: null,
+      slot: item.slot.toLowerCase() as InventorySlot,
+      rarity: item.rarity.toLowerCase(),
+      modifiers,
+      effect: null,
+      sprite: null,
+      createdAt: item.obtainedAt.toISOString(),
+      isEquipped: item.isEquipped,
+      version: item.version,
+    };
+  }
+
+  private mapEquipped(items: EquipmentItem[]): EquippedItems {
+    return items.reduce<EquippedItems>((acc, item) => {
+      if (item.isEquipped && this.isInventorySlot(item.slot)) {
+        acc[item.slot] = item;
+      }
+      return acc;
+    }, {} as EquippedItems);
+  }
+
+  private getBaseStats(dungeonState: {
+    hp: number;
+    atk: number;
+    def: number;
+    luck: number;
+  }): EquipmentStats {
+    return {
+      hp: dungeonState.hp,
+      atk: dungeonState.atk,
+      def: dungeonState.def,
+      luck: dungeonState.luck,
+    };
+  }
+
+  private calculateEquipmentBonus(
+    baseStats: EquipmentStats,
+    equipped: EquippedItems,
+  ): EquipmentStats {
+    const flat = this.createEmptyStats();
+    const percent = this.createEmptyStats();
+
+    const equippedItems = Object.values(equipped).filter(
+      (item): item is EquipmentItem => Boolean(item),
+    );
+
+    equippedItems.forEach((item) => {
+      item.modifiers.forEach((modifier) => {
+        if (!this.isStatModifier(modifier)) {
+          return;
+        }
+
+        if (modifier.mode === 'percent') {
+          percent[modifier.stat] += modifier.value;
+          return;
+        }
+
+        flat[modifier.stat] += modifier.value;
+      });
+    });
+
+    const bonus = this.createEmptyStats();
+
+    INVENTORY_STATS.forEach((stat) => {
+      const flatValue = flat[stat];
+      const percentValue = percent[stat];
+      const base = baseStats[stat];
+
+      bonus[stat] = flatValue + Math.floor((base + flatValue) * percentValue);
+    });
+
+    return bonus;
+  }
+
+  private addStats(
+    base: EquipmentStats,
+    bonus: EquipmentStats,
+  ): EquipmentStats {
+    return {
+      hp: base.hp + bonus.hp,
+      atk: base.atk + bonus.atk,
+      def: base.def + bonus.def,
+      luck: base.luck + bonus.luck,
+    };
+  }
+
+  private toInventoryModifiers(modifiers: unknown): InventoryModifier[] {
+    if (!Array.isArray(modifiers)) {
+      return [];
+    }
+
+    const modifierArray: unknown[] = modifiers;
+
+    return modifierArray
+      .filter((modifier): modifier is InventoryModifier => {
+        if (!this.isPlainObject(modifier) || !('kind' in modifier)) {
+          return false;
+        }
+
+        if (modifier.kind === 'stat') {
+          return 'stat' in modifier && 'value' in modifier;
+        }
+
+        if (modifier.kind === 'effect') {
+          return 'effectCode' in modifier;
+        }
+
+        return false;
+      })
+      .map((modifier) => normalizeInventoryModifier(modifier));
+  }
+
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return Boolean(value) && typeof value === 'object';
+  }
+
+  private isStatModifier(
+    modifier: InventoryModifier,
+  ): modifier is Extract<InventoryModifier, { kind: 'stat' }> {
+    return modifier.kind === 'stat' && this.isInventoryStat(modifier.stat);
+  }
+
+  private isInventoryStat(stat: string): stat is InventoryStat {
+    return (INVENTORY_STATS as readonly string[]).includes(stat);
+  }
+
+  private isInventorySlot(slot: string): slot is InventorySlot {
+    return INVENTORY_SLOTS.includes(slot as InventorySlot);
+  }
+
+  private createEmptyStats(): EquipmentStats {
+    return { hp: 0, atk: 0, def: 0, luck: 0 };
+  }
+}
