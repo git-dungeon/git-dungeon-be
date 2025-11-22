@@ -253,7 +253,7 @@ async function main() {
               {
                 itemId: 'potion-small',
                 code: 'potion-healing-small',
-                slot: 'consumable',
+                slot: 'CONSUMABLE',
                 rarity: 'common',
                 quantity: 1,
               },
@@ -285,12 +285,12 @@ async function main() {
         detail: {
           inventory: {
             equipped: {
-              slot: 'weapon',
+              slot: 'WEAPON',
               itemId: 'weapon-longsword',
               code: 'weapon-longsword',
             },
             unequipped: {
-              slot: 'weapon',
+              slot: 'WEAPON',
               itemId: 'weapon-rusty-sword',
               code: 'weapon-rusty-sword',
             },
