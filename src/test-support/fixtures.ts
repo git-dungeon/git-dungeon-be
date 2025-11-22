@@ -1,5 +1,6 @@
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state.response';
+import type { InventoryResponse } from '../inventory/dto/inventory.response';
 
 export const createActiveSession = (
   overrides: Partial<ActiveSessionResult> = {},
@@ -63,4 +64,51 @@ export const createDashboardStateResponse = (
     version: 1,
     ...overrides,
   },
+});
+
+export const createInventoryResponse = (
+  overrides: Partial<InventoryResponse> = {},
+): InventoryResponse => ({
+  version: 3,
+  items: [
+    {
+      id: 'item-weapon',
+      code: 'weapon-longsword',
+      name: null,
+      slot: 'weapon',
+      rarity: 'rare',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
+        { kind: 'stat', stat: 'def', mode: 'percent', value: 0.5 },
+      ],
+      effect: null,
+      sprite: null,
+      createdAt: '2025-10-30T09:00:00.000Z',
+      isEquipped: true,
+      version: 3,
+    },
+  ],
+  equipped: {
+    weapon: {
+      id: 'item-weapon',
+      code: 'weapon-longsword',
+      name: null,
+      slot: 'weapon',
+      rarity: 'rare',
+      modifiers: [
+        { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
+        { kind: 'stat', stat: 'def', mode: 'percent', value: 0.5 },
+      ],
+      effect: null,
+      sprite: null,
+      createdAt: '2025-10-30T09:00:00.000Z',
+      isEquipped: true,
+      version: 3,
+    },
+  },
+  summary: {
+    total: { hp: 10, atk: 10, def: 5, luck: 1 },
+    equipmentBonus: { hp: 0, atk: 5, def: 2, luck: 0 },
+  },
+  ...overrides,
 });
