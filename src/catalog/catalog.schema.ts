@@ -66,7 +66,8 @@ export interface CatalogData {
   spriteMap?: Record<string, string> | null;
 }
 
-export const assertCatalogData: (input: unknown) => CatalogData =
-  typia.createAssert<CatalogData>();
-export const validateCatalogData: (input: unknown) => IValidation<CatalogData> =
-  typia.createValidate<CatalogData>();
+export const assertCatalogData: (input: unknown) => CatalogData = (input) =>
+  typia.assert<CatalogData>(input);
+export const validateCatalogData: (
+  input: unknown,
+) => IValidation<CatalogData> = (input) => typia.validate<CatalogData>(input);
