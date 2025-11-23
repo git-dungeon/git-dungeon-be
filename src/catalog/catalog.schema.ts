@@ -13,6 +13,8 @@ export type CatalogRarity = (typeof CATALOG_RARITIES)[number];
 
 export interface CatalogItem {
   code: string & tags.MinLength<1>;
+  nameKey: string & tags.MinLength<1>;
+  descriptionKey?: string | null;
   name: string;
   slot: InventorySlot;
   rarity: CatalogRarity;
@@ -24,6 +26,8 @@ export interface CatalogItem {
 
 export interface CatalogBuff {
   buffId: string & tags.MinLength<1>;
+  nameKey: string & tags.MinLength<1>;
+  descriptionKey?: string | null;
   name: string;
   effectCode: string;
   durationTurns?: number | null;
@@ -34,6 +38,8 @@ export interface CatalogBuff {
 
 export interface CatalogMonster {
   id: string & tags.MinLength<1>;
+  nameKey: string & tags.MinLength<1>;
+  descriptionKey?: string | null;
   name: string;
   hp: number;
   atk: number;

@@ -1,9 +1,11 @@
 {
-  "version": 3,
-  "updatedAt": "2025-11-22T13:10:00.000Z",
+  "version": 5,
+  "updatedAt": "2025-11-23T10:15:55.832Z",
   "buffs": [
     {
       "buffId": "angel-ring-revive",
+      "nameKey": "buff.angel-ring-revive.name",
+      "descriptionKey": "buff.angel-ring-revive.desc",
       "name": "Second Chance",
       "effectCode": "angel-ring-revive",
       "durationTurns": null,

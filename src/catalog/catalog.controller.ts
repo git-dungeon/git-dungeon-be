@@ -2,33 +2,54 @@ import {
   Controller,
   InternalServerErrorException,
   Logger,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TypedRoute } from '@nestia/core';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import {
   successResponseWithGeneratedAt,
   type ApiSuccessResponse,
 } from '../common/http/api-response';
-import { loadCatalogData } from './index';
+import { computeCatalogHash, loadCatalogData } from './index';
 import type { CatalogData } from './catalog.schema';
 import type { Request, Response } from 'express';
 
+type CatalogPublicData = Omit<CatalogData, 'dropTables'>;
+
+@ApiTags('Catalog')
 @Controller('api')
 @UseGuards(AuthenticatedThrottlerGuard)
 export class CatalogController {
   private readonly logger = new Logger(CatalogController.name);
 
-  @TypedRoute.Get<ApiSuccessResponse<CatalogData>>('catalog')
+  @TypedRoute.Get<ApiSuccessResponse<CatalogPublicData>>('catalog')
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    type: String,
+    description:
+      '번역 문자열을 포함할 경우 사용할 locale. 기본 en. locale이 없으면 키/기본 문자열만 반환한다.',
+  })
   async getCatalog(
     @Req() req: Request & { id?: string },
     @Res({ passthrough: true }) res: Response,
-  ): Promise<ApiSuccessResponse<CatalogData> | void> {
+    @Query('locale') locale?: string,
+  ): Promise<ApiSuccessResponse<CatalogPublicData> | void> {
     try {
-      const catalog = await loadCatalogData();
-      const etag = `"catalog-${catalog.version}-${catalog.updatedAt}"`;
+      const resolvedLocale = locale ?? 'en';
+      const includeStrings = locale !== undefined;
+      const catalog = await loadCatalogData(undefined, undefined, {
+        locale: resolvedLocale,
+        includeStrings,
+      });
+      const { dropTables: _dropTables, ...publicCatalog } = catalog;
+      void _dropTables;
+
+      const etag = `"catalog-${computeCatalogHash(catalog)}"`;
       const cacheControl =
         'public, max-age=3600, stale-while-revalidate=300, stale-if-error=3600';
       const ifNoneMatch = req.headers['if-none-match'];
@@ -44,7 +65,7 @@ export class CatalogController {
       res.setHeader('ETag', etag);
       res.setHeader('Cache-Control', cacheControl);
 
-      return successResponseWithGeneratedAt(catalog, {
+      return successResponseWithGeneratedAt(publicCatalog, {
         requestId: req.id,
       });
     } catch (error) {

@@ -1,4 +1,5 @@
 import { readFile } from 'fs/promises';
+import { createHash } from 'crypto';
 import path from 'path';
 import {
   assertCatalogData,
@@ -23,6 +24,8 @@ export const DEFAULT_CATALOG_PATHS: CatalogFilePaths = {
   drops: 'config/catalog/drops.json',
 };
 
+export type CatalogTranslations = Record<string, string>;
+
 const loadJson = async <T>(
   baseDir: string,
   relativePath: string,
@@ -36,9 +39,53 @@ const pickLatestTimestamp = (timestamps: string[]): string => {
   return timestamps.sort().at(-1) ?? new Date(0).toISOString();
 };
 
+export const loadTranslations = async (
+  locale: string,
+  baseDir = path.join(__dirname, '..', '..'),
+): Promise<CatalogTranslations> => {
+  const translationsPath = path.join(
+    baseDir,
+    'config/catalog/i18n',
+    `${locale}.json`,
+  );
+  try {
+    const content = await readFile(translationsPath, 'utf8');
+    return JSON.parse(content) as CatalogTranslations;
+  } catch {
+    return {};
+  }
+};
+
+const applyTranslations = <
+  T extends {
+    name: string;
+    description?: string | null;
+    nameKey?: string;
+    descriptionKey?: string | null;
+  },
+>(
+  items: T[],
+  translations: CatalogTranslations,
+): T[] =>
+  items.map((item) => {
+    const translatedName =
+      (item.nameKey && translations[item.nameKey]) ?? item.name;
+    const translatedDesc =
+      (item.descriptionKey && translations[item.descriptionKey]) ??
+      item.description ??
+      null;
+
+    return {
+      ...item,
+      name: translatedName,
+      description: translatedDesc,
+    };
+  });
+
 export const loadCatalogData = async (
   baseDir = path.join(__dirname, '..', '..'),
   filePaths: CatalogFilePaths = DEFAULT_CATALOG_PATHS,
+  options?: { locale?: string; includeStrings?: boolean },
 ): Promise<CatalogData> => {
   const itemsFile = await loadJson<{
     version: number;
@@ -90,7 +137,28 @@ export const loadCatalogData = async (
     spriteMap: itemsFile.spriteMap ?? null,
   };
 
-  return assertCatalogData(catalog);
+  const validated = assertCatalogData(catalog);
+
+  if (options?.includeStrings) {
+    const translations = await loadTranslations(
+      options.locale ?? 'en',
+      baseDir,
+    );
+    return {
+      ...validated,
+      items: applyTranslations(validated.items, translations),
+      buffs: applyTranslations(validated.buffs, translations),
+      monsters: applyTranslations(validated.monsters, translations),
+    };
+  }
+
+  return validated;
+};
+
+export const computeCatalogHash = (catalog: CatalogData): string => {
+  const hash = createHash('sha256');
+  hash.update(JSON.stringify(catalog));
+  return hash.digest('hex');
 };
 
 export type {

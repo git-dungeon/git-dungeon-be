@@ -1,9 +1,11 @@
 {
-  "version": 4,
-  "updatedAt": "2025-11-22T13:20:00.000Z",
+  "version": 6,
+  "updatedAt": "2025-11-23T10:15:55.832Z",
   "monsters": [
     {
       "id": "monster-giant-rat",
+      "nameKey": "monster.giant-rat.name",
+      "descriptionKey": "monster.giant-rat.desc",
       "name": "Giant Rat",
       "hp": 8,
       "atk": 2,
@@ -14,6 +16,8 @@
     },
     {
       "id": "monster-cave-beetle",
+      "nameKey": "monster.cave-beetle.name",
+      "descriptionKey": "monster.cave-beetle.desc",
       "name": "Cave Beetle",
       "hp": 12,
       "atk": 2,
@@ -24,6 +28,8 @@
     },
     {
       "id": "monster-zombie",
+      "nameKey": "monster.zombie.name",
+      "descriptionKey": "monster.zombie.desc",
       "name": "Zombie",
       "hp": 15,
       "atk": 3,
@@ -34,6 +40,8 @@
     },
     {
       "id": "monster-cave-spider",
+      "nameKey": "monster.cave-spider.name",
+      "descriptionKey": "monster.cave-spider.desc",
       "name": "Cave Spider",
       "hp": 10,
       "atk": 4,
@@ -44,6 +52,8 @@
     },
     {
       "id": "monster-serpent",
+      "nameKey": "monster.serpent.name",
+      "descriptionKey": "monster.serpent.desc",
       "name": "Serpent",
       "hp": 14,
       "atk": 4,
@@ -54,6 +64,8 @@
     },
     {
       "id": "monster-skeleton-warrior",
+      "nameKey": "monster.skeleton-warrior.name",
+      "descriptionKey": "monster.skeleton-warrior.desc",
       "name": "Skeleton Warrior",
       "hp": 18,
       "atk": 5,
@@ -64,6 +76,8 @@
     },
     {
       "id": "monster-slime",
+      "nameKey": "monster.slime.name",
+      "descriptionKey": "monster.slime.desc",
       "name": "Slime",
       "hp": 25,
       "atk": 3,
@@ -74,6 +88,8 @@
     },
     {
       "id": "monster-cave-bat",
+      "nameKey": "monster.cave-bat.name",
+      "descriptionKey": "monster.cave-bat.desc",
       "name": "Cave Bat",
       "hp": 12,
       "atk": 5,
@@ -84,6 +100,8 @@
     },
     {
       "id": "monster-fire-imp",
+      "nameKey": "monster.fire-imp.name",
+      "descriptionKey": "monster.fire-imp.desc",
       "name": "Fire Imp",
       "hp": 16,
       "atk": 6,
@@ -94,6 +112,8 @@
     },
     {
       "id": "monster-ancient-dragon",
+      "nameKey": "monster.ancient-dragon.name",
+      "descriptionKey": "monster.ancient-dragon.desc",
       "name": "Ancient Dragon",
       "hp": 50,
       "atk": 10,

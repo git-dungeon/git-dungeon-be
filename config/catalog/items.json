@@ -1,14 +1,21 @@
 {
-  "version": 3,
-  "updatedAt": "2025-11-22T13:10:00.000Z",
+  "version": 6,
+  "updatedAt": "2025-11-23T10:15:55.832Z",
   "items": [
     {
       "code": "weapon-wooden-sword",
+      "nameKey": "item.weapon-wooden-sword.name",
+      "descriptionKey": "item.weapon-wooden-sword.desc",
       "name": "Wooden Sword",
       "slot": "weapon",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-wooden-sword",
@@ -16,11 +23,18 @@
     },
     {
       "code": "weapon-iron-dagger",
+      "nameKey": "item.weapon-iron-dagger.name",
+      "descriptionKey": "item.weapon-iron-dagger.desc",
       "name": "Iron Dagger",
       "slot": "weapon",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-iron-dagger",
@@ -28,11 +42,18 @@
     },
     {
       "code": "weapon-short-sword",
+      "nameKey": "item.weapon-short-sword.name",
+      "descriptionKey": "item.weapon-short-sword.desc",
       "name": "Short Sword",
       "slot": "weapon",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-short-sword",
@@ -40,12 +61,24 @@
     },
     {
       "code": "weapon-steel-sword",
+      "nameKey": "item.weapon-steel-sword.name",
+      "descriptionKey": "item.weapon-steel-sword.desc",
       "name": "Steel Sword",
       "slot": "weapon",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 4 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-steel-sword",
@@ -53,11 +86,18 @@
     },
     {
       "code": "weapon-longsword",
+      "nameKey": "item.weapon-longsword.name",
+      "descriptionKey": "item.weapon-longsword.desc",
       "name": "Longsword",
       "slot": "weapon",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-longsword",
@@ -65,11 +105,18 @@
     },
     {
       "code": "weapon-battle-axe",
+      "nameKey": "item.weapon-battle-axe.name",
+      "descriptionKey": "item.weapon-battle-axe.desc",
       "name": "Battle Axe",
       "slot": "weapon",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 6 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 6
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-battle-axe",
@@ -77,11 +124,18 @@
     },
     {
       "code": "weapon-warhammer",
+      "nameKey": "item.weapon-warhammer.name",
+      "descriptionKey": "item.weapon-warhammer.desc",
       "name": "Warhammer",
       "slot": "weapon",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 7 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 7
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-warhammer",
@@ -89,12 +143,24 @@
     },
     {
       "code": "weapon-greatsword",
+      "nameKey": "item.weapon-greatsword.name",
+      "descriptionKey": "item.weapon-greatsword.desc",
       "name": "Greatsword",
       "slot": "weapon",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 9 },
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": -1 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 9
+        },
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": -1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-greatsword",
@@ -102,12 +168,24 @@
     },
     {
       "code": "weapon-spear-of-valor",
+      "nameKey": "item.weapon-spear-of-valor.name",
+      "descriptionKey": "item.weapon-spear-of-valor.desc",
       "name": "Spear of Valor",
       "slot": "weapon",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 10 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-spear-of-valor",
@@ -115,14 +193,36 @@
     },
     {
       "code": "weapon-excalibur",
+      "nameKey": "item.weapon-excalibur.name",
+      "descriptionKey": "item.weapon-excalibur.desc",
       "name": "Excalibur",
       "slot": "weapon",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 12 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/weapon-excalibur",
@@ -130,11 +230,18 @@
     },
     {
       "code": "armor-leather-armor",
+      "nameKey": "item.armor-leather-armor.name",
+      "descriptionKey": "item.armor-leather-armor.desc",
       "name": "Leather Armor",
       "slot": "armor",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-leather-armor",
@@ -142,11 +249,18 @@
     },
     {
       "code": "armor-iron-shield",
+      "nameKey": "item.armor-iron-shield.name",
+      "descriptionKey": "item.armor-iron-shield.desc",
       "name": "Iron Shield",
       "slot": "armor",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-iron-shield",
@@ -154,11 +268,18 @@
     },
     {
       "code": "armor-chainmail",
+      "nameKey": "item.armor-chainmail.name",
+      "descriptionKey": "item.armor-chainmail.desc",
       "name": "Chainmail",
       "slot": "armor",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-chainmail",
@@ -166,12 +287,24 @@
     },
     {
       "code": "armor-steel-armor",
+      "nameKey": "item.armor-steel-armor.name",
+      "descriptionKey": "item.armor-steel-armor.desc",
       "name": "Steel Armor",
       "slot": "armor",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 4 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-steel-armor",
@@ -179,11 +312,18 @@
     },
     {
       "code": "armor-knights-plate",
+      "nameKey": "item.armor-knights-plate.name",
+      "descriptionKey": "item.armor-knights-plate.desc",
       "name": "Knight's Plate",
       "slot": "armor",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-knights-plate",
@@ -191,11 +331,18 @@
     },
     {
       "code": "armor-tower-shield",
+      "nameKey": "item.armor-tower-shield.name",
+      "descriptionKey": "item.armor-tower-shield.desc",
       "name": "Tower Shield",
       "slot": "armor",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 6 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 6
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-tower-shield",
@@ -203,11 +350,18 @@
     },
     {
       "code": "armor-guardian-armor",
+      "nameKey": "item.armor-guardian-armor.name",
+      "descriptionKey": "item.armor-guardian-armor.desc",
       "name": "Guardian Armor",
       "slot": "armor",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 7 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 7
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-guardian-armor",
@@ -215,12 +369,24 @@
     },
     {
       "code": "armor-dragon-scale",
+      "nameKey": "item.armor-dragon-scale.name",
+      "descriptionKey": "item.armor-dragon-scale.desc",
       "name": "Dragon Scale",
       "slot": "armor",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 8 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 8
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-dragon-scale",
@@ -228,12 +394,24 @@
     },
     {
       "code": "armor-mythril-armor",
+      "nameKey": "item.armor-mythril-armor.name",
+      "descriptionKey": "item.armor-mythril-armor.desc",
       "name": "Mythril Armor",
       "slot": "armor",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 10 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": -1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-mythril-armor",
@@ -241,14 +419,36 @@
     },
     {
       "code": "armor-divine-cloak",
+      "nameKey": "item.armor-divine-cloak.name",
+      "descriptionKey": "item.armor-divine-cloak.desc",
       "name": "Divine Cloak",
       "slot": "armor",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 12 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/armor-divine-cloak",
@@ -256,11 +456,18 @@
     },
     {
       "code": "helmet-leather-cap",
+      "nameKey": "item.helmet-leather-cap.name",
+      "descriptionKey": "item.helmet-leather-cap.desc",
       "name": "Leather Cap",
       "slot": "helmet",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-leather-cap",
@@ -268,11 +475,18 @@
     },
     {
       "code": "helmet-iron-helm",
+      "nameKey": "item.helmet-iron-helm.name",
+      "descriptionKey": "item.helmet-iron-helm.desc",
       "name": "Iron Helm",
       "slot": "helmet",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-iron-helm",
@@ -280,11 +494,18 @@
     },
     {
       "code": "helmet-bronze-helm",
+      "nameKey": "item.helmet-bronze-helm.name",
+      "descriptionKey": "item.helmet-bronze-helm.desc",
       "name": "Bronze Helm",
       "slot": "helmet",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-bronze-helm",
@@ -292,12 +513,24 @@
     },
     {
       "code": "helmet-steel-helm",
+      "nameKey": "item.helmet-steel-helm.name",
+      "descriptionKey": "item.helmet-steel-helm.desc",
       "name": "Steel Helm",
       "slot": "helmet",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 4 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-steel-helm",
@@ -305,11 +538,18 @@
     },
     {
       "code": "helmet-knights-helm",
+      "nameKey": "item.helmet-knights-helm.name",
+      "descriptionKey": "item.helmet-knights-helm.desc",
       "name": "Knight's Helm",
       "slot": "helmet",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-knights-helm",
@@ -317,12 +557,24 @@
     },
     {
       "code": "helmet-horned-helm",
+      "nameKey": "item.helmet-horned-helm.name",
+      "descriptionKey": "item.helmet-horned-helm.desc",
       "name": "Horned Helm",
       "slot": "helmet",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 6 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 6
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-horned-helm",
@@ -330,12 +582,24 @@
     },
     {
       "code": "helmet-dragon-helm",
+      "nameKey": "item.helmet-dragon-helm.name",
+      "descriptionKey": "item.helmet-dragon-helm.desc",
       "name": "Dragon Helm",
       "slot": "helmet",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 7 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 7
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-dragon-helm",
@@ -343,12 +607,24 @@
     },
     {
       "code": "helmet-shadow-hood",
+      "nameKey": "item.helmet-shadow-hood.name",
+      "descriptionKey": "item.helmet-shadow-hood.desc",
       "name": "Shadow Hood",
       "slot": "helmet",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 8 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 8
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-shadow-hood",
@@ -356,12 +632,24 @@
     },
     {
       "code": "helmet-mythril-helm",
+      "nameKey": "item.helmet-mythril-helm.name",
+      "descriptionKey": "item.helmet-mythril-helm.desc",
       "name": "Mythril Helm",
       "slot": "helmet",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 10 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": -1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-mythril-helm",
@@ -369,14 +657,36 @@
     },
     {
       "code": "helmet-crown-of-valor",
+      "nameKey": "item.helmet-crown-of-valor.name",
+      "descriptionKey": "item.helmet-crown-of-valor.desc",
       "name": "Crown of Valor",
       "slot": "helmet",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 12 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/helmet-crown-of-valor",
@@ -384,11 +694,18 @@
     },
     {
       "code": "ring-copper-band",
+      "nameKey": "item.ring-copper-band.name",
+      "descriptionKey": "item.ring-copper-band.desc",
       "name": "Copper Band",
       "slot": "ring",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 1 }
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-copper-band",
@@ -396,11 +713,18 @@
     },
     {
       "code": "ring-silver-band",
+      "nameKey": "item.ring-silver-band.name",
+      "descriptionKey": "item.ring-silver-band.desc",
       "name": "Silver Band",
       "slot": "ring",
       "rarity": "common",
       "modifiers": [
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-silver-band",
@@ -408,11 +732,18 @@
     },
     {
       "code": "ring-garnet",
+      "nameKey": "item.ring-garnet.name",
+      "descriptionKey": "item.ring-garnet.desc",
       "name": "Garnet Ring",
       "slot": "ring",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-garnet",
@@ -420,12 +751,24 @@
     },
     {
       "code": "ring-topaz",
+      "nameKey": "item.ring-topaz.name",
+      "descriptionKey": "item.ring-topaz.desc",
       "name": "Topaz Ring",
       "slot": "ring",
       "rarity": "uncommon",
       "modifiers": [
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 2 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-topaz",
@@ -433,11 +776,18 @@
     },
     {
       "code": "ring-sapphire",
+      "nameKey": "item.ring-sapphire.name",
+      "descriptionKey": "item.ring-sapphire.desc",
       "name": "Sapphire Ring",
       "slot": "ring",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-sapphire",
@@ -445,11 +795,18 @@
     },
     {
       "code": "ring-emerald",
+      "nameKey": "item.ring-emerald.name",
+      "descriptionKey": "item.ring-emerald.desc",
       "name": "Emerald Ring",
       "slot": "ring",
       "rarity": "rare",
       "modifiers": [
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 5 }
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-emerald",
@@ -457,12 +814,24 @@
     },
     {
       "code": "ring-ruby-signet",
+      "nameKey": "item.ring-ruby-signet.name",
+      "descriptionKey": "item.ring-ruby-signet.desc",
       "name": "Ruby Signet",
       "slot": "ring",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": 1 },
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 2 }
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-ruby-signet",
@@ -470,12 +839,24 @@
     },
     {
       "code": "ring-obsidian",
+      "nameKey": "item.ring-obsidian.name",
+      "descriptionKey": "item.ring-obsidian.desc",
       "name": "Obsidian Ring",
       "slot": "ring",
       "rarity": "epic",
       "modifiers": [
-        { "kind": "stat", "stat": "def", "mode": "flat", "value": 2 },
-        { "kind": "stat", "stat": "hp", "mode": "flat", "value": 3 }
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 3
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-obsidian",
@@ -483,12 +864,24 @@
     },
     {
       "code": "ring-mythril",
+      "nameKey": "item.ring-mythril.name",
+      "descriptionKey": "item.ring-mythril.desc",
       "name": "Mythril Ring",
       "slot": "ring",
       "rarity": "legendary",
       "modifiers": [
-        { "kind": "stat", "stat": "luck", "mode": "flat", "value": 4 },
-        { "kind": "stat", "stat": "atk", "mode": "flat", "value": -1 }
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
       ],
       "effectCode": null,
       "spriteId": "sprite/ring-mythril",
@@ -496,6 +889,8 @@
     },
     {
       "code": "angel-ring",
+      "nameKey": "item.angel-ring.name",
+      "descriptionKey": "item.angel-ring.desc",
       "name": "Angel Ring",
       "slot": "ring",
       "rarity": "legendary",
