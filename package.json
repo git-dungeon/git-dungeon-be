@@ -30,7 +30,8 @@
     "swagger:generate:staging": "PUBLIC_BASE_URL=https://staging-api.gitdungeon.com npx nestia swagger",
     "swagger:open": "open http://localhost:3000/api",
     "contract:generate": "pnpm build && tsx scripts/contract.ts all",
-    "pretest": "pnpm db:generate"
+    "pretest": "pnpm db:generate",
+    "validate:catalog": "pnpm exec ts-node --compiler ts-patch/compiler scripts/validate-catalog.ts"
   },
   "dependencies": {
     "@nestia/core": "^8.1.0",

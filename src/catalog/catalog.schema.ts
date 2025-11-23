@@ -38,7 +38,6 @@ export interface CatalogMonster {
   hp: number;
   atk: number;
   def: number;
-  luck: number;
   spriteId: string;
   dropTableId?: string | null;
   description?: string | null;
