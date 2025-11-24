@@ -1,10 +1,13 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
+  PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { InventoryItem } from '@prisma/client';
+import { Prisma, type InventoryItem } from '@prisma/client';
 import typia, { TypeGuardError } from 'typia';
 import {
   INVENTORY_STATS,
@@ -36,9 +39,175 @@ export class InventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getInventory(userId: string): Promise<InventoryResponse> {
+    const response = await this.buildInventoryResponse(this.prisma, userId);
+
+    return this.assertInventoryResponse(userId, response);
+  }
+
+  async equipItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      if (target.isEquipped) {
+        throw new ConflictException({
+          code: 'INVENTORY_SLOT_CONFLICT',
+          message: '이미 장착된 아이템입니다.',
+        });
+      }
+
+      const equippedInSlot = await tx.inventoryItem.findFirst({
+        where: { userId, slot: target.slot, isEquipped: true },
+      });
+
+      if (equippedInSlot) {
+        await this.unequipExistingItem(tx, equippedInSlot);
+      }
+
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+        data: { isEquipped: true, version: { increment: 1 } },
+      });
+
+      if (updated.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: currentInventoryVersion + 1,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
+  async unequipItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      if (!target.isEquipped) {
+        throw new ConflictException({
+          code: 'INVENTORY_SLOT_CONFLICT',
+          message: '장착 상태가 아닙니다.',
+        });
+      }
+
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+        data: { isEquipped: false, version: { increment: 1 } },
+      });
+
+      if (updated.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: currentInventoryVersion + 1,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
+  async discardItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      const deleted = await tx.inventoryItem.deleteMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+      });
+
+      if (deleted.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: currentInventoryVersion + 1,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
+  private async buildInventoryResponse(
+    prismaClient: PrismaService | Prisma.TransactionClient,
+    userId: string,
+    options?: { forcedInventoryVersion?: number },
+  ): Promise<InventoryResponse> {
     const [dungeonState, inventoryItems] = await Promise.all([
-      this.prisma.dungeonState.findUnique({ where: { userId } }),
-      this.prisma.inventoryItem.findMany({
+      prismaClient.dungeonState.findUnique({ where: { userId } }),
+      prismaClient.inventoryItem.findMany({
         where: { userId },
         orderBy: { obtainedAt: 'asc' },
       }),
@@ -64,14 +233,23 @@ export class InventoryService {
       inventoryItems.length === 0
         ? 0
         : Math.max(...inventoryItems.map((item) => item.version ?? 0));
+    const resolvedVersion =
+      options?.forcedInventoryVersion !== undefined
+        ? Math.max(version, options.forcedInventoryVersion)
+        : version;
 
-    const response: InventoryResponse = {
-      version,
+    return {
+      version: resolvedVersion,
       items,
       equipped,
       summary,
     };
+  }
 
+  private assertInventoryResponse(
+    userId: string,
+    response: InventoryResponse,
+  ): InventoryResponse {
     try {
       return typia.assert<InventoryResponse>(response);
     } catch (error) {
@@ -97,6 +275,69 @@ export class InventoryService {
       }
 
       throw error;
+    }
+  }
+
+  private async assertInventoryVersion(
+    prismaClient: PrismaService | Prisma.TransactionClient,
+    userId: string,
+    expectedInventoryVersion: number,
+  ): Promise<number> {
+    const result = await prismaClient.inventoryItem.aggregate({
+      where: { userId },
+      _max: { version: true },
+    });
+
+    const currentInventoryVersion = result._max.version ?? 0;
+
+    if (currentInventoryVersion !== expectedInventoryVersion) {
+      throw new PreconditionFailedException({
+        code: 'INVENTORY_VERSION_MISMATCH',
+        message: '인벤토리 버전이 일치하지 않습니다.',
+      });
+    }
+
+    return currentInventoryVersion;
+  }
+
+  private assertOwnedItem(
+    item: InventoryItem | null,
+    userId: string,
+  ): asserts item is InventoryItem {
+    if (!item || item.userId !== userId) {
+      throw new NotFoundException({
+        code: 'INVENTORY_ITEM_NOT_FOUND',
+        message: '아이템을 찾을 수 없습니다.',
+      });
+    }
+  }
+
+  private assertItemVersion(
+    item: InventoryItem,
+    expectedVersion: number,
+  ): void {
+    if (item.version !== expectedVersion) {
+      throw new PreconditionFailedException({
+        code: 'INVENTORY_VERSION_MISMATCH',
+        message: '아이템 버전이 일치하지 않습니다.',
+      });
+    }
+  }
+
+  private async unequipExistingItem(
+    tx: Prisma.TransactionClient,
+    item: InventoryItem,
+  ): Promise<void> {
+    const updated = await tx.inventoryItem.updateMany({
+      where: { id: item.id, userId: item.userId, version: item.version },
+      data: { isEquipped: false, version: { increment: 1 } },
+    });
+
+    if (updated.count === 0) {
+      throw new PreconditionFailedException({
+        code: 'INVENTORY_VERSION_MISMATCH',
+        message: '슬롯 장착 상태를 업데이트할 수 없습니다.',
+      });
     }
   }
 
