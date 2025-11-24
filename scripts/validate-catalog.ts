@@ -3,7 +3,7 @@ import { loadCatalogData } from '../src/catalog';
 const main = async (): Promise<void> => {
   try {
     const catalog = await loadCatalogData();
-    // eslint-disable-next-line no-console
+
     console.log('Catalog validation succeeded', {
       version: catalog.version,
       updatedAt: catalog.updatedAt,
@@ -13,7 +13,6 @@ const main = async (): Promise<void> => {
       dropTables: catalog.dropTables.length,
     });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error('Catalog validation failed', error);
     process.exit(1);
   }

@@ -47,7 +47,6 @@ export class CatalogController {
         includeStrings,
       });
       const { dropTables: _dropTables, ...publicCatalog } = catalog;
-      void _dropTables;
 
       const etag = `"catalog-${computeCatalogHash(catalog)}"`;
       const cacheControl =
