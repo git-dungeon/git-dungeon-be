@@ -1,0 +1,905 @@
+{
+  "version": 6,
+  "updatedAt": "2025-11-23T10:15:55.832Z",
+  "items": [
+    {
+      "code": "weapon-wooden-sword",
+      "nameKey": "item.weapon-wooden-sword.name",
+      "descriptionKey": "item.weapon-wooden-sword.desc",
+      "name": "Wooden Sword",
+      "slot": "weapon",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-wooden-sword",
+      "description": "Simple wooden blade."
+    },
+    {
+      "code": "weapon-iron-dagger",
+      "nameKey": "item.weapon-iron-dagger.name",
+      "descriptionKey": "item.weapon-iron-dagger.desc",
+      "name": "Iron Dagger",
+      "slot": "weapon",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-iron-dagger",
+      "description": "Lightweight dagger."
+    },
+    {
+      "code": "weapon-short-sword",
+      "nameKey": "item.weapon-short-sword.name",
+      "descriptionKey": "item.weapon-short-sword.desc",
+      "name": "Short Sword",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-short-sword",
+      "description": "Standard short sword."
+    },
+    {
+      "code": "weapon-steel-sword",
+      "nameKey": "item.weapon-steel-sword.name",
+      "descriptionKey": "item.weapon-steel-sword.desc",
+      "name": "Steel Sword",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-steel-sword",
+      "description": "Steel sword with a touch of luck."
+    },
+    {
+      "code": "weapon-longsword",
+      "nameKey": "item.weapon-longsword.name",
+      "descriptionKey": "item.weapon-longsword.desc",
+      "name": "Longsword",
+      "slot": "weapon",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-longsword",
+      "description": "Balanced blade favored by novices."
+    },
+    {
+      "code": "weapon-battle-axe",
+      "nameKey": "item.weapon-battle-axe.name",
+      "descriptionKey": "item.weapon-battle-axe.desc",
+      "name": "Battle Axe",
+      "slot": "weapon",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 6
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-battle-axe",
+      "description": "Heavy axe for close combat."
+    },
+    {
+      "code": "weapon-warhammer",
+      "nameKey": "item.weapon-warhammer.name",
+      "descriptionKey": "item.weapon-warhammer.desc",
+      "name": "Warhammer",
+      "slot": "weapon",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 7
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-warhammer",
+      "description": "Crushing blows with every swing."
+    },
+    {
+      "code": "weapon-greatsword",
+      "nameKey": "item.weapon-greatsword.name",
+      "descriptionKey": "item.weapon-greatsword.desc",
+      "name": "Greatsword",
+      "slot": "weapon",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 9
+        },
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": -1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-greatsword",
+      "description": "Massive sword that trades defense for power."
+    },
+    {
+      "code": "weapon-spear-of-valor",
+      "nameKey": "item.weapon-spear-of-valor.name",
+      "descriptionKey": "item.weapon-spear-of-valor.desc",
+      "name": "Spear of Valor",
+      "slot": "weapon",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-spear-of-valor",
+      "description": "A spear that rewards the brave."
+    },
+    {
+      "code": "weapon-excalibur",
+      "nameKey": "item.weapon-excalibur.name",
+      "descriptionKey": "item.weapon-excalibur.desc",
+      "name": "Excalibur",
+      "slot": "weapon",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/weapon-excalibur",
+      "description": "Legendary blade that raises all stats."
+    },
+    {
+      "code": "armor-leather-armor",
+      "nameKey": "item.armor-leather-armor.name",
+      "descriptionKey": "item.armor-leather-armor.desc",
+      "name": "Leather Armor",
+      "slot": "armor",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-leather-armor",
+      "description": "Basic leather protection."
+    },
+    {
+      "code": "armor-iron-shield",
+      "nameKey": "item.armor-iron-shield.name",
+      "descriptionKey": "item.armor-iron-shield.desc",
+      "name": "Iron Shield",
+      "slot": "armor",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-iron-shield",
+      "description": "Sturdy iron shield."
+    },
+    {
+      "code": "armor-chainmail",
+      "nameKey": "item.armor-chainmail.name",
+      "descriptionKey": "item.armor-chainmail.desc",
+      "name": "Chainmail",
+      "slot": "armor",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-chainmail",
+      "description": "Chain links for balanced defense."
+    },
+    {
+      "code": "armor-steel-armor",
+      "nameKey": "item.armor-steel-armor.name",
+      "descriptionKey": "item.armor-steel-armor.desc",
+      "name": "Steel Armor",
+      "slot": "armor",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-steel-armor",
+      "description": "Steel plating with lucky engravings."
+    },
+    {
+      "code": "armor-knights-plate",
+      "nameKey": "item.armor-knights-plate.name",
+      "descriptionKey": "item.armor-knights-plate.desc",
+      "name": "Knight's Plate",
+      "slot": "armor",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-knights-plate",
+      "description": "Plate armor fit for a knight."
+    },
+    {
+      "code": "armor-tower-shield",
+      "nameKey": "item.armor-tower-shield.name",
+      "descriptionKey": "item.armor-tower-shield.desc",
+      "name": "Tower Shield",
+      "slot": "armor",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 6
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-tower-shield",
+      "description": "Massive shield for maximum coverage."
+    },
+    {
+      "code": "armor-guardian-armor",
+      "nameKey": "item.armor-guardian-armor.name",
+      "descriptionKey": "item.armor-guardian-armor.desc",
+      "name": "Guardian Armor",
+      "slot": "armor",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 7
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-guardian-armor",
+      "description": "Armor blessed to guard its wearer."
+    },
+    {
+      "code": "armor-dragon-scale",
+      "nameKey": "item.armor-dragon-scale.name",
+      "descriptionKey": "item.armor-dragon-scale.desc",
+      "name": "Dragon Scale",
+      "slot": "armor",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 8
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-dragon-scale",
+      "description": "Scaled armor infused with vitality."
+    },
+    {
+      "code": "armor-mythril-armor",
+      "nameKey": "item.armor-mythril-armor.name",
+      "descriptionKey": "item.armor-mythril-armor.desc",
+      "name": "Mythril Armor",
+      "slot": "armor",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-mythril-armor",
+      "description": "Light but taxing on offense."
+    },
+    {
+      "code": "armor-divine-cloak",
+      "nameKey": "item.armor-divine-cloak.name",
+      "descriptionKey": "item.armor-divine-cloak.desc",
+      "name": "Divine Cloak",
+      "slot": "armor",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/armor-divine-cloak",
+      "description": "Sacred cloak that elevates all stats."
+    },
+    {
+      "code": "helmet-leather-cap",
+      "nameKey": "item.helmet-leather-cap.name",
+      "descriptionKey": "item.helmet-leather-cap.desc",
+      "name": "Leather Cap",
+      "slot": "helmet",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-leather-cap",
+      "description": "Basic head protection."
+    },
+    {
+      "code": "helmet-iron-helm",
+      "nameKey": "item.helmet-iron-helm.name",
+      "descriptionKey": "item.helmet-iron-helm.desc",
+      "name": "Iron Helm",
+      "slot": "helmet",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-iron-helm",
+      "description": "Sturdy iron helm."
+    },
+    {
+      "code": "helmet-bronze-helm",
+      "nameKey": "item.helmet-bronze-helm.name",
+      "descriptionKey": "item.helmet-bronze-helm.desc",
+      "name": "Bronze Helm",
+      "slot": "helmet",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-bronze-helm",
+      "description": "Bronze headgear for stable defense."
+    },
+    {
+      "code": "helmet-steel-helm",
+      "nameKey": "item.helmet-steel-helm.name",
+      "descriptionKey": "item.helmet-steel-helm.desc",
+      "name": "Steel Helm",
+      "slot": "helmet",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-steel-helm",
+      "description": "Steel helm that boosts vitality."
+    },
+    {
+      "code": "helmet-knights-helm",
+      "nameKey": "item.helmet-knights-helm.name",
+      "descriptionKey": "item.helmet-knights-helm.desc",
+      "name": "Knight's Helm",
+      "slot": "helmet",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-knights-helm",
+      "description": "Helm worn by seasoned knights."
+    },
+    {
+      "code": "helmet-horned-helm",
+      "nameKey": "item.helmet-horned-helm.name",
+      "descriptionKey": "item.helmet-horned-helm.desc",
+      "name": "Horned Helm",
+      "slot": "helmet",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 6
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-horned-helm",
+      "description": "Aggressive helm that sharpens attacks."
+    },
+    {
+      "code": "helmet-dragon-helm",
+      "nameKey": "item.helmet-dragon-helm.name",
+      "descriptionKey": "item.helmet-dragon-helm.desc",
+      "name": "Dragon Helm",
+      "slot": "helmet",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 7
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-dragon-helm",
+      "description": "Helm carved from dragon scales."
+    },
+    {
+      "code": "helmet-shadow-hood",
+      "nameKey": "item.helmet-shadow-hood.name",
+      "descriptionKey": "item.helmet-shadow-hood.desc",
+      "name": "Shadow Hood",
+      "slot": "helmet",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 8
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-shadow-hood",
+      "description": "Enigmatic hood that brings fortune."
+    },
+    {
+      "code": "helmet-mythril-helm",
+      "nameKey": "item.helmet-mythril-helm.name",
+      "descriptionKey": "item.helmet-mythril-helm.desc",
+      "name": "Mythril Helm",
+      "slot": "helmet",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 10
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-mythril-helm",
+      "description": "Light helm with a slight offensive drain."
+    },
+    {
+      "code": "helmet-crown-of-valor",
+      "nameKey": "item.helmet-crown-of-valor.name",
+      "descriptionKey": "item.helmet-crown-of-valor.desc",
+      "name": "Crown of Valor",
+      "slot": "helmet",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 12
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/helmet-crown-of-valor",
+      "description": "Crown that inspires heroic might."
+    },
+    {
+      "code": "ring-copper-band",
+      "nameKey": "item.ring-copper-band.name",
+      "descriptionKey": "item.ring-copper-band.desc",
+      "name": "Copper Band",
+      "slot": "ring",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-copper-band",
+      "description": "Simple ring that nudges luck."
+    },
+    {
+      "code": "ring-silver-band",
+      "nameKey": "item.ring-silver-band.name",
+      "descriptionKey": "item.ring-silver-band.desc",
+      "name": "Silver Band",
+      "slot": "ring",
+      "rarity": "common",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-silver-band",
+      "description": "Silver ring that sharpens fortune."
+    },
+    {
+      "code": "ring-garnet",
+      "nameKey": "item.ring-garnet.name",
+      "descriptionKey": "item.ring-garnet.desc",
+      "name": "Garnet Ring",
+      "slot": "ring",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-garnet",
+      "description": "Gemstone ring that boosts vitality."
+    },
+    {
+      "code": "ring-topaz",
+      "nameKey": "item.ring-topaz.name",
+      "descriptionKey": "item.ring-topaz.desc",
+      "name": "Topaz Ring",
+      "slot": "ring",
+      "rarity": "uncommon",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-topaz",
+      "description": "A ring that slightly boosts fortune and vitality."
+    },
+    {
+      "code": "ring-sapphire",
+      "nameKey": "item.ring-sapphire.name",
+      "descriptionKey": "item.ring-sapphire.desc",
+      "name": "Sapphire Ring",
+      "slot": "ring",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-sapphire",
+      "description": "Blue gem that gleams with luck."
+    },
+    {
+      "code": "ring-emerald",
+      "nameKey": "item.ring-emerald.name",
+      "descriptionKey": "item.ring-emerald.desc",
+      "name": "Emerald Ring",
+      "slot": "ring",
+      "rarity": "rare",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 5
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-emerald",
+      "description": "Emerald radiating vitality."
+    },
+    {
+      "code": "ring-ruby-signet",
+      "nameKey": "item.ring-ruby-signet.name",
+      "descriptionKey": "item.ring-ruby-signet.desc",
+      "name": "Ruby Signet",
+      "slot": "ring",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": 1
+        },
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 2
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-ruby-signet",
+      "description": "Ruby set ring that blends power and luck."
+    },
+    {
+      "code": "ring-obsidian",
+      "nameKey": "item.ring-obsidian.name",
+      "descriptionKey": "item.ring-obsidian.desc",
+      "name": "Obsidian Ring",
+      "slot": "ring",
+      "rarity": "epic",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "def",
+          "mode": "flat",
+          "value": 2
+        },
+        {
+          "kind": "stat",
+          "stat": "hp",
+          "mode": "flat",
+          "value": 3
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-obsidian",
+      "description": "Dark stone ring that fortifies the wearer."
+    },
+    {
+      "code": "ring-mythril",
+      "nameKey": "item.ring-mythril.name",
+      "descriptionKey": "item.ring-mythril.desc",
+      "name": "Mythril Ring",
+      "slot": "ring",
+      "rarity": "legendary",
+      "modifiers": [
+        {
+          "kind": "stat",
+          "stat": "luck",
+          "mode": "flat",
+          "value": 4
+        },
+        {
+          "kind": "stat",
+          "stat": "atk",
+          "mode": "flat",
+          "value": -1
+        }
+      ],
+      "effectCode": null,
+      "spriteId": "sprite/ring-mythril",
+      "description": "Light mythril ring that strains the wielder."
+    },
+    {
+      "code": "angel-ring",
+      "nameKey": "item.angel-ring.name",
+      "descriptionKey": "item.angel-ring.desc",
+      "name": "Angel Ring",
+      "slot": "ring",
+      "rarity": "legendary",
+      "modifiers": [],
+      "effectCode": "angel-ring-revive",
+      "spriteId": "sprite/angel-ring",
+      "description": "Once per run, revive at 30% HP."
+    }
+  ],
+  "assetsBaseUrl": null,
+  "spriteMap": {}
+}

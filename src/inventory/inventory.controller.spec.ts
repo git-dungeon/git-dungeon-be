@@ -118,7 +118,6 @@ describe('InventoryController (E2E)', () => {
 
   it('요청이 제한되면 INVENTORY_RATE_LIMITED를 반환해야 한다', async () => {
     class AlwaysThrottleGuard implements CanActivate {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       canActivate(_context: ExecutionContext): boolean {
         throw new HttpException(
           { error: { code: 'INVENTORY_RATE_LIMITED' } },

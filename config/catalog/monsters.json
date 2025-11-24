@@ -1,0 +1,126 @@
+{
+  "version": 6,
+  "updatedAt": "2025-11-23T10:15:55.832Z",
+  "monsters": [
+    {
+      "id": "monster-giant-rat",
+      "nameKey": "monster.giant-rat.name",
+      "descriptionKey": "monster.giant-rat.desc",
+      "name": "Giant Rat",
+      "hp": 8,
+      "atk": 2,
+      "def": 0,
+      "spriteId": "sprite/monster-giant-rat",
+      "dropTableId": "drops-floor-1",
+      "description": "Small but vicious rodent."
+    },
+    {
+      "id": "monster-cave-beetle",
+      "nameKey": "monster.cave-beetle.name",
+      "descriptionKey": "monster.cave-beetle.desc",
+      "name": "Cave Beetle",
+      "hp": 12,
+      "atk": 2,
+      "def": 2,
+      "spriteId": "sprite/monster-cave-beetle",
+      "dropTableId": "drops-floor-1",
+      "description": "Armored insect with sturdy shell."
+    },
+    {
+      "id": "monster-zombie",
+      "nameKey": "monster.zombie.name",
+      "descriptionKey": "monster.zombie.desc",
+      "name": "Zombie",
+      "hp": 15,
+      "atk": 3,
+      "def": 1,
+      "spriteId": "sprite/monster-zombie",
+      "dropTableId": "drops-floor-1",
+      "description": "Slow undead with relentless attacks."
+    },
+    {
+      "id": "monster-cave-spider",
+      "nameKey": "monster.cave-spider.name",
+      "descriptionKey": "monster.cave-spider.desc",
+      "name": "Cave Spider",
+      "hp": 10,
+      "atk": 4,
+      "def": 1,
+      "spriteId": "sprite/monster-cave-spider",
+      "dropTableId": "drops-floor-1",
+      "description": "Venomous spider lurking in caves."
+    },
+    {
+      "id": "monster-serpent",
+      "nameKey": "monster.serpent.name",
+      "descriptionKey": "monster.serpent.desc",
+      "name": "Serpent",
+      "hp": 14,
+      "atk": 4,
+      "def": 2,
+      "spriteId": "sprite/monster-serpent",
+      "dropTableId": "drops-floor-1",
+      "description": "Sly serpent striking swiftly."
+    },
+    {
+      "id": "monster-skeleton-warrior",
+      "nameKey": "monster.skeleton-warrior.name",
+      "descriptionKey": "monster.skeleton-warrior.desc",
+      "name": "Skeleton Warrior",
+      "hp": 18,
+      "atk": 5,
+      "def": 2,
+      "spriteId": "sprite/monster-skeleton-warrior",
+      "dropTableId": "drops-floor-1",
+      "description": "Undead soldier guarding the early floors."
+    },
+    {
+      "id": "monster-slime",
+      "nameKey": "monster.slime.name",
+      "descriptionKey": "monster.slime.desc",
+      "name": "Slime",
+      "hp": 25,
+      "atk": 3,
+      "def": 1,
+      "spriteId": "sprite/monster-slime",
+      "dropTableId": "drops-floor-1",
+      "description": "Basic blob with surprising endurance."
+    },
+    {
+      "id": "monster-cave-bat",
+      "nameKey": "monster.cave-bat.name",
+      "descriptionKey": "monster.cave-bat.desc",
+      "name": "Cave Bat",
+      "hp": 12,
+      "atk": 5,
+      "def": 1,
+      "spriteId": "sprite/monster-cave-bat",
+      "dropTableId": "drops-floor-1",
+      "description": "Fast bat striking from the dark."
+    },
+    {
+      "id": "monster-fire-imp",
+      "nameKey": "monster.fire-imp.name",
+      "descriptionKey": "monster.fire-imp.desc",
+      "name": "Fire Imp",
+      "hp": 16,
+      "atk": 6,
+      "def": 2,
+      "spriteId": "sprite/monster-fire-imp",
+      "dropTableId": "drops-floor-1",
+      "description": "Fiery imp with aggressive attacks."
+    },
+    {
+      "id": "monster-ancient-dragon",
+      "nameKey": "monster.ancient-dragon.name",
+      "descriptionKey": "monster.ancient-dragon.desc",
+      "name": "Ancient Dragon",
+      "hp": 50,
+      "atk": 10,
+      "def": 5,
+      "spriteId": "sprite/monster-ancient-dragon",
+      "dropTableId": "drops-ancient-dragon",
+      "description": "Legendary dragon deep in the dungeon."
+    }
+  ]
+}

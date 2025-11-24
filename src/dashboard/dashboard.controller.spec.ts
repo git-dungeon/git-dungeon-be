@@ -125,7 +125,6 @@ describe('DashboardController (E2E)', () => {
 
   it('요청이 제한되면 DASHBOARD_RATE_LIMITED를 반환해야 한다', async () => {
     class AlwaysThrottleGuard implements CanActivate {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       canActivate(_context: ExecutionContext): boolean {
         throw new HttpException(
           { error: { code: 'DASHBOARD_RATE_LIMITED' } },

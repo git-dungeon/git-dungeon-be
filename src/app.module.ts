@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { SettingsModule } from './settings/settings.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { InventoryModule } from './inventory/inventory.module';
     SettingsModule,
     DashboardModule,
     InventoryModule,
+    CatalogModule,
   ],
   controllers: [AppController],
   providers: [
