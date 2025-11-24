@@ -1,5 +1,4 @@
 import { readFile } from 'fs/promises';
-import { createHash } from 'crypto';
 import path from 'path';
 import {
   assertCatalogData,
@@ -9,6 +8,10 @@ import {
   type CatalogItem,
   type CatalogMonster,
 } from './catalog.schema';
+import {
+  computeCatalogHash as computeHashFromUtil,
+  type JsonValue,
+} from './catalog-hash.util';
 
 export interface CatalogFilePaths {
   items: string;
@@ -51,7 +54,11 @@ export const loadTranslations = async (
   try {
     const content = await readFile(translationsPath, 'utf8');
     return JSON.parse(content) as CatalogTranslations;
-  } catch {
+  } catch (error) {
+    console.warn(
+      `[catalog] failed to load translations ${translationsPath}:`,
+      error,
+    );
     return {};
   }
 };
@@ -156,9 +163,7 @@ export const loadCatalogData = async (
 };
 
 export const computeCatalogHash = (catalog: CatalogData): string => {
-  const hash = createHash('sha256');
-  hash.update(JSON.stringify(catalog));
-  return hash.digest('hex');
+  return computeHashFromUtil(catalog as unknown as JsonValue);
 };
 
 export type {

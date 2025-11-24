@@ -1,6 +1,9 @@
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
-import { createHash } from 'crypto';
+import {
+  computeCatalogHash,
+  type JsonValue,
+} from '../src/catalog/catalog-hash.util';
 
 type CatalogFileKind = 'items' | 'buffs' | 'monsters' | 'drops';
 
@@ -26,12 +29,6 @@ const sanitizeForHash = (
   return clone;
 };
 
-const computeHash = (value: Record<string, unknown>): string => {
-  const hash = createHash('sha256');
-  hash.update(JSON.stringify(value));
-  return hash.digest('hex');
-};
-
 const loadJson = async <T>(filePath: string): Promise<T> => {
   const content = await readFile(filePath, 'utf8');
   return JSON.parse(content) as T;
@@ -49,8 +46,22 @@ const bumpCatalog = async (): Promise<void> => {
   let storedHashes: CatalogHashes = {};
   try {
     storedHashes = await loadJson<CatalogHashes>(hashStorePath);
-  } catch {
-    storedHashes = {};
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+      storedHashes = {};
+    } else if (
+      (err as NodeJS.ErrnoException).code === 'EACCES' ||
+      (err as NodeJS.ErrnoException).code === 'EPERM' ||
+      err instanceof SyntaxError
+    ) {
+      console.error(
+        `[catalog] Failed to read hash store ${hashStorePath}`,
+        err,
+      );
+      process.exit(1);
+    } else {
+      throw err;
+    }
   }
 
   const now = new Date().toISOString();
@@ -60,7 +71,7 @@ const bumpCatalog = async (): Promise<void> => {
     const absolutePath = path.join(baseDir, relativePath);
     const data = await loadJson<Record<string, unknown>>(absolutePath);
     const sanitized = sanitizeForHash(data);
-    const hash = computeHash(sanitized);
+    const hash = computeCatalogHash(sanitized as unknown as JsonValue);
     const prevHash = storedHashes[relativePath];
 
     if (hash !== prevHash) {
