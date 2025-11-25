@@ -16,6 +16,10 @@ export interface Environment {
   authGithubClientSecret: string & tags.MinLength<1>;
   authGithubRedirectUri: string & tags.MinLength<1>;
   authGithubScope: string & tags.MinLength<1>;
+  githubSyncPat: string;
+  githubSyncEndpoint: string & tags.MinLength<1>;
+  githubSyncUserAgent: string & tags.MinLength<1>;
+  githubSyncRateLimitFallbackRemaining: number;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -106,6 +110,15 @@ export const loadEnvironment = (): Environment => {
     authGithubRedirectUri:
       process.env.AUTH_GITHUB_REDIRECT_URI ?? defaultGithubRedirect,
     authGithubScope: process.env.AUTH_GITHUB_SCOPE ?? 'read:user,user:email',
+    githubSyncPat: process.env.GITHUB_SYNC_PAT ?? '',
+    githubSyncEndpoint:
+      process.env.GITHUB_SYNC_ENDPOINT ?? 'https://api.github.com/graphql',
+    githubSyncUserAgent:
+      process.env.GITHUB_SYNC_USER_AGENT ?? 'git-dungeon-backend',
+    githubSyncRateLimitFallbackRemaining: parseNumber(
+      process.env.GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING,
+      100,
+    ),
   };
 
   return typia.assert<Environment>(raw);

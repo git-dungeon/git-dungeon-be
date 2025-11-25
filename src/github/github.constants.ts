@@ -1,0 +1,7 @@
+export const GITHUB_GRAPHQL_OPTIONS = Symbol('GITHUB_GRAPHQL_OPTIONS');
+
+export const DEFAULT_GITHUB_GRAPHQL_ENDPOINT = 'https://api.github.com/graphql';
+export const DEFAULT_GITHUB_GRAPHQL_USER_AGENT = 'git-dungeon-backend';
+export const DEFAULT_GITHUB_GRAPHQL_MAX_ATTEMPTS = 3;
+export const DEFAULT_GITHUB_GRAPHQL_BASE_BACKOFF_MS = 1_000;
+export const DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD = 100;

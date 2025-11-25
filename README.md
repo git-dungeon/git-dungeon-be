@@ -64,6 +64,10 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                                         | `false` (prod), `true` (dev)                                                                            |
 | `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용)                   | `false` (dev), `true` (test)                                                                            |
 | `NODE_ENV`                 | 환경 구분 (dev/production/staging)                            | `development` (dev)                                                                                     |
+| `GITHUB_SYNC_PAT`          | GitHub GraphQL 백오프/대체용 PAT(옵션)                         | 빈 값(default) → OAuth 토큰만 사용                                                                      |
+| `GITHUB_SYNC_ENDPOINT`     | GitHub GraphQL 엔드포인트                                      | `https://api.github.com/graphql`                                                                        |
+| `GITHUB_SYNC_USER_AGENT`   | GitHub 요청 User-Agent                                         | `git-dungeon-backend`                                                                                   |
+| `GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING` | 토큰 스위칭/백오프 임계치                                 | `100`                                                                                                   |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
 

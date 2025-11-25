@@ -39,6 +39,14 @@ const configuration = () => {
         })(),
       },
     },
+    github: {
+      sync: {
+        pat: env.githubSyncPat?.trim().length ? env.githubSyncPat.trim() : null,
+        endpoint: env.githubSyncEndpoint,
+        userAgent: env.githubSyncUserAgent,
+        rateLimitFallbackRemaining: env.githubSyncRateLimitFallbackRemaining,
+      },
+    },
   };
 };
 
