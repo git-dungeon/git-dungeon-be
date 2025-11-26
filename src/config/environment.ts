@@ -21,6 +21,8 @@ export interface Environment {
   githubSyncEndpoint: string & tags.MinLength<1>;
   githubSyncUserAgent: string & tags.MinLength<1>;
   githubSyncRateLimitFallbackRemaining: number;
+  githubSyncCron: string & tags.MinLength<1>;
+  githubSyncBatchSize: number;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -127,6 +129,8 @@ export const loadEnvironment = (): Environment => {
       process.env.GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING,
       100,
     ),
+    githubSyncCron: process.env.GITHUB_SYNC_CRON ?? '0 */10 * * * *', // every 10 minutes
+    githubSyncBatchSize: parseNumber(process.env.GITHUB_SYNC_BATCH_SIZE, 50),
   };
 
   return typia.assert<Environment>(raw);

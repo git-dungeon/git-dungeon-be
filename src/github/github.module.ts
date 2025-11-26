@@ -8,6 +8,7 @@ import {
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlClientOptions } from './github.interfaces';
 import { GithubSyncService } from './github-sync.service';
+import { GithubSyncScheduler } from './github-sync.scheduler';
 
 type GithubSyncConfig = {
   pat: string | null;
@@ -39,6 +40,7 @@ type GithubSyncConfig = {
     },
     GithubGraphqlClient,
     GithubSyncService,
+    GithubSyncScheduler,
   ],
   exports: [GithubGraphqlClient, GithubSyncService],
 })

@@ -46,6 +46,8 @@ const configuration = () => {
         endpoint: env.githubSyncEndpoint,
         userAgent: env.githubSyncUserAgent,
         rateLimitFallbackRemaining: env.githubSyncRateLimitFallbackRemaining,
+        cron: env.githubSyncCron,
+        batchSize: env.githubSyncBatchSize,
       },
     },
   };
