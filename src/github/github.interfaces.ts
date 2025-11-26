@@ -15,6 +15,7 @@ export interface GithubGraphqlClientOptions {
   endpoint: string;
   userAgent: string;
   patToken?: string | null;
+  patTokens?: string[];
   rateLimitThreshold?: number;
   baseBackoffMs?: number;
   maxAttempts?: number;

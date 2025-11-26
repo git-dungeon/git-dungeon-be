@@ -50,7 +50,7 @@ const toOctokitError = (error: unknown): OctokitErrorShape => {
 export class GithubGraphqlClient {
   private readonly endpoint: string;
   private readonly userAgent: string;
-  private readonly patToken: string | null;
+  private readonly patTokens: string[];
   private readonly rateLimitThreshold: number;
   private readonly baseBackoffMs: number;
   private readonly maxAttempts: number;
@@ -63,7 +63,10 @@ export class GithubGraphqlClient {
   ) {
     this.endpoint = options.endpoint;
     this.userAgent = options.userAgent;
-    this.patToken = options.patToken ?? null;
+    const patPool = [options.patToken ?? null, ...(options.patTokens ?? [])]
+      .filter((t): t is string => !!t && t.trim().length > 0)
+      .map((t) => t.trim());
+    this.patTokens = Array.from(new Set(patPool));
     this.rateLimitThreshold =
       options.rateLimitThreshold ?? DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD;
     this.baseBackoffMs =
@@ -82,9 +85,9 @@ export class GithubGraphqlClient {
     if (accessToken?.trim()) {
       tokenQueue.push({ token: accessToken.trim(), type: 'oauth' });
     }
-    if (this.patToken?.trim()) {
-      tokenQueue.push({ token: this.patToken.trim(), type: 'pat' });
-    }
+    this.patTokens.forEach((pat) => {
+      tokenQueue.push({ token: pat, type: 'pat' });
+    });
 
     if (tokenQueue.length === 0) {
       throw new GithubGraphqlError({
@@ -161,8 +164,8 @@ export class GithubGraphqlClient {
         if (isRateLimit) {
           lastRateLimit = this.parseRateLimit(parsed);
 
-          if (tokenIndex + 1 < tokenQueue.length) {
-            tokenIndex += 1;
+          if (tokenQueue.length > 1) {
+            tokenIndex = (tokenIndex + 1) % tokenQueue.length;
             attempt += 1;
             await this.waitForResetOrBackoff(lastRateLimit, backoffMs);
             backoffMs *= 2;
@@ -179,7 +182,7 @@ export class GithubGraphqlClient {
         }
 
         if (status === 401) {
-          tokenIndex += 1;
+          tokenIndex = (tokenIndex + 1) % tokenQueue.length;
           attempt += 1;
           continue;
         }

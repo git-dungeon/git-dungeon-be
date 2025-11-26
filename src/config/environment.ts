@@ -17,6 +17,7 @@ export interface Environment {
   authGithubRedirectUri: string & tags.MinLength<1>;
   authGithubScope: string & tags.MinLength<1>;
   githubSyncPat: string;
+  githubSyncPats: string[];
   githubSyncEndpoint: string & tags.MinLength<1>;
   githubSyncUserAgent: string & tags.MinLength<1>;
   githubSyncRateLimitFallbackRemaining: number;
@@ -111,6 +112,13 @@ export const loadEnvironment = (): Environment => {
       process.env.AUTH_GITHUB_REDIRECT_URI ?? defaultGithubRedirect,
     authGithubScope: process.env.AUTH_GITHUB_SCOPE ?? 'read:user,user:email',
     githubSyncPat: process.env.GITHUB_SYNC_PAT ?? '',
+    githubSyncPats: (() => {
+      const singlePat = process.env.GITHUB_SYNC_PAT ?? '';
+      return parseStringArray(
+        process.env.GITHUB_SYNC_PATS,
+        singlePat.trim().length ? [singlePat.trim()] : [],
+      );
+    })(),
     githubSyncEndpoint:
       process.env.GITHUB_SYNC_ENDPOINT ?? 'https://api.github.com/graphql',
     githubSyncUserAgent:

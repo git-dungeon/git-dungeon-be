@@ -42,6 +42,7 @@ const configuration = () => {
     github: {
       sync: {
         pat: env.githubSyncPat?.trim().length ? env.githubSyncPat.trim() : null,
+        pats: env.githubSyncPats ?? [],
         endpoint: env.githubSyncEndpoint,
         userAgent: env.githubSyncUserAgent,
         rateLimitFallbackRemaining: env.githubSyncRateLimitFallbackRemaining,

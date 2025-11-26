@@ -7,9 +7,11 @@ import {
 } from './github.constants';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlClientOptions } from './github.interfaces';
+import { GithubSyncService } from './github-sync.service';
 
 type GithubSyncConfig = {
   pat: string | null;
+  pats: string[];
   endpoint?: string;
   userAgent?: string;
   rateLimitFallbackRemaining?: number;
@@ -30,12 +32,14 @@ type GithubSyncConfig = {
           endpoint: syncConfig?.endpoint ?? DEFAULT_GITHUB_GRAPHQL_ENDPOINT,
           userAgent: syncConfig?.userAgent ?? DEFAULT_GITHUB_GRAPHQL_USER_AGENT,
           patToken: syncConfig?.pat ?? null,
+          patTokens: syncConfig?.pats ?? [],
           rateLimitThreshold: syncConfig?.rateLimitFallbackRemaining,
         };
       },
     },
     GithubGraphqlClient,
+    GithubSyncService,
   ],
-  exports: [GithubGraphqlClient],
+  exports: [GithubGraphqlClient, GithubSyncService],
 })
 export class GithubModule {}
