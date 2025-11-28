@@ -48,6 +48,7 @@ const configuration = () => {
         rateLimitFallbackRemaining: env.githubSyncRateLimitFallbackRemaining,
         cron: env.githubSyncCron,
         batchSize: env.githubSyncBatchSize,
+        manualCooldownMs: env.githubSyncManualCooldownMs,
       },
     },
   };

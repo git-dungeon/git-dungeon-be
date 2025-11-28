@@ -71,8 +71,16 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING` | 토큰 스위칭/백오프 임계치                                 | `100`                                                                                                   |
 | `GITHUB_SYNC_CRON`         | 동기화 크론 표현식                                             | `0 */10 * * * *`                                                                                        |
 | `GITHUB_SYNC_BATCH_SIZE`   | 한 번에 처리할 사용자 수                                       | `50`                                                                                                    |
+| `GITHUB_SYNC_MANUAL_COOLDOWN_MS` | 수동 동기화 최소 간격(ms). 기본 6시간(21600000)                 | `21600000`                                                                                              |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
+
+## GitHub 동기화 운영 가이드
+
+- 배치: `GITHUB_SYNC_CRON`(기본 10분) 기준으로 `GITHUB_SYNC_BATCH_SIZE`만큼 GitHub OAuth/PAT 토큰을 사용해 기여도를 적재합니다. rate limit 임계(`GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING`)에 도달하면 토큰 스위칭/백오프로 처리합니다.
+- 수동 동기화: `POST /api/github/sync` 호출 시 GitHub 계정 연결 필수이며, 최근 성공 시각 기준 6시간(`GITHUB_SYNC_MANUAL_COOLDOWN_MS`) 이내면 `429 GITHUB_SYNC_TOO_FREQUENT`으로 거절됩니다. 레이트 리밋 시 `429 GITHUB_SYNC_RATE_LIMITED`와 남은 한도/리셋 시각 메타를 반환합니다.
+- 데이터 흐름: 성공 시 `ap_sync_logs` 기록 및 `dungeon_state.ap` 증가, `connections.github.updatedAt`을 최신 동기화 시각으로 사용합니다(프런트의 비활성화/정보 표시 기준).
+- 모니터링/복구: 실패 로그는 `ap_sync_logs`에 `status=FAILED`/`errorCode`로 남습니다. 레이트 리밋 또는 토큰 오류 시 토큰 교체 후 재시도하거나 쿨다운 이후 재호출합니다.
 
 ### CORS 정책
 
