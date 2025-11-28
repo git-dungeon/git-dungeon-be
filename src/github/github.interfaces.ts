@@ -1,3 +1,5 @@
+import { ApSyncTokenType } from '@prisma/client';
+
 export type GithubTokenType = 'oauth' | 'pat';
 
 export interface GithubTokenCandidate {
@@ -77,4 +79,19 @@ export interface GithubOctokitInstance {
     query: string,
     variables: Record<string, any>,
   ) => Promise<T>;
+}
+
+export interface GithubSyncResponse {
+  apDelta: number;
+  contributions: number;
+  windowStart: string;
+  windowEnd: string;
+  tokenType: ApSyncTokenType;
+  rateLimitRemaining?: number;
+  logId: string;
+  meta?: {
+    remaining: number | null;
+    resetAt: number | null;
+    resource: string | null;
+  } | null;
 }
