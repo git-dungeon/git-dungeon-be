@@ -64,4 +64,29 @@ describe('GithubSyncScheduler', () => {
       }),
     );
   });
+
+  it('락을 획득하지 못하면 스킵한다', async () => {
+    const { scheduler, prisma, client, lockService, syncService } =
+      createSchedulerTestbed();
+
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'user-2',
+        accounts: [
+          {
+            accountId: 'octocat',
+            accessToken: 'token',
+            updatedAt: new Date('2025-11-28T00:00:00Z'),
+          },
+        ],
+      },
+    ]);
+    lockService.acquire.mockResolvedValue(false);
+
+    await scheduler.handleSyncJob();
+
+    expect(client.fetchContributions).not.toHaveBeenCalled();
+    expect(syncService.applyContributionSync).not.toHaveBeenCalled();
+    expect(lockService.release).not.toHaveBeenCalled();
+  });
 });

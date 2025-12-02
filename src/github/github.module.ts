@@ -11,6 +11,7 @@ import { GithubSyncService } from './github-sync.service';
 import { GithubSyncScheduler } from './github-sync.scheduler';
 import { GithubSyncController } from './github-sync.controller';
 import { GithubManualSyncService } from './github-sync.manual.service';
+import { GithubSyncLockService } from './github-sync.lock.service';
 import { AuthModule } from '../auth/auth.module';
 import {
   AuthenticatedThrottlerGuard,
@@ -47,6 +48,7 @@ type GithubSyncConfig = {
       },
     },
     GithubGraphqlClient,
+    GithubSyncLockService,
     GithubSyncService,
     GithubSyncScheduler,
     GithubManualSyncService,

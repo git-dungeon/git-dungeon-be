@@ -12,6 +12,7 @@ import { ApSyncStatus, ApSyncTokenType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlError, GithubSyncResponse } from './github.interfaces';
+import { GithubSyncLockService } from './github-sync.lock.service';
 import { GithubSyncService } from './github-sync.service';
 import {
   buildMetaWithTotals,
@@ -38,6 +39,7 @@ export class GithubManualSyncService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: GithubGraphqlClient,
+    private readonly lockService: GithubSyncLockService,
     private readonly syncService: GithubSyncService,
     @Optional() private readonly configService?: ConfigService,
   ) {
@@ -92,6 +94,20 @@ export class GithubManualSyncService {
       from,
       to,
     };
+
+    const locked = await this.lockService.acquire(userId);
+    if (!locked) {
+      throw new HttpException(
+        {
+          error: {
+            code: 'GITHUB_SYNC_IN_PROGRESS',
+            message:
+              '동일 사용자의 GitHub 동기화가 이미 실행 중입니다. 잠시 후 다시 시도해주세요.',
+          },
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
 
     try {
       const result = await this.client.fetchContributions<{
@@ -212,6 +228,8 @@ export class GithubManualSyncService {
         code: 'GITHUB_SYNC_FAILED',
         message: 'GitHub 동기화에 실패했습니다.',
       });
+    } finally {
+      await this.lockService.release(userId);
     }
   }
 

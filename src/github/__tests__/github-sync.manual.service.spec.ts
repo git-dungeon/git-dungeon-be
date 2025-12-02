@@ -39,6 +39,25 @@ describe('GithubManualSyncService', () => {
     });
   });
 
+  it('동일 사용자 락이 있으면 409를 반환한다', async () => {
+    const { service, prisma, lockService, graphqlClient } =
+      createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue({
+      accountId: 'octocat',
+      accessToken: 'token',
+      updatedAt: new Date('2025-11-20T00:00:00Z'),
+    });
+    prisma.apSyncLog.findFirst.mockResolvedValue(null);
+    graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
+    lockService.acquire.mockResolvedValue(false);
+
+    await expect(service.syncNow('user-lock')).rejects.toMatchObject({
+      status: 409,
+      response: { error: { code: 'GITHUB_SYNC_IN_PROGRESS' } },
+    });
+    expect(lockService.release).not.toHaveBeenCalled();
+  });
+
   it('성공 시 기여 수를 계산해 AP 적재를 호출한다', async () => {
     const { service, prisma, graphqlClient, syncService } =
       createManualSyncTestbed();

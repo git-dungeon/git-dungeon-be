@@ -3,6 +3,7 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConfigService } from '@nestjs/config';
 import { GithubGraphqlClient } from './github-graphql.client';
+import { GithubSyncLockService } from './github-sync.lock.service';
 import { GithubSyncService } from './github-sync.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApSyncStatus, ApSyncTokenType } from '@prisma/client';
@@ -23,6 +24,7 @@ export class GithubSyncScheduler implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: GithubGraphqlClient,
+    private readonly lockService: GithubSyncLockService,
     private readonly syncService: GithubSyncService,
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
     @Optional() private readonly configService?: ConfigService,
@@ -82,6 +84,14 @@ export class GithubSyncScheduler implements OnModuleInit {
     for (const user of users) {
       const account = user.accounts[0];
       if (!account) continue;
+
+      const locked = await this.lockService.acquire(user.id);
+      if (!locked) {
+        this.logger.warn(
+          `Skipping GitHub sync for user ${user.id}: another sync is in progress (lock not acquired).`,
+        );
+        continue;
+      }
 
       const lastSuccess = await this.prisma.apSyncLog.findFirst({
         where: { userId: user.id, status: ApSyncStatus.SUCCESS },
@@ -192,6 +202,8 @@ export class GithubSyncScheduler implements OnModuleInit {
             `Github sync failed for user ${user.id}`,
           );
         }
+      } finally {
+        await this.lockService.release(user.id);
       }
     }
   }
