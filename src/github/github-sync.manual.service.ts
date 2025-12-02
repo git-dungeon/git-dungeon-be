@@ -13,6 +13,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlError, GithubSyncResponse } from './github.interfaces';
 import { GithubSyncService } from './github-sync.service';
+import {
+  buildMetaWithTotals,
+  buildRateLimitMeta,
+  extractContributionsFromCollection,
+  getAnchorFromMeta,
+  getLastContributionsTotal,
+} from './github-sync.util';
 
 interface SyncContext {
   userId: string;
@@ -20,10 +27,8 @@ interface SyncContext {
   to: Date;
 }
 
-const ONE_MINUTE_MS = 60_000;
-const DEFAULT_COOLDOWN_MS = ONE_MINUTE_MS;
+const DEFAULT_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
 const DEFAULT_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
-const MIN_SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 @Injectable()
 export class GithubManualSyncService {
@@ -54,57 +59,119 @@ export class GithubManualSyncService {
       });
     }
 
+    const login = await this.resolveLogin(account);
+    if (!login) {
+      throw new BadRequestException({
+        code: 'GITHUB_ACCOUNT_LOGIN_NOT_FOUND',
+        message:
+          'GitHub 로그인명을 확인할 수 없습니다. 계정 연동을 다시 시도해주세요.',
+      });
+    }
+
     const now = new Date();
-    this.enforceCooldown(userId, account.updatedAt, now);
+    const lastSuccess = await this.prisma.apSyncLog.findFirst({
+      where: { userId, status: ApSyncStatus.SUCCESS },
+      orderBy: { windowEnd: 'desc' },
+      select: { windowStart: true, windowEnd: true, meta: true },
+    });
+    const baseFrom = account.updatedAt
+      ? new Date(account.updatedAt.getTime() + 1)
+      : new Date(now.getTime() - DEFAULT_LOOKBACK_MS);
+    const anchorFrom =
+      getAnchorFromMeta(lastSuccess?.meta) ??
+      lastSuccess?.windowStart ??
+      this.startOfDayUtc(baseFrom);
+    const from = anchorFrom;
+    const to = now;
+
+    const lastSyncAt = account.updatedAt ?? lastSuccess?.windowEnd ?? null;
+    this.enforceCooldown(userId, lastSyncAt, now);
 
     const context: SyncContext = {
       userId,
-      from: account.updatedAt ?? new Date(now.getTime() - DEFAULT_LOOKBACK_MS), // 최근 7일 기본 윈도우
-      to: now,
+      from,
+      to,
     };
 
     try {
       const result = await this.client.fetchContributions<{
-        rateLimit?: { remaining?: number; resetAt?: number; resource?: string };
+        rateLimit?: { remaining?: number; resetAt?: number };
         user?: {
           contributionsCollection?: {
-            commitContributionsByRepository?: { totalCount?: number };
+            totalCommitContributions?: number;
+            restrictedContributionsCount?: number;
+            pullRequestContributions?: { totalCount?: number };
+            pullRequestReviewContributions?: { totalCount?: number };
+            issueContributions?: { totalCount?: number };
           };
         };
       }>(account.accessToken ?? null, {
-        login: account.accountId,
+        login,
         from: context.from.toISOString(),
         to: context.to.toISOString(),
         cursor: null,
       });
 
-      const contributions = this.extractContributions(result.data);
+      this.logger.log({
+        message: 'result',
+        result,
+        from: context.from.toISOString(),
+        to: context.to.toISOString(),
+      });
+
+      const contributionsTotal = extractContributionsFromCollection(
+        result.data?.user?.contributionsCollection,
+      );
+      const prevTotal = getLastContributionsTotal(
+        lastSuccess?.meta,
+        anchorFrom,
+      );
+      const contributionsDelta = Math.max(contributionsTotal - prevTotal, 0);
       const tokenType =
         result.tokenType === 'pat'
           ? ApSyncTokenType.PAT
           : ApSyncTokenType.OAUTH;
 
-      const meta = result.rateLimit && this.toRateLimitMeta(result.rateLimit);
+      this.logger.log({
+        message: 'Github manual sync window',
+        userId,
+        login,
+        from: context.from.toISOString(),
+        to: context.to.toISOString(),
+        lastSuccessAt: lastSuccess?.windowEnd?.toISOString() ?? null,
+        accountUpdatedAt: account.updatedAt?.toISOString() ?? null,
+        contributionsTotal,
+        contributionsDelta,
+        tokenType,
+        rateLimit: result.rateLimit,
+        rawData: result.data,
+      });
+
+      const meta = buildMetaWithTotals(
+        result.rateLimit,
+        contributionsTotal,
+        anchorFrom,
+      );
       const syncResult = await this.syncService.applyContributionSync({
         userId,
-        contributions,
+        contributions: contributionsDelta,
         windowStart: context.from,
         windowEnd: context.to,
         tokenType,
         rateLimitRemaining: result.rateLimit?.remaining,
         cursor: null,
-        meta: meta ?? Prisma.JsonNull,
+        meta,
       });
 
       return {
         apDelta: syncResult.apDelta,
-        contributions,
+        contributions: contributionsDelta,
         windowStart: context.from.toISOString(),
         windowEnd: context.to.toISOString(),
         tokenType,
         rateLimitRemaining: result.rateLimit?.remaining,
         logId: syncResult.log.id,
-        meta: result.rateLimit ? this.toRateLimitMeta(result.rateLimit) : null,
+        meta,
       };
     } catch (error) {
       if (error instanceof GithubGraphqlError) {
@@ -119,7 +186,7 @@ export class GithubManualSyncService {
                 code: 'GITHUB_SYNC_RATE_LIMITED',
                 message:
                   'GitHub 레이트 리밋이 소진되었습니다. 잠시 후 다시 시도해주세요.',
-                details: this.toRateLimitMeta(error.rateLimit ?? {}),
+                details: buildRateLimitMeta(error.rateLimit) ?? undefined,
               },
             },
             HttpStatus.TOO_MANY_REQUESTS,
@@ -153,23 +220,23 @@ export class GithubManualSyncService {
     lastSyncAt: Date | null | undefined,
     now: Date,
   ): void {
-    const lastSuccessfulSyncAt = lastSyncAt;
+    if (!lastSyncAt) return;
 
-    if (
-      lastSuccessfulSyncAt &&
-      now.getTime() - lastSuccessfulSyncAt.getTime() < MIN_SYNC_INTERVAL_MS
-    ) {
+    // windowEnd가 현재보다 미래일 수 있으므로 now로 클램프
+    const lastEffective =
+      lastSyncAt.getTime() > now.getTime() ? now : lastSyncAt;
+
+    const elapsed = now.getTime() - lastEffective.getTime();
+    if (elapsed < this.cooldownMs) {
       throw new HttpException(
         {
           error: {
             code: 'GITHUB_SYNC_TOO_FREQUENT',
             message:
-              '최근 6시간 내 동기화가 실행되어 수동 동기화를 잠시 후에만 수행할 수 있습니다.',
+              '최근 동기화가 실행되어 수동 동기화를 잠시 후에만 수행할 수 있습니다.',
             details: {
-              lastSyncedAt: lastSuccessfulSyncAt.toISOString(),
-              retryAfterMs:
-                MIN_SYNC_INTERVAL_MS -
-                (now.getTime() - lastSuccessfulSyncAt.getTime()),
+              lastSyncedAt: lastEffective.toISOString(),
+              retryAfterMs: Math.max(this.cooldownMs - elapsed, 0),
             },
           },
         },
@@ -178,24 +245,10 @@ export class GithubManualSyncService {
     }
   }
 
-  private extractContributions(data: unknown): number {
-    if (typeof data !== 'object' || data === null) {
-      return 0;
-    }
-
-    const candidate = data as {
-      user?: {
-        contributionsCollection?: {
-          commitContributionsByRepository?: { totalCount?: unknown };
-        };
-      };
-    };
-
-    const total =
-      candidate.user?.contributionsCollection?.commitContributionsByRepository
-        ?.totalCount;
-
-    return typeof total === 'number' ? total : 0;
+  private startOfDayUtc(date: Date): Date {
+    return new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
   }
 
   private async recordFailure(
@@ -205,7 +258,7 @@ export class GithubManualSyncService {
       rateLimit?: { remaining?: number; resetAt?: number; resource?: string };
     },
   ): Promise<void> {
-    const meta = options.rateLimit && this.toRateLimitMeta(options.rateLimit);
+    const meta = options.rateLimit && buildRateLimitMeta(options.rateLimit);
 
     await this.prisma.apSyncLog.upsert({
       where: {
@@ -241,24 +294,17 @@ export class GithubManualSyncService {
     });
   }
 
-  private toRateLimitMeta(input: {
-    remaining?: number;
-    resetAt?: number | string;
-    resource?: string;
-  }): {
-    remaining: number | null;
-    resetAt: number | null;
-    resource: string | null;
-  } {
-    const resetAt =
-      typeof input.resetAt === 'string'
-        ? Number(new Date(input.resetAt).getTime())
-        : (input.resetAt ?? null);
+  private async resolveLogin(account: {
+    accountId: string;
+    accessToken?: string | null;
+  }): Promise<string | null> {
+    // accountId에 영문자가 포함돼 있으면 로그인명으로 취급
+    if (account.accountId && /[A-Za-z]/.test(account.accountId)) {
+      return account.accountId;
+    }
 
-    return {
-      remaining: typeof input.remaining === 'number' ? input.remaining : null,
-      resetAt: typeof resetAt === 'number' ? resetAt : null,
-      resource: typeof input.resource === 'string' ? input.resource : null,
-    };
+    // 숫자 ID만 있는 경우 토큰으로 viewer.login 조회
+    const viewerLogin = await this.client.fetchViewerLogin(account.accessToken);
+    return viewerLogin ?? null;
   }
 }

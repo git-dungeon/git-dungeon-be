@@ -7,10 +7,14 @@ import {
 } from '@prisma/client';
 import { toJsonDetails } from '../src/common/logs/dungeon-log-extra';
 import { toJsonDelta } from '../src/common/logs/dungeon-log-delta';
+import { loadEnvironment } from '../src/config/environment';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const env = loadEnvironment();
+  const initialAp = env.dungeonInitialAp ?? 10;
+
   const email = 'admin@example.com';
 
   const user = await prisma.user.upsert({
@@ -38,7 +42,7 @@ async function main() {
       maxFloor: 1,
       floorProgress: 0,
       gold: 0,
-      ap: 5,
+      ap: initialAp,
       currentAction: 'IDLE',
       currentActionStartedAt: null,
     },

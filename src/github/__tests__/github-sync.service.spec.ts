@@ -3,15 +3,17 @@ import { Prisma, ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GithubSyncService } from '../github-sync.service';
 import type { PrismaService } from '../../prisma/prisma.service';
+import { createSyncServiceTestbed } from './helpers';
 
 type MockPrismaTx = {
   apSyncLog: {
+    findFirst: (args: Prisma.ApSyncLogFindFirstArgs) => Promise<unknown>;
     findUnique: (args: Prisma.ApSyncLogFindUniqueArgs) => Promise<unknown>;
     create: (args: Prisma.ApSyncLogCreateArgs) => Promise<unknown>;
     update: (args: Prisma.ApSyncLogUpdateArgs) => Promise<unknown>;
   };
   dungeonState: {
-    update: (args: Prisma.DungeonStateUpdateArgs) => Promise<unknown>;
+    upsert: (args: Prisma.DungeonStateUpsertArgs) => Promise<unknown>;
   };
   account: {
     updateMany: (args: Prisma.AccountUpdateManyArgs) => Promise<unknown>;
@@ -23,41 +25,30 @@ type PrismaLike = {
 };
 
 const createPrismaMock = () => {
-  const findUnique =
-    vi.fn<(args: Prisma.ApSyncLogFindUniqueArgs) => Promise<unknown>>();
-  const create =
-    vi.fn<(args: Prisma.ApSyncLogCreateArgs) => Promise<unknown>>();
-  const update =
-    vi.fn<(args: Prisma.ApSyncLogUpdateArgs) => Promise<unknown>>();
-  const updateState =
-    vi.fn<(args: Prisma.DungeonStateUpdateArgs) => Promise<unknown>>();
-  const updateAccount =
-    vi.fn<(args: Prisma.AccountUpdateManyArgs) => Promise<unknown>>();
-
-  const tx: MockPrismaTx = {
-    apSyncLog: {
-      findUnique:
-        findUnique as unknown as MockPrismaTx['apSyncLog']['findUnique'],
-      create: create as unknown as MockPrismaTx['apSyncLog']['create'],
-      update: update as unknown as MockPrismaTx['apSyncLog']['update'],
+  const {
+    prisma,
+    mocks: {
+      findFirst,
+      findUnique,
+      create,
+      update,
+      upsertState,
+      updateAccount,
     },
-    dungeonState: {
-      update: updateState as unknown as MockPrismaTx['dungeonState']['update'],
-    },
-    account: {
-      updateMany:
-        updateAccount as unknown as MockPrismaTx['account']['updateMany'],
-    },
-  };
-
-  const prisma: PrismaLike = {
-    $transaction: <T>(fn: (txArg: MockPrismaTx) => Promise<T> | T) => fn(tx),
-  };
+    tx,
+  } = createSyncServiceTestbed();
 
   return {
-    tx,
-    prisma: prisma as unknown as PrismaService,
-    mocks: { findUnique, create, update, updateState, updateAccount },
+    tx: tx as unknown as MockPrismaTx,
+    prisma: prisma as PrismaService,
+    mocks: {
+      findFirst,
+      findUnique,
+      create,
+      update,
+      upsertState,
+      updateAccount,
+    },
   };
 };
 
@@ -81,7 +72,7 @@ describe('GithubSyncService', () => {
     const { prisma, mocks } = createPrismaMock();
 
     const service = new GithubSyncService(prisma);
-
+    mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     mocks.findUnique.mockResolvedValue(null);
     mocks.create.mockResolvedValue({
       id: 'log-1',
@@ -93,9 +84,13 @@ describe('GithubSyncService', () => {
       contributions: Number(baseParams.contributions),
     });
 
-    expect(mocks.updateState).toHaveBeenCalledWith({
+    expect(mocks.upsertState).toHaveBeenCalledWith({
       where: { userId: baseParams.userId },
-      data: { ap: { increment: baseParams.contributions } },
+      update: { ap: { increment: baseParams.contributions } },
+      create: {
+        userId: baseParams.userId,
+        ap: expect.any(Number),
+      },
     });
     expect(mocks.updateAccount).toHaveBeenCalled();
     expect(mocks.create).toHaveBeenCalledWith({
@@ -114,6 +109,7 @@ describe('GithubSyncService', () => {
     const { prisma, mocks } = createPrismaMock();
 
     const service = new GithubSyncService(prisma);
+    mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     const existing: { id: string; status: ApSyncStatus; apDelta: number } = {
       id: 'log-existing',
       status: ApSyncStatus.SUCCESS,
@@ -122,18 +118,22 @@ describe('GithubSyncService', () => {
 
     mocks.findUnique.mockResolvedValue(existing);
 
-    const result = await service.applyContributionSync(baseParams);
+    const result = await service.applyContributionSync({
+      ...baseParams,
+      contributions: 0,
+    });
 
-    expect(mocks.updateState).not.toHaveBeenCalled();
+    expect(mocks.upsertState).not.toHaveBeenCalled();
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.update).not.toHaveBeenCalled();
-    expect(result.apDelta).toBe(existing.apDelta);
+    expect(result.apDelta).toBe(0);
   });
 
   it('이전 실패 로그가 있으면 갱신하고 AP를 적재한다', async () => {
     const { prisma, mocks } = createPrismaMock();
 
     const service = new GithubSyncService(prisma);
+    mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     const existing: { id: string; status: ApSyncStatus; apDelta: number } = {
       id: 'log-failed',
       status: ApSyncStatus.FAILED,
@@ -152,9 +152,13 @@ describe('GithubSyncService', () => {
       contributions: 2,
     });
 
-    expect(mocks.updateState).toHaveBeenCalledWith({
+    expect(mocks.upsertState).toHaveBeenCalledWith({
       where: { userId: baseParams.userId },
-      data: { ap: { increment: 2 } },
+      update: { ap: { increment: 2 } },
+      create: {
+        userId: baseParams.userId,
+        ap: expect.any(Number),
+      },
     });
     expect(mocks.update).toHaveBeenCalledWith({
       where: { id: existing.id },
@@ -165,5 +169,34 @@ describe('GithubSyncService', () => {
       }),
     });
     expect(apDelta).toBe(2);
+  });
+
+  it('최근 성공 윈도우와 겹치면 건너뛴다', async () => {
+    const { prisma, mocks } = createPrismaMock();
+
+    const service = new GithubSyncService(prisma);
+    const lastSuccess = {
+      id: 'last-success',
+      status: ApSyncStatus.SUCCESS,
+      apDelta: 4,
+      windowStart: new Date('2025-11-01T00:00:00Z'),
+      windowEnd: new Date('2025-11-02T00:00:00Z'),
+    } as const;
+
+    mocks.findFirst
+      .mockResolvedValueOnce(lastSuccess)
+      .mockResolvedValueOnce(lastSuccess);
+
+    const result = await service.applyContributionSync({
+      ...baseParams,
+      windowStart: new Date('2025-11-01T23:59:59Z'), // 겹치는 구간
+      contributions: 0,
+    });
+
+    expect(result.apDelta).toBe(0);
+    expect(result.log).toBe(lastSuccess);
+    expect(mocks.findUnique).not.toHaveBeenCalled();
+    expect(mocks.upsertState).not.toHaveBeenCalled();
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 });

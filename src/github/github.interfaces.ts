@@ -90,8 +90,13 @@ export interface GithubSyncResponse {
   rateLimitRemaining?: number;
   logId: string;
   meta?: {
-    remaining: number | null;
-    resetAt: number | null;
-    resource: string | null;
+    rateLimit: {
+      remaining: number | null;
+      resetAt: number | null;
+      resource: string | null;
+    } | null;
+    totals?: {
+      contributions: number;
+    };
   } | null;
 }

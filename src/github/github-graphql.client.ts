@@ -129,6 +129,31 @@ export class GithubGraphqlClient {
     };
   }
 
+  async fetchViewerLogin(
+    accessToken: string | null | undefined,
+  ): Promise<string | null> {
+    const token = accessToken?.trim();
+    if (!token) return null;
+
+    const client = this.createOctokit(token);
+    try {
+      const result: unknown = await client.graphql(this.buildViewerQuery(), {});
+      if (typeof result !== 'object' || result === null) {
+        return null;
+      }
+
+      const viewer = (result as { viewer?: unknown }).viewer;
+      if (typeof viewer !== 'object' || viewer === null) {
+        return null;
+      }
+
+      const login = (viewer as { login?: unknown }).login;
+      return typeof login === 'string' ? login : null;
+    } catch {
+      return null;
+    }
+  }
+
   private async executeWithRetry<TData>(
     tokenQueue: GithubTokenCandidate[],
     variables: FetchContributionsVariables,
@@ -296,14 +321,31 @@ export class GithubGraphqlClient {
         rateLimit {
           remaining
           resetAt
-          resource
         }
         user(login: $login) {
           contributionsCollection(from: $from, to: $to) {
-            commitContributionsByRepository(first: 10, after: $cursor) {
+            totalCommitContributions
+            restrictedContributionsCount
+            pullRequestContributions(first: 1, after: $cursor) {
+              totalCount
+            }
+            pullRequestReviewContributions(first: 1, after: $cursor) {
+              totalCount
+            }
+            issueContributions(first: 1, after: $cursor) {
               totalCount
             }
           }
+        }
+      }
+    `;
+  }
+
+  private buildViewerQuery(): string {
+    return `
+      query {
+        viewer {
+          login
         }
       }
     `;

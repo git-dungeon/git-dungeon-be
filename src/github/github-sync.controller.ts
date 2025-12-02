@@ -1,6 +1,5 @@
 import { Controller, Req, Res, UseGuards } from '@nestjs/common';
 import { TypedRoute, TypedException } from '@nestia/core';
-import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
@@ -25,7 +24,6 @@ export class GithubSyncController {
 
   @TypedRoute.Post<ApiSuccessResponse<GithubSyncResponse>>('sync')
   @Authenticated()
-  @Throttle({ default: { limit: 1, ttl: 60_000 } })
   @TypedException<ApiErrorResponse>({
     status: 400,
     description: 'GitHub 계정이 연결되지 않은 경우',

@@ -72,6 +72,7 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `GITHUB_SYNC_CRON`         | 동기화 크론 표현식                                             | `0 */10 * * * *`                                                                                        |
 | `GITHUB_SYNC_BATCH_SIZE`   | 한 번에 처리할 사용자 수                                       | `50`                                                                                                    |
 | `GITHUB_SYNC_MANUAL_COOLDOWN_MS` | 수동 동기화 최소 간격(ms). 기본 6시간(21600000)                 | `21600000`                                                                                              |
+| `DUNGEON_INITIAL_AP`       | 신규 사용자/최초 동기화 시 시드할 AP 값                         | `10`                                                                                                    |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
 

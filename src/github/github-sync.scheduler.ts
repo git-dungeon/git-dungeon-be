@@ -5,8 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubSyncService } from './github-sync.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ApSyncTokenType } from '@prisma/client';
+import { ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { loadEnvironment } from '../config/environment';
+import {
+  buildMetaWithTotals,
+  extractContributionsFromCollection,
+  getAnchorFromMeta,
+  getLastContributionsTotal,
+} from './github-sync.util';
 
 @Injectable()
 export class GithubSyncScheduler implements OnModuleInit {
@@ -30,6 +36,12 @@ export class GithubSyncScheduler implements OnModuleInit {
       this.configService?.get<number>('github.sync.batchSize', 50) ??
       fallbackEnv?.githubSyncBatchSize ??
       50;
+  }
+
+  private startOfDayUtc(date: Date): Date {
+    return new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
   }
 
   onModuleInit(): void {
@@ -71,16 +83,46 @@ export class GithubSyncScheduler implements OnModuleInit {
       const account = user.accounts[0];
       if (!account) continue;
 
-      const from =
-        account.updatedAt ?? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // fallback 최근 7일
+      const lastSuccess = await this.prisma.apSyncLog.findFirst({
+        where: { userId: user.id, status: ApSyncStatus.SUCCESS },
+        orderBy: { windowEnd: 'desc' },
+        select: { windowStart: true, windowEnd: true, meta: true },
+      });
+
+      const baseFrom = account.updatedAt
+        ? new Date(account.updatedAt.getTime() + 1) // inclusive 우회
+        : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // fallback 최근 7일
+
+      const anchorFrom =
+        getAnchorFromMeta(lastSuccess?.meta) ??
+        lastSuccess?.windowStart ??
+        this.startOfDayUtc(baseFrom);
+      const from = anchorFrom;
       const to = now;
-      const login = account.accountId;
+      const login = await this.resolveLogin(account);
+      if (!login) {
+        this.logger.warn(
+          `Skipping GitHub sync for user ${user.id}: unable to resolve login from accountId=${account.accountId}`,
+        );
+        continue;
+      }
       const accessToken = account.accessToken ?? null;
 
       try {
-        // TODO: 실제 기여 수/커서 계산 로직 보강 필요
         const result = await this.client.fetchContributions<{
-          rateLimit?: { remaining?: number };
+          rateLimit?: {
+            remaining?: number;
+            resetAt?: number;
+          };
+          user?: {
+            contributionsCollection?: {
+              totalCommitContributions?: number;
+              restrictedContributionsCount?: number;
+              pullRequestContributions?: { totalCount?: number };
+              pullRequestReviewContributions?: { totalCount?: number };
+              issueContributions?: { totalCount?: number };
+            };
+          };
         }>(accessToken, {
           login,
           from: from.toISOString(),
@@ -88,7 +130,32 @@ export class GithubSyncScheduler implements OnModuleInit {
           cursor: null,
         });
 
-        const contributions = 0; // placeholder, 추후 result 데이터 파싱 필요
+        const contributionsTotal = extractContributionsFromCollection(
+          result.data?.user?.contributionsCollection,
+        );
+        const prevTotal = getLastContributionsTotal(
+          lastSuccess?.meta,
+          anchorFrom,
+        );
+        const contributions = Math.max(contributionsTotal - prevTotal, 0);
+
+        this.logger.log({
+          message: 'Github scheduled sync window',
+          userId: user.id,
+          login,
+          from: from.toISOString(),
+          to: to.toISOString(),
+          lastSuccessAt: lastSuccess?.windowEnd?.toISOString() ?? null,
+          accountUpdatedAt: account.updatedAt?.toISOString() ?? null,
+          contributionsTotal,
+          contributionsDelta: contributions,
+          tokenType:
+            result.tokenType === 'pat'
+              ? ApSyncTokenType.PAT
+              : ApSyncTokenType.OAUTH,
+          rateLimit: result.rateLimit,
+          rawData: result.data,
+        });
 
         await this.syncService.applyContributionSync({
           userId: user.id,
@@ -101,20 +168,45 @@ export class GithubSyncScheduler implements OnModuleInit {
               : ApSyncTokenType.OAUTH,
           rateLimitRemaining: result.rateLimit?.remaining,
           cursor: null,
-          meta: result.rateLimit
-            ? {
-                remaining: result.rateLimit.remaining ?? null,
-                resetAt: result.rateLimit.resetAt ?? null,
-                resource: result.rateLimit.resource ?? null,
-              }
-            : null,
+          meta: buildMetaWithTotals(
+            result.rateLimit,
+            contributionsTotal,
+            anchorFrom,
+          ),
         });
       } catch (error) {
-        this.logger.error(
-          `Github sync failed for user ${user.id}`,
-          error instanceof Error ? error.stack : String(error),
-        );
+        if (error instanceof Error) {
+          this.logger.error(
+            {
+              userId: user.id,
+              code: (error as { code?: string }).code,
+              status: (error as { status?: number }).status,
+              rateLimit: (error as { rateLimit?: unknown }).rateLimit,
+              cause: (error as { cause?: unknown }).cause,
+            },
+            `Github sync failed for user ${user.id}: ${error.message}`,
+          );
+        } else {
+          this.logger.error(
+            { userId: user.id, error: String(error) },
+            `Github sync failed for user ${user.id}`,
+          );
+        }
       }
     }
+  }
+
+  private async resolveLogin(account: {
+    accountId: string;
+    accessToken?: string | null;
+  }): Promise<string | null> {
+    // 계정에 저장된 accountId가 GitHub 로그인(문자 포함)이면 그대로 사용
+    if (account.accountId && /[A-Za-z]/.test(account.accountId)) {
+      return account.accountId;
+    }
+
+    // 숫자 ID만 있는 경우 accessToken으로 viewer.login을 조회
+    const viewerLogin = await this.client.fetchViewerLogin(account.accessToken);
+    return viewerLogin ?? null;
   }
 }

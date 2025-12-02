@@ -5,6 +5,7 @@ export interface Environment {
   port: number;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   logPretty: boolean;
+  dungeonInitialAp: number;
   corsAllowedOrigins: (string & tags.MinLength<1>)[];
   corsAllowCredentials: boolean;
   publicBaseUrl: string & tags.MinLength<1>;
@@ -92,6 +93,7 @@ export const loadEnvironment = (): Environment => {
       process.env.CORS_ALLOW_CREDENTIALS,
       true,
     ),
+    dungeonInitialAp: parseNumber(process.env.DUNGEON_INITIAL_AP, 10),
     publicBaseUrl:
       process.env.PUBLIC_BASE_URL ??
       (nodeEnv === 'production' ? '' : 'http://localhost:3000'),

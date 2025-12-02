@@ -17,6 +17,9 @@ const configuration = () => {
       level: env.logLevel,
       pretty: env.logPretty,
     },
+    dungeon: {
+      initialAp: env.dungeonInitialAp,
+    },
     database: {
       url: env.databaseUrl,
       shadowUrl: env.databaseShadowUrl,
