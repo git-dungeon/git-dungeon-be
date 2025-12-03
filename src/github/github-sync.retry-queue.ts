@@ -104,12 +104,11 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
     });
-    const defaultJobOptions: DefaultJobOptions & { timeout?: number } = {
+    const defaultJobOptions: DefaultJobOptions = {
       attempts: this.maxRetries,
       backoff: { type: 'exponential', delay: this.backoffBaseMs },
       removeOnComplete: true,
       removeOnFail: false,
-      timeout: this.ttlMs,
     };
 
     this.queue = new Queue<RetryJobData>('github-sync-retry', {
@@ -181,6 +180,35 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
   ): Promise<void> {
     if (!this.queue) return;
 
+    const existing = await this.queue.getJob(data.userId);
+    if (existing) {
+      const state = await existing.getState();
+      if (state !== 'failed' && state !== 'completed') {
+        this.logger.warn(
+          {
+            userId: data.userId,
+            reason: data.reason,
+            state,
+          },
+          'Retry job already queued; skipping duplicate enqueue',
+        );
+        return;
+      }
+
+      try {
+        await existing.remove();
+      } catch (error) {
+        this.logger.warn(
+          {
+            userId: data.userId,
+            state,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Failed to remove completed/failed retry job before re-enqueue',
+        );
+      }
+    }
+
     const delay =
       data.resetAt && data.resetAt > Date.now()
         ? data.resetAt - Date.now()
@@ -194,9 +222,8 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
         backoff: { type: 'exponential', delay: this.backoffBaseMs },
         removeOnComplete: true,
         removeOnFail: false,
-        timeout: this.ttlMs,
-        ...(opts as JobsOptions & { timeout?: number }),
-      } as JobsOptions & { timeout?: number });
+        ...(opts as JobsOptions),
+      } as JobsOptions);
       this.logger.log({
         message: 'Enqueued GitHub sync retry job',
         userId: data.userId,
@@ -217,6 +244,15 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
 
   private async handleJob(job: Job<RetryJobData>): Promise<void> {
     const { userId } = job.data;
+
+    if (Date.now() - job.timestamp > this.ttlMs) {
+      this.logger.warn(
+        { userId, jobId: job.id, ttlMs: this.ttlMs },
+        'Dropping expired GitHub sync retry job due to TTL',
+      );
+      job.discard();
+      return;
+    }
 
     const locked = await this.lockService.acquire(userId);
     if (!locked) {

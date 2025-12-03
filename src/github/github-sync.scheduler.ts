@@ -78,175 +78,211 @@ export class GithubSyncScheduler implements OnModuleInit {
   }
 
   async handleSyncJob(): Promise<void> {
-    const users = await this.prisma.user.findMany({
-      where: { accounts: { some: { providerId: 'github' } } },
-      take: this.batchSize,
-      include: {
-        accounts: {
-          where: { providerId: 'github' },
-          select: { accountId: true, accessToken: true, updatedAt: true },
-        },
-      },
-    });
-
+    let cursor: { id: string } | undefined;
+    let lastCursorId: string | undefined;
     const now = new Date();
 
-    for (const user of users) {
-      const account = user.accounts[0];
-      if (!account) continue;
-
-      const locked = await this.lockService.acquire(user.id);
-      if (!locked) {
-        this.logger.warn(
-          `Skipping GitHub sync for user ${user.id}: another sync is in progress (lock not acquired).`,
-        );
-        continue;
-      }
-
-      const lastSuccess = await this.prisma.apSyncLog.findFirst({
-        where: { userId: user.id, status: ApSyncStatus.SUCCESS },
-        orderBy: { windowEnd: 'desc' },
-        select: { windowStart: true, windowEnd: true, meta: true },
+    while (true) {
+      const users = await this.prisma.user.findMany({
+        where: { accounts: { some: { providerId: 'github' } } },
+        orderBy: { id: 'asc' },
+        take: this.batchSize,
+        skip: cursor ? 1 : 0,
+        cursor,
+        include: {
+          accounts: {
+            where: { providerId: 'github' },
+            select: { accountId: true, accessToken: true, updatedAt: true },
+          },
+        },
       });
 
-      const baseFrom = account.updatedAt
-        ? new Date(account.updatedAt.getTime() + 1) // inclusive 우회
-        : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // fallback 최근 7일
+      if (users.length === 0) break;
 
-      const anchorFrom =
-        getAnchorFromMeta(lastSuccess?.meta) ??
-        lastSuccess?.windowStart ??
-        this.startOfDayUtc(baseFrom);
-      const from = anchorFrom;
-      const to = now;
-      const login = await this.resolveLogin(account);
-      if (!login) {
-        this.logger.warn(
-          `Skipping GitHub sync for user ${user.id}: unable to resolve login from accountId=${account.accountId}`,
-        );
-        continue;
-      }
-      const accessToken = account.accessToken ?? null;
+      for (const user of users) {
+        const account = user.accounts[0];
+        if (!account) continue;
 
-      try {
-        const result = await this.client.fetchContributions<{
-          rateLimit?: {
-            remaining?: number;
-            resetAt?: number;
-          };
-          user?: {
-            contributionsCollection?: {
-              totalCommitContributions?: number;
-              restrictedContributionsCount?: number;
-              pullRequestContributions?: { totalCount?: number };
-              pullRequestReviewContributions?: { totalCount?: number };
-              issueContributions?: { totalCount?: number };
-            };
-          };
-        }>(accessToken, {
-          login,
-          from: from.toISOString(),
-          to: to.toISOString(),
-          cursor: null,
-        });
+        const locked = await this.lockService.acquire(user.id);
+        if (!locked) {
+          this.logger.warn(
+            `Skipping GitHub sync for user ${user.id}: another sync is in progress (lock not acquired).`,
+          );
+          continue;
+        }
+        let hasLock = true;
 
-        const contributionsTotal = extractContributionsFromCollection(
-          result.data?.user?.contributionsCollection,
-        );
-        const prevTotal = getLastContributionsTotal(
-          lastSuccess?.meta,
-          anchorFrom,
-        );
-        const contributions = Math.max(contributionsTotal - prevTotal, 0);
-
-        this.logger.log({
-          message: 'Github scheduled sync window',
-          userId: user.id,
-          login,
-          from: from.toISOString(),
-          to: to.toISOString(),
-          lastSuccessAt: lastSuccess?.windowEnd?.toISOString() ?? null,
-          accountUpdatedAt: account.updatedAt?.toISOString() ?? null,
-          contributionsTotal,
-          contributionsDelta: contributions,
-          tokenType:
-            result.tokenType === 'pat'
-              ? ApSyncTokenType.PAT
-              : ApSyncTokenType.OAUTH,
-          rateLimit: result.rateLimit,
-          tokensTried: result.tokensTried,
-          attempts: result.attempts ?? 1,
-          backoffMs: result.backoffMs ?? 0,
-          rawData: result.data,
-        });
-
-        if (
-          typeof result.rateLimit?.remaining === 'number' &&
-          result.rateLimit.remaining <= this.rateLimitWarnRemaining
-        ) {
-          this.logger.warn({
-            message: 'GitHub scheduled sync rate limit is low',
-            userId: user.id,
-            remaining: result.rateLimit.remaining,
-            resetAt: result.rateLimit.resetAt ?? null,
-            tokenType: result.tokenType,
-            tokensTried: result.tokensTried,
-            attempts: result.attempts ?? 1,
-            threshold: this.rateLimitWarnRemaining,
+        try {
+          const lastSuccess = await this.prisma.apSyncLog.findFirst({
+            where: { userId: user.id, status: ApSyncStatus.SUCCESS },
+            orderBy: { windowEnd: 'desc' },
+            select: { windowStart: true, windowEnd: true, meta: true },
           });
-        }
 
-        await this.syncService.applyContributionSync({
-          userId: user.id,
-          contributions,
-          windowStart: from,
-          windowEnd: to,
-          tokenType:
-            result.tokenType === 'pat'
-              ? ApSyncTokenType.PAT
-              : ApSyncTokenType.OAUTH,
-          rateLimitRemaining: result.rateLimit?.remaining,
-          cursor: null,
-          meta: buildMetaWithTotals(
-            result.rateLimit,
-            contributionsTotal,
-            anchorFrom,
-            {
-              tokensTried: result.tokensTried,
-              attempts: result.attempts,
-              backoffMs: result.backoffMs,
-            },
-          ),
-        });
-      } catch (error) {
-        if (error instanceof Error) {
-          this.logger.error(
-            {
-              userId: user.id,
-              code: (error as { code?: string }).code,
-              status: (error as { status?: number }).status,
-              rateLimit: (error as { rateLimit?: unknown }).rateLimit,
-              cause: (error as { cause?: unknown }).cause,
-            },
-            `Github sync failed for user ${user.id}: ${error.message}`,
-          );
-          const resetAt = (error as { rateLimit?: { resetAt?: number } })
-            .rateLimit?.resetAt;
-          if (this.isRetryable(error)) {
-            await this.retryQueue.enqueue({
-              userId: user.id,
-              reason: (error as { code?: string }).code ?? 'UNKNOWN',
-              resetAt: resetAt ?? undefined,
-            });
+          const baseFrom = account.updatedAt
+            ? new Date(account.updatedAt.getTime() + 1)
+            : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+          const anchorFrom =
+            getAnchorFromMeta(lastSuccess?.meta) ??
+            lastSuccess?.windowStart ??
+            this.startOfDayUtc(baseFrom);
+          const from = anchorFrom;
+          const to = now;
+          const login = await this.resolveLogin(account);
+          if (!login) {
+            this.logger.warn(
+              `Skipping GitHub sync for user ${user.id}: unable to resolve login from accountId=${account.accountId}`,
+            );
+            await this.lockService.release(user.id);
+            hasLock = false;
+            continue;
           }
-        } else {
-          this.logger.error(
-            { userId: user.id, error: String(error) },
-            `Github sync failed for user ${user.id}`,
+          const accessToken = account.accessToken ?? null;
+
+          try {
+            const result = await this.client.fetchContributions<{
+              rateLimit?: {
+                remaining?: number;
+                resetAt?: number;
+              };
+              user?: {
+                contributionsCollection?: {
+                  totalCommitContributions?: number;
+                  restrictedContributionsCount?: number;
+                  pullRequestContributions?: { totalCount?: number };
+                  pullRequestReviewContributions?: { totalCount?: number };
+                  issueContributions?: { totalCount?: number };
+                };
+              };
+            }>(accessToken, {
+              login,
+              from: from.toISOString(),
+              to: to.toISOString(),
+              cursor: null,
+            });
+
+            const contributionsTotal = extractContributionsFromCollection(
+              result.data?.user?.contributionsCollection,
+            );
+            const prevTotal = getLastContributionsTotal(
+              lastSuccess?.meta,
+              anchorFrom,
+            );
+            const contributions = Math.max(contributionsTotal - prevTotal, 0);
+
+            this.logger.log({
+              message: 'Github scheduled sync window',
+              userId: user.id,
+              login,
+              from: from.toISOString(),
+              to: to.toISOString(),
+              lastSuccessAt: lastSuccess?.windowEnd?.toISOString() ?? null,
+              accountUpdatedAt: account.updatedAt?.toISOString() ?? null,
+              contributionsTotal,
+              contributionsDelta: contributions,
+              tokenType:
+                result.tokenType === 'pat'
+                  ? ApSyncTokenType.PAT
+                  : ApSyncTokenType.OAUTH,
+              rateLimit: result.rateLimit,
+              tokensTried: result.tokensTried,
+              attempts: result.attempts ?? 1,
+              backoffMs: result.backoffMs ?? 0,
+              rawData: result.data,
+            });
+
+            if (
+              typeof result.rateLimit?.remaining === 'number' &&
+              result.rateLimit.remaining <= this.rateLimitWarnRemaining
+            ) {
+              this.logger.warn({
+                message: 'GitHub scheduled sync rate limit is low',
+                userId: user.id,
+                remaining: result.rateLimit.remaining,
+                resetAt: result.rateLimit.resetAt ?? null,
+                tokenType: result.tokenType,
+                tokensTried: result.tokensTried,
+                attempts: result.attempts ?? 1,
+                threshold: this.rateLimitWarnRemaining,
+              });
+            }
+
+            await this.syncService.applyContributionSync({
+              userId: user.id,
+              contributions,
+              windowStart: from,
+              windowEnd: to,
+              tokenType:
+                result.tokenType === 'pat'
+                  ? ApSyncTokenType.PAT
+                  : ApSyncTokenType.OAUTH,
+              rateLimitRemaining: result.rateLimit?.remaining,
+              cursor: null,
+              meta: buildMetaWithTotals(
+                result.rateLimit,
+                contributionsTotal,
+                anchorFrom,
+                {
+                  tokensTried: result.tokensTried,
+                  attempts: result.attempts,
+                  backoffMs: result.backoffMs,
+                },
+              ),
+            });
+          } catch (error) {
+            if (error instanceof Error) {
+              this.logger.error(
+                {
+                  userId: user.id,
+                  code: (error as { code?: string }).code,
+                  status: (error as { status?: number }).status,
+                  rateLimit: (error as { rateLimit?: unknown }).rateLimit,
+                  cause: (error as { cause?: unknown }).cause,
+                },
+                `Github sync failed for user ${user.id}: ${error.message}`,
+              );
+              const resetAt = (error as { rateLimit?: { resetAt?: number } })
+                .rateLimit?.resetAt;
+              if (this.isRetryable(error)) {
+                await this.retryQueue.enqueue({
+                  userId: user.id,
+                  reason: (error as { code?: string }).code ?? 'UNKNOWN',
+                  resetAt: resetAt ?? undefined,
+                });
+              }
+            } else {
+              this.logger.error(
+                { userId: user.id, error: String(error) },
+                `Github sync failed for user ${user.id}`,
+              );
+            }
+          } finally {
+            if (hasLock) {
+              await this.lockService.release(user.id);
+              hasLock = false;
+            }
+          }
+        } catch (error) {
+          this.logger.warn(
+            { userId: user.id, error: (error as Error).message },
+            'Unexpected error outside sync try block',
           );
+          if (hasLock) {
+            await this.lockService.release(user.id);
+            hasLock = false;
+          }
         }
-      } finally {
-        await this.lockService.release(user.id);
+      }
+
+      const last = users[users.length - 1];
+      if (!last || last.id === lastCursorId) {
+        break;
+      }
+      lastCursorId = last.id;
+      cursor = { id: last.id };
+      if (users.length < this.batchSize) {
+        break;
       }
     }
   }

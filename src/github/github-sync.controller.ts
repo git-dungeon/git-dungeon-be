@@ -35,7 +35,7 @@ export class GithubSyncController {
   @TypedException<ApiErrorResponse>({
     status: 429,
     description:
-      '수동 동기화 쿨다운 또는 GitHub 레이트 리밋에 걸린 경우(코드: GITHUB_SYNC_RATE_LIMITED)',
+      '수동 동기화 쿨다운(GITHUB_SYNC_TOO_FREQUENT) 또는 GitHub 레이트 리밋(GITHUB_SYNC_RATE_LIMITED)',
   })
   async triggerSync(
     @CurrentAuthSession() session: ActiveSessionResult,

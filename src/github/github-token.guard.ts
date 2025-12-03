@@ -109,8 +109,28 @@ export class GithubTokenGuard implements OnModuleDestroy {
       .get(rateLimitKey)
       .exec();
 
-    const cooldownTtl = results?.[0]?.[1] as number | null;
-    const rateLimitRaw = results?.[1]?.[1] as string | null;
+    const cooldownResult = results?.[0];
+    const rateLimitResult = results?.[1];
+
+    if (cooldownResult && cooldownResult[0] instanceof Error) {
+      this.logger.warn({
+        message: 'Cooldown check failed',
+        error: cooldownResult[0].message,
+      });
+      return { skip: false };
+    }
+    if (rateLimitResult && rateLimitResult[0] instanceof Error) {
+      this.logger.warn({
+        message: 'Rate limit cache read failed',
+        error: rateLimitResult[0].message,
+      });
+      return { skip: false };
+    }
+
+    const cooldownTtl =
+      typeof cooldownResult?.[1] === 'number' ? cooldownResult[1] : null;
+    const rateLimitRaw =
+      typeof rateLimitResult?.[1] === 'string' ? rateLimitResult[1] : null;
 
     const now = Date.now();
     if (typeof cooldownTtl === 'number' && cooldownTtl > 0) {

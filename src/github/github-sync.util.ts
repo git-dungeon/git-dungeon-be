@@ -47,7 +47,7 @@ export const getLastContributionsTotal = (
   if (!anchorFrom) return total;
   const anchor = getAnchorFromMeta(meta as Prisma.JsonValue);
   if (!anchor) return total;
-  return anchor.getTime() === anchorFrom.getTime() ? total : total;
+  return anchor.getTime() === anchorFrom.getTime() ? total : 0;
 };
 
 export const buildRateLimitMeta = (

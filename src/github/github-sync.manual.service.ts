@@ -117,6 +117,7 @@ export class GithubManualSyncService {
       );
     }
 
+    const hasLock = locked;
     try {
       const result = await this.client.fetchContributions<{
         rateLimit?: { remaining?: number; resetAt?: number };
@@ -263,7 +264,9 @@ export class GithubManualSyncService {
         message: 'GitHub 동기화에 실패했습니다.',
       });
     } finally {
-      await this.lockService.release(userId);
+      if (hasLock) {
+        await this.lockService.release(userId);
+      }
     }
   }
 

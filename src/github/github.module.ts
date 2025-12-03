@@ -59,8 +59,8 @@ type GithubSyncConfig = {
     {
       provide: RATE_LIMIT_CONFIG,
       useValue: {
-        code: 'GITHUB_SYNC_THROTTLED',
-        message: '수동 동기화 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+        code: 'GITHUB_SYNC_TOO_FREQUENT',
+        message: '수동 동기화가 너무 잦습니다. 잠시 후 다시 시도해주세요.',
       },
     },
     AuthenticatedThrottlerGuard,
