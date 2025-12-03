@@ -77,6 +77,9 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `GITHUB_SYNC_RETRY_BACKOFF_BASE_MS` | 재시도 기본 백오프(ms, 지수)                             | `60000`                                                                                                 |
 | `GITHUB_SYNC_RETRY_TTL_MS` | 재시도 작업 최대 유효 시간(ms)                                 | `86400000`                                                                                              |
 | `GITHUB_SYNC_RETRY_CONCURRENCY` | 재시도 워커 동시성                                       | `5`                                                                                                     |
+| `GITHUB_TOKEN_LOCK_TTL_MS` | 토큰별 Redis 분산 락 TTL(ms)                                    | `30000`                                                                                                 |
+| `GITHUB_TOKEN_RATE_LIMIT_CACHE_MS` | 레이트 리밋 캐시 기본 TTL(ms)                           | `300000`                                                                                                |
+| `GITHUB_TOKEN_COOLDOWN_MS` | 토큰 연속 오류/만료 시 쿨다운 TTL(ms)                           | `900000`                                                                                                |
 | `REDIS_SKIP_CONNECTION`    | 테스트 등에서 Redis 연결을 생략할지 여부                      | `false` (test 기본값 true)                                                                              |
 | `TEST_FORCE_GITHUB_RATE_LIMIT` | 테스트용 강제 레이트 리밋 트리거 (prod 금지)               | `false`                                                                                                 |
 | `DUNGEON_INITIAL_AP`       | 신규 사용자/최초 동기화 시 시드할 AP 값                         | `10`                                                                                                    |

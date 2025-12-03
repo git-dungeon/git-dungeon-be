@@ -13,6 +13,7 @@ import { GithubSyncController } from './github-sync.controller';
 import { GithubManualSyncService } from './github-sync.manual.service';
 import { GithubSyncRetryQueue } from './github-sync.retry-queue';
 import { GithubSyncLockService } from './github-sync.lock.service';
+import { GithubTokenGuard } from './github-token.guard';
 import { AuthModule } from '../auth/auth.module';
 import {
   AuthenticatedThrottlerGuard,
@@ -49,6 +50,7 @@ type GithubSyncConfig = {
       },
     },
     GithubGraphqlClient,
+    GithubTokenGuard,
     GithubSyncLockService,
     GithubSyncRetryQueue,
     GithubSyncService,

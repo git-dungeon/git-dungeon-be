@@ -30,6 +30,9 @@ export interface Environment {
   githubSyncRetryBackoffBaseMs: number;
   githubSyncRetryTtlMs: number;
   githubSyncRetryConcurrency: number;
+  githubTokenLockTtlMs: number;
+  githubTokenRateLimitCacheMs: number;
+  githubTokenCooldownMs: number;
   redisSkipConnection: boolean;
 }
 
@@ -157,6 +160,18 @@ export const loadEnvironment = (): Environment => {
     githubSyncRetryConcurrency: parseNumber(
       process.env.GITHUB_SYNC_RETRY_CONCURRENCY,
       5,
+    ),
+    githubTokenLockTtlMs: parseNumber(
+      process.env.GITHUB_TOKEN_LOCK_TTL_MS,
+      30_000,
+    ),
+    githubTokenRateLimitCacheMs: parseNumber(
+      process.env.GITHUB_TOKEN_RATE_LIMIT_CACHE_MS,
+      5 * 60 * 1000,
+    ),
+    githubTokenCooldownMs: parseNumber(
+      process.env.GITHUB_TOKEN_COOLDOWN_MS,
+      15 * 60 * 1000,
     ),
     redisSkipConnection: parseBoolean(
       process.env.REDIS_SKIP_CONNECTION,

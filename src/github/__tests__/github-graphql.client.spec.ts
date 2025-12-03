@@ -2,17 +2,25 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { GithubGraphqlClient } from '../github-graphql.client';
 import {
   GithubGraphqlClientOptions,
+  GithubTokenCandidate,
   GithubOctokitInstance,
 } from '../github.interfaces';
+import { GithubTokenGuard } from '../github-token.guard';
 
-const createClient = (factory: (token: string) => GithubOctokitInstance) =>
-  new GithubGraphqlClient({
-    endpoint: 'https://api.github.com/graphql',
-    userAgent: 'test-agent',
-    patToken: 'pat-token',
-    octokitFactory: factory,
-    fetchImpl: vi.fn(), // unused with mocked factory
-  } as GithubGraphqlClientOptions);
+const createClient = (
+  factory: (token: string) => GithubOctokitInstance,
+  tokenGuard?: GithubTokenGuard,
+) =>
+  new GithubGraphqlClient(
+    {
+      endpoint: 'https://api.github.com/graphql',
+      userAgent: 'test-agent',
+      patToken: 'pat-token',
+      octokitFactory: factory,
+      fetchImpl: vi.fn(), // unused with mocked factory
+    } as GithubGraphqlClientOptions,
+    tokenGuard,
+  );
 
 describe('GithubGraphqlClient (Octokit)', () => {
   beforeEach(() => {
@@ -99,5 +107,63 @@ describe('GithubGraphqlClient (Octokit)', () => {
 
     expect(result.data).toEqual(okResponse);
     expect(graphqlMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('레이트 리밋 캐시된 토큰을 건너뛰고 다음 토큰을 사용한다', async () => {
+    const graphqlPat = vi.fn().mockResolvedValue({
+      data: { ok: true },
+      rateLimit: { remaining: 150 },
+    });
+
+    const factory = vi.fn((token: string) => {
+      if (token === 'oauth-token') {
+        return { graphql: vi.fn() };
+      }
+      return { graphql: graphqlPat };
+    });
+
+    const tokenGuard: Pick<
+      GithubTokenGuard,
+      | 'shouldSkipToken'
+      | 'acquireLock'
+      | 'releaseLock'
+      | 'recordRateLimit'
+      | 'markCooldown'
+      | 'onModuleDestroy'
+    > = {
+      shouldSkipToken: vi
+        .fn()
+        .mockImplementation((candidate: GithubTokenCandidate) => {
+          if (candidate.token === 'oauth-token') {
+            return {
+              skip: true,
+              reason: 'RATE_LIMIT_CACHE',
+              remaining: 0,
+              retryAt: Date.now() + 1000,
+            };
+          }
+          return { skip: false };
+        }),
+      acquireLock: vi.fn().mockResolvedValue(true),
+      releaseLock: vi.fn().mockResolvedValue(undefined),
+      recordRateLimit: vi.fn().mockResolvedValue(undefined),
+      markCooldown: vi.fn().mockResolvedValue(undefined),
+      onModuleDestroy: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const client = createClient(
+      factory,
+      tokenGuard as unknown as GithubTokenGuard,
+    );
+    const result = await client.fetchContributions('oauth-token', {
+      login: 'octocat',
+      from: '2025-11-01T00:00:00Z',
+      to: '2025-11-02T00:00:00Z',
+    });
+
+    expect(result.tokenType).toBe('pat');
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(factory).toHaveBeenCalledWith('pat-token');
+    expect(tokenGuard.shouldSkipToken).toHaveBeenCalled();
   });
 });

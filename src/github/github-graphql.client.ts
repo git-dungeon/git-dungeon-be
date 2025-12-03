@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { Octokit as CoreOctokit } from '@octokit/core';
 import { throttling } from '@octokit/plugin-throttling';
 import {
@@ -17,6 +17,7 @@ import {
   GithubTokenCandidate,
   GithubTokenType,
 } from './github.interfaces';
+import { GithubTokenGuard } from './github-token.guard';
 
 const OctokitWithPlugins = CoreOctokit.plugin(throttling);
 
@@ -62,6 +63,7 @@ export class GithubGraphqlClient {
   constructor(
     @Inject(GITHUB_GRAPHQL_OPTIONS)
     options: GithubGraphqlClientOptions,
+    @Optional() private readonly tokenGuard?: GithubTokenGuard,
   ) {
     this.endpoint = options.endpoint;
     this.userAgent = options.userAgent;
@@ -181,16 +183,75 @@ export class GithubGraphqlClient {
     let totalBackoffMs = 0;
     let lastRateLimit: GithubRateLimit | undefined;
     const tokensTried: GithubTokenType[] = [];
+    const tokenCount = tokenQueue.length;
+    const skippedTokens = new Set<number>();
 
-    while (attempt < this.maxAttempts && tokenIndex < tokenQueue.length) {
-      const candidate = tokenQueue[tokenIndex];
+    while (attempt < this.maxAttempts && tokenCount > 0) {
+      const candidateIndex = tokenIndex % tokenCount;
+      const candidate = tokenQueue[candidateIndex];
+
+      const skipDecision = await this.tokenGuard?.shouldSkipToken(
+        candidate,
+        this.rateLimitThreshold,
+      );
+      if (skipDecision?.skip) {
+        skippedTokens.add(candidateIndex);
+        this.logger.warn({
+          message: 'Skipping GitHub token due to cooldown or cached rate limit',
+          tokenType: candidate.type,
+          retryAt: skipDecision.retryAt ?? null,
+          remaining: skipDecision.remaining ?? null,
+          reason: skipDecision.reason,
+        });
+
+        if (skippedTokens.size >= tokenCount) {
+          throw new GithubGraphqlError({
+            code: 'RATE_LIMITED',
+            message:
+              'No available GitHub tokens (cooldown or rate limited cache).',
+            rateLimit: lastRateLimit ?? {
+              remaining: skipDecision.remaining ?? undefined,
+              resetAt: skipDecision.retryAt,
+              resource: skipDecision.resource ?? undefined,
+            },
+          });
+        }
+
+        tokenIndex = (candidateIndex + 1) % tokenCount;
+        continue;
+      }
+
+      const lockAcquired = await this.tokenGuard?.acquireLock(candidate);
+      if (lockAcquired === false) {
+        skippedTokens.add(candidateIndex);
+        this.logger.warn({
+          message: 'GitHub token lock not acquired; rotating token',
+          tokenType: candidate.type,
+        });
+
+        if (skippedTokens.size >= tokenCount) {
+          throw new GithubGraphqlError({
+            code: 'RATE_LIMITED',
+            message: 'No available GitHub tokens (lock contention).',
+            rateLimit: lastRateLimit,
+          });
+        }
+
+        tokenIndex = (candidateIndex + 1) % tokenCount;
+        continue;
+      }
+
+      const hasLock = lockAcquired === true;
       tokensTried.push(candidate.type);
+      skippedTokens.clear();
       try {
         const client = this.createOctokit(candidate.token);
         const result = (await client.graphql(this.buildContributionsQuery(), {
           ...variables,
         })) as unknown;
         const rateLimit = this.extractRateLimit(result);
+
+        await this.tokenGuard?.recordRateLimit(candidate, rateLimit);
 
         if (this.shouldWarnRateLimit(rateLimit)) {
           this.logger.warn({
@@ -223,6 +284,16 @@ export class GithubGraphqlClient {
 
         if (isRateLimit) {
           lastRateLimit = this.parseRateLimit(parsed);
+          await this.tokenGuard?.recordRateLimit(candidate, lastRateLimit);
+          const cooldownMs =
+            lastRateLimit?.resetAt && lastRateLimit.resetAt > Date.now()
+              ? lastRateLimit.resetAt - Date.now()
+              : undefined;
+          await this.tokenGuard?.markCooldown(
+            candidate,
+            'RATE_LIMITED',
+            cooldownMs,
+          );
 
           if (tokenQueue.length > 1) {
             this.logger.warn({
@@ -255,6 +326,7 @@ export class GithubGraphqlClient {
         }
 
         if (status === 401) {
+          await this.tokenGuard?.markCooldown(candidate, 'UNAUTHORIZED');
           tokenIndex = (tokenIndex + 1) % tokenQueue.length;
           attempt += 1;
           continue;
@@ -284,6 +356,10 @@ export class GithubGraphqlClient {
           rateLimit: lastRateLimit,
           cause: parsed,
         });
+      } finally {
+        if (hasLock) {
+          await this.tokenGuard?.releaseLock(candidate);
+        }
       }
     }
 
