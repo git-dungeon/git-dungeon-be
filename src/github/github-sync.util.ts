@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import type { GithubRateLimit } from './github.interfaces';
+import type { GithubRateLimit, GithubTokenType } from './github.interfaces';
 
 export const extractContributionsFromCollection = (
   collection:
@@ -76,6 +76,11 @@ export const buildMetaWithTotals = (
   rateLimit: GithubRateLimit | undefined,
   contributionsTotal: number,
   anchorFrom: Date,
+  extras?: {
+    tokensTried?: GithubTokenType[];
+    attempts?: number;
+    backoffMs?: number | null;
+  },
 ): {
   rateLimit: {
     remaining: number | null;
@@ -84,8 +89,14 @@ export const buildMetaWithTotals = (
   } | null;
   totals: { contributions: number };
   anchorFrom: string;
+  tokensTried?: GithubTokenType[];
+  attempts?: number;
+  backoffMs?: number | null;
 } => ({
   rateLimit: buildRateLimitMeta(rateLimit),
   totals: { contributions: contributionsTotal },
   anchorFrom: anchorFrom.toISOString(),
+  tokensTried: extras?.tokensTried,
+  attempts: extras?.attempts,
+  backoffMs: extras?.backoffMs ?? null,
 });

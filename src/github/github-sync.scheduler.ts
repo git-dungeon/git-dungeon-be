@@ -8,6 +8,7 @@ import { GithubSyncService } from './github-sync.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { loadEnvironment } from '../config/environment';
+import { DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD } from './github.constants';
 import {
   buildMetaWithTotals,
   extractContributionsFromCollection,
@@ -20,6 +21,7 @@ export class GithubSyncScheduler implements OnModuleInit {
   private readonly logger = new Logger(GithubSyncScheduler.name);
   private readonly cronExpr: string;
   private readonly batchSize: number;
+  private readonly rateLimitWarnRemaining: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -38,6 +40,12 @@ export class GithubSyncScheduler implements OnModuleInit {
       this.configService?.get<number>('github.sync.batchSize', 50) ??
       fallbackEnv?.githubSyncBatchSize ??
       50;
+    this.rateLimitWarnRemaining =
+      this.configService?.get<number>(
+        'github.sync.rateLimitFallbackRemaining',
+      ) ??
+      fallbackEnv?.githubSyncRateLimitFallbackRemaining ??
+      DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD;
   }
 
   private startOfDayUtc(date: Date): Date {
@@ -164,8 +172,27 @@ export class GithubSyncScheduler implements OnModuleInit {
               ? ApSyncTokenType.PAT
               : ApSyncTokenType.OAUTH,
           rateLimit: result.rateLimit,
+          tokensTried: result.tokensTried,
+          attempts: result.attempts ?? 1,
+          backoffMs: result.backoffMs ?? 0,
           rawData: result.data,
         });
+
+        if (
+          typeof result.rateLimit?.remaining === 'number' &&
+          result.rateLimit.remaining <= this.rateLimitWarnRemaining
+        ) {
+          this.logger.warn({
+            message: 'GitHub scheduled sync rate limit is low',
+            userId: user.id,
+            remaining: result.rateLimit.remaining,
+            resetAt: result.rateLimit.resetAt ?? null,
+            tokenType: result.tokenType,
+            tokensTried: result.tokensTried,
+            attempts: result.attempts ?? 1,
+            threshold: this.rateLimitWarnRemaining,
+          });
+        }
 
         await this.syncService.applyContributionSync({
           userId: user.id,
@@ -182,6 +209,11 @@ export class GithubSyncScheduler implements OnModuleInit {
             result.rateLimit,
             contributionsTotal,
             anchorFrom,
+            {
+              tokensTried: result.tokensTried,
+              attempts: result.attempts,
+              backoffMs: result.backoffMs,
+            },
           ),
         });
       } catch (error) {

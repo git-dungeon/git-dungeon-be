@@ -10,6 +10,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { ApSyncStatus, ApSyncTokenType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD } from './github.constants';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlError, GithubSyncResponse } from './github.interfaces';
 import { GithubSyncLockService } from './github-sync.lock.service';
@@ -35,6 +36,7 @@ const DEFAULT_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000;
 export class GithubManualSyncService {
   private readonly logger = new Logger(GithubManualSyncService.name);
   private readonly cooldownMs: number;
+  private readonly rateLimitWarnRemaining: number;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -46,6 +48,10 @@ export class GithubManualSyncService {
     this.cooldownMs =
       this.configService?.get<number>('github.sync.manualCooldownMs') ??
       DEFAULT_COOLDOWN_MS;
+    this.rateLimitWarnRemaining =
+      this.configService?.get<number>(
+        'github.sync.rateLimitFallbackRemaining',
+      ) ?? DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD;
   }
 
   async syncNow(userId: string): Promise<GithubSyncResponse> {
@@ -160,13 +166,37 @@ export class GithubManualSyncService {
         contributionsDelta,
         tokenType,
         rateLimit: result.rateLimit,
+        tokensTried: result.tokensTried,
+        attempts: result.attempts ?? 1,
+        backoffMs: result.backoffMs ?? 0,
         rawData: result.data,
       });
+
+      if (
+        typeof result.rateLimit?.remaining === 'number' &&
+        result.rateLimit.remaining <= this.rateLimitWarnRemaining
+      ) {
+        this.logger.warn({
+          message: 'GitHub manual sync rate limit is low',
+          userId,
+          remaining: result.rateLimit.remaining,
+          resetAt: result.rateLimit.resetAt ?? null,
+          tokenType,
+          tokensTried: result.tokensTried,
+          attempts: result.attempts ?? 1,
+          threshold: this.rateLimitWarnRemaining,
+        });
+      }
 
       const meta = buildMetaWithTotals(
         result.rateLimit,
         contributionsTotal,
         anchorFrom,
+        {
+          tokensTried: result.tokensTried,
+          attempts: result.attempts,
+          backoffMs: result.backoffMs,
+        },
       );
       const syncResult = await this.syncService.applyContributionSync({
         userId,

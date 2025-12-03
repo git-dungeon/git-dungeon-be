@@ -210,6 +210,55 @@ describe('GithubManualSyncService', () => {
     expect(callArg.windowEnd).toBeInstanceOf(Date);
   });
 
+  it('rate limit/토큰 메타를 로그 메타에 포함한다', async () => {
+    const { service, prisma, graphqlClient, syncService } =
+      createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue({
+      accountId: 'octocat',
+      accessToken: 'token',
+      updatedAt: new Date('2025-11-20T00:00:00Z'),
+    });
+    prisma.apSyncLog.findFirst.mockResolvedValue(null);
+    graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
+
+    graphqlClient.fetchContributions.mockResolvedValue({
+      data: {
+        user: {
+          contributionsCollection: {
+            totalCommitContributions: 1,
+            restrictedContributionsCount: 0,
+            pullRequestContributions: { totalCount: 1 },
+            pullRequestReviewContributions: { totalCount: 0 },
+            issueContributions: { totalCount: 0 },
+          },
+        },
+      },
+      rateLimit: {
+        remaining: 10,
+        resetAt: Date.now() + 1000,
+        resource: 'core',
+      },
+      tokenType: 'oauth',
+      tokensTried: ['oauth', 'pat'],
+      attempts: 2,
+      backoffMs: 1500,
+    });
+
+    syncService.applyContributionSync.mockResolvedValue({
+      apDelta: 2,
+      log: { id: 'log-meta' },
+    });
+
+    await service.syncNow('user-meta');
+
+    const callArg = syncService.applyContributionSync.mock.calls[0]?.[0] as {
+      meta?: Record<string, unknown>;
+    };
+    expect(callArg.meta?.tokensTried).toEqual(['oauth', 'pat']);
+    expect(callArg.meta?.attempts).toBe(2);
+    expect(callArg.meta?.backoffMs).toBe(1500);
+  });
+
   it('레이트 리밋이면 실패 로그를 남기고 429를 던진다', async () => {
     const { service, prisma, graphqlClient } = createManualSyncTestbed();
     prisma.account.findFirst.mockResolvedValue({

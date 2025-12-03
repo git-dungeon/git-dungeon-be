@@ -132,7 +132,7 @@ export const loadEnvironment = (): Environment => {
       process.env.GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING,
       100,
     ),
-    githubSyncCron: process.env.GITHUB_SYNC_CRON ?? '0 */10 * * * *', // every 10 minutes
+    githubSyncCron: process.env.GITHUB_SYNC_CRON ?? '0 0 0 * * *', // every day at 00:00:00
     githubSyncBatchSize: parseNumber(process.env.GITHUB_SYNC_BATCH_SIZE, 50),
     githubSyncManualCooldownMs: parseNumber(
       process.env.GITHUB_SYNC_MANUAL_COOLDOWN_MS,

@@ -72,6 +72,9 @@ export interface FetchContributionsResult<TData = unknown> {
   data: TData;
   rateLimit: GithubRateLimit;
   tokenType: GithubTokenType;
+  attempts?: number;
+  tokensTried?: GithubTokenType[];
+  backoffMs?: number;
 }
 
 export interface GithubOctokitInstance {
@@ -98,5 +101,8 @@ export interface GithubSyncResponse {
     totals?: {
       contributions: number;
     };
+    tokensTried?: GithubTokenType[];
+    attempts?: number;
+    backoffMs?: number | null;
   } | null;
 }

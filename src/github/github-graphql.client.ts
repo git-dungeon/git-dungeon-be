@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Octokit as CoreOctokit } from '@octokit/core';
 import { throttling } from '@octokit/plugin-throttling';
 import {
@@ -15,6 +15,7 @@ import {
   GithubOctokitInstance,
   GithubRateLimit,
   GithubTokenCandidate,
+  GithubTokenType,
 } from './github.interfaces';
 
 const OctokitWithPlugins = CoreOctokit.plugin(throttling);
@@ -48,6 +49,7 @@ const toOctokitError = (error: unknown): OctokitErrorShape => {
 
 @Injectable()
 export class GithubGraphqlClient {
+  private readonly logger = new Logger(GithubGraphqlClient.name);
   private readonly endpoint: string;
   private readonly userAgent: string;
   private readonly patTokens: string[];
@@ -161,10 +163,13 @@ export class GithubGraphqlClient {
     let attempt = 0;
     let tokenIndex = 0;
     let backoffMs = this.baseBackoffMs;
+    let totalBackoffMs = 0;
     let lastRateLimit: GithubRateLimit | undefined;
+    const tokensTried: GithubTokenType[] = [];
 
     while (attempt < this.maxAttempts && tokenIndex < tokenQueue.length) {
       const candidate = tokenQueue[tokenIndex];
+      tokensTried.push(candidate.type);
       try {
         const client = this.createOctokit(candidate.token);
         const result = (await client.graphql(this.buildContributionsQuery(), {
@@ -172,10 +177,25 @@ export class GithubGraphqlClient {
         })) as unknown;
         const rateLimit = this.extractRateLimit(result);
 
+        if (this.shouldWarnRateLimit(rateLimit)) {
+          this.logger.warn({
+            message: 'GitHub GraphQL rate limit is low',
+            remaining: rateLimit.remaining ?? null,
+            resetAt: rateLimit.resetAt ?? null,
+            tokenType: candidate.type,
+            attempts: attempt + 1,
+            tokensTried,
+            threshold: this.rateLimitThreshold,
+          });
+        }
+
         return {
           data: result as TData,
           rateLimit,
           tokenType: candidate.type,
+          attempts: attempt + 1,
+          tokensTried,
+          backoffMs: totalBackoffMs,
         };
       } catch (error: unknown) {
         const parsed = toOctokitError(error);
@@ -190,9 +210,22 @@ export class GithubGraphqlClient {
           lastRateLimit = this.parseRateLimit(parsed);
 
           if (tokenQueue.length > 1) {
+            this.logger.warn({
+              message: 'GitHub GraphQL rate limited; rotating token',
+              remaining: lastRateLimit?.remaining ?? null,
+              resetAt: lastRateLimit?.resetAt ?? null,
+              tokenType: candidate.type,
+              nextTokenType:
+                tokenQueue[(tokenIndex + 1) % tokenQueue.length]?.type,
+              attempt: attempt + 1,
+            });
             tokenIndex = (tokenIndex + 1) % tokenQueue.length;
             attempt += 1;
-            await this.waitForResetOrBackoff(lastRateLimit, backoffMs);
+            const waited = await this.waitForResetOrBackoff(
+              lastRateLimit,
+              backoffMs,
+            );
+            totalBackoffMs += waited;
             backoffMs *= 2;
             continue;
           }
@@ -224,6 +257,7 @@ export class GithubGraphqlClient {
             });
           }
           await delay(backoffMs);
+          totalBackoffMs += backoffMs;
           backoffMs *= 2;
           continue;
         }
@@ -280,13 +314,16 @@ export class GithubGraphqlClient {
   private async waitForResetOrBackoff(
     rateLimit: GithubRateLimit,
     backoffMs: number,
-  ) {
+  ): Promise<number> {
+    const now = Date.now();
     if (rateLimit.resetAt && rateLimit.resetAt > Date.now()) {
-      await delay(rateLimit.resetAt - Date.now());
-      return;
+      const waitMs = rateLimit.resetAt - now;
+      await delay(waitMs);
+      return waitMs;
     }
 
     await delay(backoffMs);
+    return backoffMs;
   }
 
   private extractRateLimit(payload: unknown): GithubRateLimit {
@@ -313,6 +350,11 @@ export class GithubGraphqlClient {
     } catch {
       return this.endpoint.replace('/graphql', '');
     }
+  }
+
+  private shouldWarnRateLimit(rateLimit: GithubRateLimit): boolean {
+    if (typeof rateLimit.remaining !== 'number') return false;
+    return rateLimit.remaining <= this.rateLimitThreshold;
   }
 
   private buildContributionsQuery(): string {
