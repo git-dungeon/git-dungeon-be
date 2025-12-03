@@ -52,7 +52,15 @@ const configuration = () => {
         cron: env.githubSyncCron,
         batchSize: env.githubSyncBatchSize,
         manualCooldownMs: env.githubSyncManualCooldownMs,
+        retryMax: env.githubSyncRetryMax,
+        retryBackoffBaseMs: env.githubSyncRetryBackoffBaseMs,
+        retryTtlMs: env.githubSyncRetryTtlMs,
+        retryConcurrency: env.githubSyncRetryConcurrency,
       },
+    },
+    redis: {
+      url: env.redisUrl,
+      skipConnection: env.redisSkipConnection,
     },
   };
 };
