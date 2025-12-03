@@ -5,6 +5,7 @@ export interface Environment {
   port: number;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   logPretty: boolean;
+  dungeonInitialAp: number;
   corsAllowedOrigins: (string & tags.MinLength<1>)[];
   corsAllowCredentials: boolean;
   publicBaseUrl: string & tags.MinLength<1>;
@@ -16,6 +17,23 @@ export interface Environment {
   authGithubClientSecret: string & tags.MinLength<1>;
   authGithubRedirectUri: string & tags.MinLength<1>;
   authGithubScope: string & tags.MinLength<1>;
+  githubSyncPat: string;
+  githubSyncPats: string[];
+  githubSyncEndpoint: string & tags.MinLength<1>;
+  githubSyncUserAgent: string & tags.MinLength<1>;
+  githubSyncRateLimitFallbackRemaining: number;
+  githubSyncCron: string & tags.MinLength<1>;
+  githubSyncBatchSize: number;
+  githubSyncManualCooldownMs: number;
+  redisUrl: string & tags.MinLength<1>;
+  githubSyncRetryMax: number;
+  githubSyncRetryBackoffBaseMs: number;
+  githubSyncRetryTtlMs: number;
+  githubSyncRetryConcurrency: number;
+  githubTokenLockTtlMs: number;
+  githubTokenRateLimitCacheMs: number;
+  githubTokenCooldownMs: number;
+  redisSkipConnection: boolean;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -84,6 +102,7 @@ export const loadEnvironment = (): Environment => {
       process.env.CORS_ALLOW_CREDENTIALS,
       true,
     ),
+    dungeonInitialAp: parseNumber(process.env.DUNGEON_INITIAL_AP, 10),
     publicBaseUrl:
       process.env.PUBLIC_BASE_URL ??
       (nodeEnv === 'production' ? '' : 'http://localhost:3000'),
@@ -106,6 +125,58 @@ export const loadEnvironment = (): Environment => {
     authGithubRedirectUri:
       process.env.AUTH_GITHUB_REDIRECT_URI ?? defaultGithubRedirect,
     authGithubScope: process.env.AUTH_GITHUB_SCOPE ?? 'read:user,user:email',
+    githubSyncPat: process.env.GITHUB_SYNC_PAT ?? '',
+    githubSyncPats: (() => {
+      const singlePat = process.env.GITHUB_SYNC_PAT ?? '';
+      return parseStringArray(
+        process.env.GITHUB_SYNC_PATS,
+        singlePat.trim().length ? [singlePat.trim()] : [],
+      );
+    })(),
+    githubSyncEndpoint:
+      process.env.GITHUB_SYNC_ENDPOINT ?? 'https://api.github.com/graphql',
+    githubSyncUserAgent:
+      process.env.GITHUB_SYNC_USER_AGENT ?? 'git-dungeon-backend',
+    githubSyncRateLimitFallbackRemaining: parseNumber(
+      process.env.GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING,
+      100,
+    ),
+    githubSyncCron: process.env.GITHUB_SYNC_CRON ?? '0 0 0 * * *', // every day at 00:00:00
+    githubSyncBatchSize: parseNumber(process.env.GITHUB_SYNC_BATCH_SIZE, 50),
+    githubSyncManualCooldownMs: parseNumber(
+      process.env.GITHUB_SYNC_MANUAL_COOLDOWN_MS,
+      6 * 60 * 60 * 1000, // 6 hours
+    ),
+    redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
+    githubSyncRetryMax: parseNumber(process.env.GITHUB_SYNC_RETRY_MAX, 3),
+    githubSyncRetryBackoffBaseMs: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_BACKOFF_BASE_MS,
+      60 * 1000,
+    ),
+    githubSyncRetryTtlMs: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_TTL_MS,
+      24 * 60 * 60 * 1000,
+    ),
+    githubSyncRetryConcurrency: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_CONCURRENCY,
+      5,
+    ),
+    githubTokenLockTtlMs: parseNumber(
+      process.env.GITHUB_TOKEN_LOCK_TTL_MS,
+      30_000,
+    ),
+    githubTokenRateLimitCacheMs: parseNumber(
+      process.env.GITHUB_TOKEN_RATE_LIMIT_CACHE_MS,
+      5 * 60 * 1000,
+    ),
+    githubTokenCooldownMs: parseNumber(
+      process.env.GITHUB_TOKEN_COOLDOWN_MS,
+      15 * 60 * 1000,
+    ),
+    redisSkipConnection: parseBoolean(
+      process.env.REDIS_SKIP_CONNECTION,
+      nodeEnv === 'test',
+    ),
   };
 
   return typia.assert<Environment>(raw);

@@ -64,8 +64,35 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `DATABASE_LOG_QUERIES`     | Prisma 쿼리 로깅 여부                                         | `false` (prod), `true` (dev)                                                                            |
 | `DATABASE_SKIP_CONNECTION` | 앱 부트 시 Prisma 연결 생략 여부 (테스트용)                   | `false` (dev), `true` (test)                                                                            |
 | `NODE_ENV`                 | 환경 구분 (dev/production/staging)                            | `development` (dev)                                                                                     |
+| `GITHUB_SYNC_PAT`          | GitHub GraphQL 백오프/대체용 PAT(옵션)                         | 빈 값(default) → OAuth 토큰만 사용                                                                      |
+| `GITHUB_SYNC_PATS`         | 콤마 구분 PAT 풀(라운드 로빈/백오프 전환용)                    | 비워두면 `GITHUB_SYNC_PAT`만 사용                                                                       |
+| `GITHUB_SYNC_ENDPOINT`     | GitHub GraphQL 엔드포인트                                      | `https://api.github.com/graphql`                                                                        |
+| `GITHUB_SYNC_USER_AGENT`   | GitHub 요청 User-Agent                                         | `git-dungeon-backend`                                                                                   |
+| `GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING` | 토큰 스위칭/백오프 임계치                                 | `100`                                                                                                   |
+| `GITHUB_SYNC_CRON`         | 동기화 크론 표현식                                             | `0 0 0 * * *` (매일 00:00:00)                                                                           |
+| `GITHUB_SYNC_BATCH_SIZE`   | 한 번에 처리할 사용자 수                                       | `50`                                                                                                    |
+| `GITHUB_SYNC_MANUAL_COOLDOWN_MS` | 수동 동기화 최소 간격(ms). 기본 6시간(21600000)                 | `21600000`                                                                                              |
+| `REDIS_URL`                | Redis 연결 문자열(BullMQ 재시도 큐)                            | `redis://localhost:6379`                                                                                |
+| `GITHUB_SYNC_RETRY_MAX`    | BullMQ 재시도 최대 횟수                                        | `3`                                                                                                     |
+| `GITHUB_SYNC_RETRY_BACKOFF_BASE_MS` | 재시도 기본 백오프(ms, 지수)                             | `60000`                                                                                                 |
+| `GITHUB_SYNC_RETRY_TTL_MS` | 재시도 작업 최대 유효 시간(ms)                                 | `86400000`                                                                                              |
+| `GITHUB_SYNC_RETRY_CONCURRENCY` | 재시도 워커 동시성                                       | `5`                                                                                                     |
+| `GITHUB_TOKEN_LOCK_TTL_MS` | 토큰별 Redis 분산 락 TTL(ms)                                    | `30000`                                                                                                 |
+| `GITHUB_TOKEN_RATE_LIMIT_CACHE_MS` | 레이트 리밋 캐시 기본 TTL(ms)                           | `300000`                                                                                                |
+| `GITHUB_TOKEN_COOLDOWN_MS` | 토큰 연속 오류/만료 시 쿨다운 TTL(ms)                           | `900000`                                                                                                |
+| `REDIS_SKIP_CONNECTION`    | 테스트 등에서 Redis 연결을 생략할지 여부                      | `false` (test 기본값 true)                                                                              |
+| `TEST_FORCE_GITHUB_RATE_LIMIT` | 테스트용 강제 레이트 리밋 트리거 (prod 금지)               | `false`                                                                                                 |
+| `DUNGEON_INITIAL_AP`       | 신규 사용자/최초 동기화 시 시드할 AP 값                         | `10`                                                                                                    |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
+
+## GitHub 동기화 운영 가이드
+
+- 배치: `GITHUB_SYNC_CRON`(기본 매일 00:00:00) 기준으로 `GITHUB_SYNC_BATCH_SIZE`만큼 GitHub OAuth/PAT 토큰을 사용해 기여도를 적재합니다. rate limit 임계(`GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING`)에 도달하면 토큰 스위칭/백오프로 처리합니다.
+- 수동 동기화: `POST /api/github/sync` 호출 시 GitHub 계정 연결 필수이며, 최근 성공 시각 기준 6시간(`GITHUB_SYNC_MANUAL_COOLDOWN_MS`) 이내면 `429 GITHUB_SYNC_TOO_FREQUENT`으로 거절됩니다. 레이트 리밋 시 `429 GITHUB_SYNC_RATE_LIMITED`와 남은 한도/리셋 시각 메타를 반환합니다.
+- 데이터 흐름: 성공 시 `ap_sync_logs` 기록 및 `dungeon_state.ap` 증가, `connections.github.updatedAt`을 최신 동기화 시각으로 사용합니다(프런트의 비활성화/정보 표시 기준).
+- 모니터링/복구: 실패 로그는 `ap_sync_logs`에 `status=FAILED`/`errorCode`로 남습니다. 레이트 리밋 또는 토큰 오류 시 토큰 교체 후 재시도하거나 쿨다운 이후 재호출합니다.
+- 관측/알림: GraphQL 호출 결과/오류 로그에 `rateLimit.remaining/resetAt/resource`, 사용 토큰 시도(`tokensTried`), 재시도 횟수(`attempts`), 백오프(`backoffMs`)가 포함되며, 남은 한도가 `GITHUB_SYNC_RATE_LIMIT_FALLBACK_REMAINING` 이하이면 경고 로그로 남깁니다. `ap_sync_logs.meta`에도 동일 메타가 저장돼 장애 시 역추적 가능합니다.
 
 ### CORS 정책
 

@@ -24,6 +24,7 @@ model User {
   logs          DungeonLog[]
   stateSnapshots DungeonStateSnapshot[]
   inventoryItems InventoryItem[]
+  apSyncLogs    ApSyncLog[]
 }
 
 model Account {
@@ -106,6 +107,17 @@ enum InventoryRarity {
   RARE
   EPIC
   LEGENDARY
+}
+
+enum ApSyncStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum ApSyncTokenType {
+  OAUTH
+  PAT
 }
 
 model DungeonState {
@@ -216,4 +228,26 @@ model InventoryItem {
   @@index([userId, code])
   @@index([userId, isEquipped])
   // Partial unique index for equipped slot enforced via raw SQL migration.
+}
+
+model ApSyncLog {
+  id                   String          @id @default(uuid())
+  userId               String
+  windowStart          DateTime
+  windowEnd            DateTime
+  contributions        Int
+  apDelta              Int
+  tokenType            ApSyncTokenType
+  rateLimitRemaining   Int?
+  cursor               String?
+  meta                 Json?
+  status               ApSyncStatus    @default(SUCCESS)
+  errorCode            String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, windowStart, windowEnd])
+  @@index([userId, createdAt])
 }

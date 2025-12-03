@@ -17,6 +17,9 @@ const configuration = () => {
       level: env.logLevel,
       pretty: env.logPretty,
     },
+    dungeon: {
+      initialAp: env.dungeonInitialAp,
+    },
     database: {
       url: env.databaseUrl,
       shadowUrl: env.databaseShadowUrl,
@@ -38,6 +41,26 @@ const configuration = () => {
           return scopes.length > 0 ? scopes : ['read:user', 'user:email'];
         })(),
       },
+    },
+    github: {
+      sync: {
+        pat: env.githubSyncPat?.trim().length ? env.githubSyncPat.trim() : null,
+        pats: env.githubSyncPats ?? [],
+        endpoint: env.githubSyncEndpoint,
+        userAgent: env.githubSyncUserAgent,
+        rateLimitFallbackRemaining: env.githubSyncRateLimitFallbackRemaining,
+        cron: env.githubSyncCron,
+        batchSize: env.githubSyncBatchSize,
+        manualCooldownMs: env.githubSyncManualCooldownMs,
+        retryMax: env.githubSyncRetryMax,
+        retryBackoffBaseMs: env.githubSyncRetryBackoffBaseMs,
+        retryTtlMs: env.githubSyncRetryTtlMs,
+        retryConcurrency: env.githubSyncRetryConcurrency,
+      },
+    },
+    redis: {
+      url: env.redisUrl,
+      skipConnection: env.redisSkipConnection,
     },
   };
 };

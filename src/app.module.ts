@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import configuration from './config/configuration';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
@@ -13,6 +14,7 @@ import { SettingsModule } from './settings/settings.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { GithubModule } from './github/github.module';
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { CatalogModule } from './catalog/catalog.module';
       expandVariables: true,
       envFilePath: ['.env.local', '.env'],
     }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
@@ -61,6 +64,7 @@ import { CatalogModule } from './catalog/catalog.module';
     DashboardModule,
     InventoryModule,
     CatalogModule,
+    GithubModule,
   ],
   controllers: [AppController],
   providers: [
