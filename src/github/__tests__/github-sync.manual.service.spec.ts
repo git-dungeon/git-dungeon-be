@@ -58,6 +58,37 @@ describe('GithubManualSyncService', () => {
     expect(lockService.release).not.toHaveBeenCalled();
   });
 
+  it('레이트 리밋 오류 시 재시도 큐에 등록한다', async () => {
+    const { service, prisma, graphqlClient, retryQueue } =
+      createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue({
+      accountId: 'octocat',
+      accessToken: 'token',
+      updatedAt: new Date('2025-11-20T00:00:00Z'),
+    });
+    prisma.apSyncLog.findFirst.mockResolvedValue(null);
+    graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
+
+    graphqlClient.fetchContributions.mockRejectedValue(
+      new GithubGraphqlError({
+        code: 'RATE_LIMITED',
+        message: 'rate limited',
+        rateLimit: { remaining: 0, resetAt: Date.now() + 5000 },
+      }),
+    );
+
+    await expect(service.syncNow('user-retry')).rejects.toMatchObject({
+      response: { error: { code: 'GITHUB_SYNC_RATE_LIMITED' } },
+    });
+
+    expect(retryQueue.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-retry',
+        reason: 'RATE_LIMITED',
+      }),
+    );
+  });
+
   it('성공 시 기여 수를 계산해 AP 적재를 호출한다', async () => {
     const { service, prisma, graphqlClient, syncService } =
       createManualSyncTestbed();

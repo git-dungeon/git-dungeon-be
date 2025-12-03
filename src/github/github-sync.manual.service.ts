@@ -13,6 +13,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD } from './github.constants';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubGraphqlError, GithubSyncResponse } from './github.interfaces';
+import { GithubSyncRetryQueue } from './github-sync.retry-queue';
 import { GithubSyncLockService } from './github-sync.lock.service';
 import { GithubSyncService } from './github-sync.service';
 import {
@@ -42,6 +43,7 @@ export class GithubManualSyncService {
     private readonly prisma: PrismaService,
     private readonly client: GithubGraphqlClient,
     private readonly lockService: GithubSyncLockService,
+    private readonly retryQueue: GithubSyncRetryQueue,
     private readonly syncService: GithubSyncService,
     @Optional() private readonly configService?: ConfigService,
   ) {
@@ -226,6 +228,7 @@ export class GithubManualSyncService {
             errorCode: 'GITHUB_SYNC_RATE_LIMITED',
             rateLimit: error.rateLimit,
           });
+          await this.enqueueRetryIfPossible(userId, error);
           throw new HttpException(
             {
               error: {
@@ -243,6 +246,7 @@ export class GithubManualSyncService {
           errorCode: `GITHUB_SYNC_${error.code}`,
           rateLimit: error.rateLimit,
         });
+        await this.enqueueRetryIfPossible(userId, error);
       } else {
         await this.recordFailure(context, {
           errorCode: 'GITHUB_SYNC_UNKNOWN_ERROR',
@@ -354,5 +358,30 @@ export class GithubManualSyncService {
     // 숫자 ID만 있는 경우 토큰으로 viewer.login 조회
     const viewerLogin = await this.client.fetchViewerLogin(account.accessToken);
     return viewerLogin ?? null;
+  }
+
+  private isRetryable(error: GithubGraphqlError): boolean {
+    return (
+      error.code === 'RATE_LIMITED' ||
+      error.code === 'HTTP_ERROR' ||
+      error.code === 'MAX_ATTEMPTS'
+    );
+  }
+
+  private async enqueueRetryIfPossible(
+    userId: string,
+    error: GithubGraphqlError,
+  ): Promise<void> {
+    if (!this.isRetryable(error)) return;
+
+    const resetAt =
+      typeof error.rateLimit?.resetAt === 'number'
+        ? error.rateLimit.resetAt
+        : undefined;
+    await this.retryQueue.enqueue({
+      userId,
+      reason: error.code,
+      resetAt,
+    });
   }
 }

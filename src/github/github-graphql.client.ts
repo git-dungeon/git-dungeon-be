@@ -83,6 +83,21 @@ export class GithubGraphqlClient {
     accessToken: string | null | undefined,
     variables: FetchContributionsVariables,
   ): Promise<FetchContributionsResult<TData>> {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      process.env.TEST_FORCE_GITHUB_RATE_LIMIT === 'true'
+    ) {
+      throw new GithubGraphqlError({
+        code: 'RATE_LIMITED',
+        message: 'Forced rate limit for testing',
+        rateLimit: {
+          remaining: 0,
+          resetAt: Date.now() + 5_000,
+          resource: 'core',
+        },
+      });
+    }
+
     const tokenQueue: GithubTokenCandidate[] = [];
     if (accessToken?.trim()) {
       tokenQueue.push({ token: accessToken.trim(), type: 'oauth' });

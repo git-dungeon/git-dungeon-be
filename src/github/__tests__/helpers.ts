@@ -43,6 +43,10 @@ export const createManualSyncTestbed = () => {
     release: vi.fn<() => Promise<void>>(),
   };
 
+  const retryQueue = {
+    enqueue: vi.fn<(data: unknown) => Promise<void>>(),
+  };
+
   const syncService = {
     applyContributionSync: vi.fn(),
   };
@@ -51,10 +55,18 @@ export const createManualSyncTestbed = () => {
     prisma as never,
     graphqlClient as never,
     lockService as never,
+    retryQueue as never,
     syncService as never,
   );
 
-  return { prisma, graphqlClient, lockService, syncService, service };
+  return {
+    prisma,
+    graphqlClient,
+    lockService,
+    retryQueue,
+    syncService,
+    service,
+  };
 };
 
 type SchedulerPrismaMock = {
@@ -91,6 +103,10 @@ export const createSchedulerTestbed = () => {
     release: vi.fn<() => Promise<void>>(),
   };
 
+  const retryQueue = {
+    enqueue: vi.fn<() => Promise<void>>(),
+  };
+
   const syncService = {
     applyContributionSync: vi.fn(),
   };
@@ -107,12 +123,13 @@ export const createSchedulerTestbed = () => {
     prisma as never,
     client as never,
     lockService as never,
+    retryQueue as never,
     syncService as never,
     undefined,
     configService as never,
   );
 
-  return { scheduler, prisma, client, lockService, syncService };
+  return { scheduler, prisma, client, lockService, retryQueue, syncService };
 };
 
 type MockPrismaTx = {

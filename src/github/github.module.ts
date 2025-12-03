@@ -11,6 +11,7 @@ import { GithubSyncService } from './github-sync.service';
 import { GithubSyncScheduler } from './github-sync.scheduler';
 import { GithubSyncController } from './github-sync.controller';
 import { GithubManualSyncService } from './github-sync.manual.service';
+import { GithubSyncRetryQueue } from './github-sync.retry-queue';
 import { GithubSyncLockService } from './github-sync.lock.service';
 import { AuthModule } from '../auth/auth.module';
 import {
@@ -49,6 +50,7 @@ type GithubSyncConfig = {
     },
     GithubGraphqlClient,
     GithubSyncLockService,
+    GithubSyncRetryQueue,
     GithubSyncService,
     GithubSyncScheduler,
     GithubManualSyncService,

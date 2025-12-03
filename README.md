@@ -72,6 +72,13 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `GITHUB_SYNC_CRON`         | 동기화 크론 표현식                                             | `0 0 0 * * *` (매일 00:00:00)                                                                           |
 | `GITHUB_SYNC_BATCH_SIZE`   | 한 번에 처리할 사용자 수                                       | `50`                                                                                                    |
 | `GITHUB_SYNC_MANUAL_COOLDOWN_MS` | 수동 동기화 최소 간격(ms). 기본 6시간(21600000)                 | `21600000`                                                                                              |
+| `REDIS_URL`                | Redis 연결 문자열(BullMQ 재시도 큐)                            | `redis://localhost:6379`                                                                                |
+| `GITHUB_SYNC_RETRY_MAX`    | BullMQ 재시도 최대 횟수                                        | `3`                                                                                                     |
+| `GITHUB_SYNC_RETRY_BACKOFF_BASE_MS` | 재시도 기본 백오프(ms, 지수)                             | `60000`                                                                                                 |
+| `GITHUB_SYNC_RETRY_TTL_MS` | 재시도 작업 최대 유효 시간(ms)                                 | `86400000`                                                                                              |
+| `GITHUB_SYNC_RETRY_CONCURRENCY` | 재시도 워커 동시성                                       | `5`                                                                                                     |
+| `REDIS_SKIP_CONNECTION`    | 테스트 등에서 Redis 연결을 생략할지 여부                      | `false` (test 기본값 true)                                                                              |
+| `TEST_FORCE_GITHUB_RATE_LIMIT` | 테스트용 강제 레이트 리밋 트리거 (prod 금지)               | `false`                                                                                                 |
 | `DUNGEON_INITIAL_AP`       | 신규 사용자/최초 동기화 시 시드할 AP 값                         | `10`                                                                                                    |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.

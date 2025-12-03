@@ -89,4 +89,37 @@ describe('GithubSyncScheduler', () => {
     expect(syncService.applyContributionSync).not.toHaveBeenCalled();
     expect(lockService.release).not.toHaveBeenCalled();
   });
+
+  it('레이트 리밋 오류 시 재시도 큐에 등록한다', async () => {
+    const { scheduler, prisma, client, retryQueue } = createSchedulerTestbed();
+
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'user-3',
+        accounts: [
+          {
+            accountId: 'octocat',
+            accessToken: 'token',
+            updatedAt: new Date('2025-11-28T00:00:00Z'),
+          },
+        ],
+      },
+    ]);
+
+    client.fetchContributions.mockRejectedValue(
+      Object.assign(new Error('rate limited'), {
+        code: 'RATE_LIMITED',
+        rateLimit: { resetAt: Date.now() + 5000 },
+      }),
+    );
+
+    await scheduler.handleSyncJob();
+
+    expect(retryQueue.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-3',
+        reason: 'RATE_LIMITED',
+      }),
+    );
+  });
 });

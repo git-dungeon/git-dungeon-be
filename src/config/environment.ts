@@ -25,6 +25,12 @@ export interface Environment {
   githubSyncCron: string & tags.MinLength<1>;
   githubSyncBatchSize: number;
   githubSyncManualCooldownMs: number;
+  redisUrl: string & tags.MinLength<1>;
+  githubSyncRetryMax: number;
+  githubSyncRetryBackoffBaseMs: number;
+  githubSyncRetryTtlMs: number;
+  githubSyncRetryConcurrency: number;
+  redisSkipConnection: boolean;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -137,6 +143,24 @@ export const loadEnvironment = (): Environment => {
     githubSyncManualCooldownMs: parseNumber(
       process.env.GITHUB_SYNC_MANUAL_COOLDOWN_MS,
       6 * 60 * 60 * 1000, // 6 hours
+    ),
+    redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
+    githubSyncRetryMax: parseNumber(process.env.GITHUB_SYNC_RETRY_MAX, 3),
+    githubSyncRetryBackoffBaseMs: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_BACKOFF_BASE_MS,
+      60 * 1000,
+    ),
+    githubSyncRetryTtlMs: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_TTL_MS,
+      24 * 60 * 60 * 1000,
+    ),
+    githubSyncRetryConcurrency: parseNumber(
+      process.env.GITHUB_SYNC_RETRY_CONCURRENCY,
+      5,
+    ),
+    redisSkipConnection: parseBoolean(
+      process.env.REDIS_SKIP_CONNECTION,
+      nodeEnv === 'test',
     ),
   };
 

@@ -4,6 +4,7 @@ import { CronJob } from 'cron';
 import { ConfigService } from '@nestjs/config';
 import { GithubGraphqlClient } from './github-graphql.client';
 import { GithubSyncLockService } from './github-sync.lock.service';
+import { GithubSyncRetryQueue } from './github-sync.retry-queue';
 import { GithubSyncService } from './github-sync.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApSyncStatus, ApSyncTokenType } from '@prisma/client';
@@ -27,6 +28,7 @@ export class GithubSyncScheduler implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly client: GithubGraphqlClient,
     private readonly lockService: GithubSyncLockService,
+    private readonly retryQueue: GithubSyncRetryQueue,
     private readonly syncService: GithubSyncService,
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
     @Optional() private readonly configService?: ConfigService,
@@ -35,7 +37,7 @@ export class GithubSyncScheduler implements OnModuleInit {
     this.cronExpr =
       this.configService?.get<string>('github.sync.cron') ??
       fallbackEnv?.githubSyncCron ??
-      '0 */10 * * * *';
+      '0 0 0 * * *';
     this.batchSize =
       this.configService?.get<number>('github.sync.batchSize', 50) ??
       fallbackEnv?.githubSyncBatchSize ??
@@ -228,6 +230,15 @@ export class GithubSyncScheduler implements OnModuleInit {
             },
             `Github sync failed for user ${user.id}: ${error.message}`,
           );
+          const resetAt = (error as { rateLimit?: { resetAt?: number } })
+            .rateLimit?.resetAt;
+          if (this.isRetryable(error)) {
+            await this.retryQueue.enqueue({
+              userId: user.id,
+              reason: (error as { code?: string }).code ?? 'UNKNOWN',
+              resetAt: resetAt ?? undefined,
+            });
+          }
         } else {
           this.logger.error(
             { userId: user.id, error: String(error) },
@@ -252,5 +263,14 @@ export class GithubSyncScheduler implements OnModuleInit {
     // 숫자 ID만 있는 경우 accessToken으로 viewer.login을 조회
     const viewerLogin = await this.client.fetchViewerLogin(account.accessToken);
     return viewerLogin ?? null;
+  }
+
+  private isRetryable(error: unknown): boolean {
+    const code = (error as { code?: string }).code;
+    return (
+      code === 'RATE_LIMITED' ||
+      code === 'HTTP_ERROR' ||
+      code === 'MAX_ATTEMPTS'
+    );
   }
 }
