@@ -23,19 +23,15 @@ export type DungeonEventWeights = {
   [DungeonEventType.TRAP]: number;
 };
 
+export const BASE_PROGRESS_INCREMENT = 10;
+export const BATTLE_PROGRESS_INCREMENT = 20;
+export const MAX_FLOOR_PROGRESS = 100;
 export const DEFAULT_EVENT_WEIGHTS: DungeonEventWeights = {
   [DungeonEventType.BATTLE]: 50,
   [DungeonEventType.TREASURE]: 5,
   [DungeonEventType.REST]: 40,
   [DungeonEventType.TRAP]: 5,
 };
-
-export const BASE_PROGRESS_INCREMENT = 10;
-export const BATTLE_PROGRESS_INCREMENT = 20;
-export const MAX_FLOOR_PROGRESS = 100;
-export const REST_HEAL_RATIO = 0.3; // PRD: 휴식만 HP 회복, 기본 30% 회복
-export const REST_MIN_HEAL = 2;
-export const TRAP_BASE_DAMAGE = 3;
 
 export type DungeonEventContext = {
   state: DungeonState;
@@ -102,4 +98,33 @@ export interface DungeonEventProcessor {
 
 export type DungeonActionMapping = {
   [K in DungeonEventType]: DungeonAction;
+};
+
+export type EffectDelta = {
+  stats?: Partial<{
+    hp: number;
+    ap: number;
+    atk: number;
+    def: number;
+    luck: number;
+  }>;
+  rewards?: {
+    gold?: number;
+    items?: Array<{
+      itemId: string;
+      code: string;
+      slot: string;
+      rarity?: string;
+      quantity?: number;
+    }>;
+    buffs?: Array<{
+      buffId: string;
+      source?: string;
+      totalTurns?: number | null;
+      remainingTurns?: number | null;
+    }>;
+  };
+  scaling?: {
+    hpRatio?: number; // 비율 회복/피해용(예: 0.3 → +30% maxHp)
+  };
 };

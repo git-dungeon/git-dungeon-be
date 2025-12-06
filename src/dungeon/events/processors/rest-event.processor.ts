@@ -3,41 +3,25 @@ import {
   DungeonEventProcessorInput,
   DungeonEventProcessorOutput,
   DungeonEventType,
-  REST_HEAL_RATIO,
-  REST_MIN_HEAL,
+  type EffectDelta,
 } from '../event.types';
-
-type RestOptions = {
-  healRatio?: number;
-  minHeal?: number;
-};
+import { applyEffectDelta } from '../effect-applier';
 
 export class RestEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.REST;
 
-  constructor(private readonly options: RestOptions = {}) {}
+  constructor(private readonly effect: EffectDelta = {}) {}
 
   process(input: DungeonEventProcessorInput): DungeonEventProcessorOutput {
-    const { healRatio = REST_HEAL_RATIO, minHeal = REST_MIN_HEAL } =
-      this.options;
-
-    const healAmount = Math.max(
-      minHeal,
-      Math.floor(input.state.maxHp * healRatio),
-    );
-
-    const nextHp = Math.min(input.state.maxHp, input.state.hp + healAmount);
+    const applied = applyEffectDelta(input.state, this.effect);
 
     return {
-      state: {
-        ...input.state,
-        hp: nextHp,
-      },
+      state: applied.state,
       delta: {
         type: 'REST',
         detail: {
           stats: {
-            hp: nextHp - input.state.hp,
+            ...applied.statsDelta,
           },
         },
       },

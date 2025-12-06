@@ -3,34 +3,81 @@ import {
   DungeonEventProcessorInput,
   DungeonEventProcessorOutput,
   DungeonEventType,
+  type EffectDelta,
 } from '../event.types';
-
-const BASE_TREASURE_REWARD = 5;
+import type {
+  BuffAppliedDelta,
+  InventoryDelta,
+} from '../../../common/logs/dungeon-log-delta';
+import { applyEffectDelta } from '../effect-applier';
 
 export class TreasureEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.TREASURE;
 
+  constructor(private readonly effect: EffectDelta = {}) {}
+
   process(input: DungeonEventProcessorInput): DungeonEventProcessorOutput {
-    const bonus = Math.floor(input.rngValue * BASE_TREASURE_REWARD);
-    const reward = BASE_TREASURE_REWARD + bonus;
+    const baseGold = this.effect.rewards?.gold ?? 0;
+    const gold = baseGold;
+    const applied = applyEffectDelta(input.state, {
+      ...this.effect,
+      rewards: {
+        ...(this.effect.rewards ?? {}),
+        gold,
+      },
+    });
 
     return {
-      state: {
-        ...input.state,
-        gold: input.state.gold + reward,
-      },
+      state: applied.state,
       delta: {
         type: 'TREASURE',
         detail: {
-          gold: reward,
+          gold: applied.rewardsDelta.gold ?? gold,
           rewards: {
-            gold: reward,
-            items: [],
-            buffs: [],
+            gold,
+            items: this.toInventoryAdds(this.effect.rewards?.items),
+            buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],
           },
         },
       },
     };
+  }
+
+  private toInventoryAdds(
+    items: EffectDelta['rewards'] extends { items: infer T } ? T : unknown,
+  ): InventoryDelta['added'] {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+
+    return items.filter(
+      (it): it is NonNullable<InventoryDelta['added']>[number] => {
+        return (
+          typeof it === 'object' &&
+          it !== null &&
+          'code' in it &&
+          'slot' in it &&
+          typeof (it as { code?: unknown }).code === 'string' &&
+          typeof (it as { slot?: unknown }).slot === 'string'
+        );
+      },
+    );
+  }
+
+  private toAppliedBuffs(
+    buffs: EffectDelta['rewards'] extends { buffs: infer T } ? T : unknown,
+  ): BuffAppliedDelta['detail']['applied'] {
+    if (!Array.isArray(buffs)) {
+      return [];
+    }
+
+    return buffs.filter(
+      (buff): buff is BuffAppliedDelta['detail']['applied'][number] =>
+        typeof buff === 'object' &&
+        buff !== null &&
+        'buffId' in buff &&
+        typeof (buff as { buffId?: unknown }).buffId === 'string',
+    );
   }
 }

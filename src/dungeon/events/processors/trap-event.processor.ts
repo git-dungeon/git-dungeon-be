@@ -3,27 +3,24 @@ import {
   DungeonEventProcessorInput,
   DungeonEventProcessorOutput,
   DungeonEventType,
-  TRAP_BASE_DAMAGE,
+  type EffectDelta,
 } from '../event.types';
+import { applyEffectDelta } from '../effect-applier';
 
 export class TrapEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.TRAP;
 
+  constructor(private readonly effect: EffectDelta = {}) {}
+
   process(input: DungeonEventProcessorInput): DungeonEventProcessorOutput {
-    const damage = TRAP_BASE_DAMAGE;
-    const nextHp = Math.max(0, input.state.hp - damage);
+    const applied = applyEffectDelta(input.state, this.effect);
 
     return {
-      state: {
-        ...input.state,
-        hp: nextHp,
-      },
+      state: applied.state,
       delta: {
         type: 'TRAP',
         detail: {
-          stats: {
-            hp: nextHp - input.state.hp,
-          },
+          stats: applied.statsDelta,
         },
       },
     };

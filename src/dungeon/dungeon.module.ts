@@ -12,38 +12,32 @@ import { TreasureEventProcessor } from './events/processors/treasure-event.proce
 import { TrapEventProcessor } from './events/processors/trap-event.processor';
 import { MoveEventProcessor } from './events/processors/move-event.processor';
 import { DungeonLogBuilder } from './events/dungeon-log.builder';
+import { loadEventConfig } from './events/config/event-config';
 
 @Module({
   providers: [
     DungeonEventService,
     DungeonLogBuilder,
-    BattleEventProcessor,
-    RestEventProcessor,
-    TreasureEventProcessor,
-    TrapEventProcessor,
-    MoveEventProcessor,
     {
       provide: DungeonEventProcessors,
-      useFactory: (
-        battle: BattleEventProcessor,
-        rest: RestEventProcessor,
-        treasure: TreasureEventProcessor,
-        trap: TrapEventProcessor,
-        move: MoveEventProcessor,
-      ) => ({
-        [DungeonEventType.BATTLE]: battle,
-        [DungeonEventType.REST]: rest,
-        [DungeonEventType.TREASURE]: treasure,
-        [DungeonEventType.TRAP]: trap,
-        [DungeonEventType.MOVE]: move,
-      }),
-      inject: [
-        BattleEventProcessor,
-        RestEventProcessor,
-        TreasureEventProcessor,
-        TrapEventProcessor,
-        MoveEventProcessor,
-      ],
+      useFactory: () => {
+        const config = loadEventConfig();
+        const effects = config.effects ?? {};
+
+        const battle = new BattleEventProcessor();
+        const rest = new RestEventProcessor(effects.REST);
+        const treasure = new TreasureEventProcessor(effects.TREASURE);
+        const trap = new TrapEventProcessor(effects.TRAP);
+        const move = new MoveEventProcessor();
+
+        return {
+          [DungeonEventType.BATTLE]: battle,
+          [DungeonEventType.REST]: rest,
+          [DungeonEventType.TREASURE]: treasure,
+          [DungeonEventType.TRAP]: trap,
+          [DungeonEventType.MOVE]: move,
+        };
+      },
     },
     {
       provide: SEEDED_RNG_FACTORY,
