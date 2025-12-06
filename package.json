@@ -57,6 +57,7 @@
     "prisma": "^6.17.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "seedrandom": "^3.0.5",
     "typia": "^9.7.2"
   },
   "devDependencies": {
@@ -70,6 +71,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.7",
     "@types/pino-http": "^6.1.0",
+    "@types/seedrandom": "^3.0.8",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "2.1.9",
     "eslint": "^9.18.0",

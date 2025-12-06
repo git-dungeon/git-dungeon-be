@@ -15,6 +15,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { GithubModule } from './github/github.module';
+import { DungeonModule } from './dungeon/dungeon.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { GithubModule } from './github/github.module';
     InventoryModule,
     CatalogModule,
     GithubModule,
+    DungeonModule,
   ],
   controllers: [AppController],
   providers: [
