@@ -55,8 +55,9 @@ export const applyEffectDelta = (
   }
 
   if (effect.rewards?.gold !== undefined) {
-    rewards.gold = effect.rewards.gold;
-    nextState = { ...nextState, gold: state.gold + effect.rewards.gold };
+    const newGold = Math.max(0, state.gold + effect.rewards.gold);
+    rewards.gold = newGold - state.gold;
+    nextState = { ...nextState, gold: newGold };
   }
 
   return {

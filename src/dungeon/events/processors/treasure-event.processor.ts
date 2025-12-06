@@ -58,8 +58,10 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
           it !== null &&
           'code' in it &&
           'slot' in it &&
+          'itemId' in it &&
           typeof (it as { code?: unknown }).code === 'string' &&
-          typeof (it as { slot?: unknown }).slot === 'string'
+          typeof (it as { slot?: unknown }).slot === 'string' &&
+          typeof (it as { itemId?: unknown }).itemId === 'string'
         );
       },
     );
