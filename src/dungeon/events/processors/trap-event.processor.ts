@@ -21,9 +21,9 @@ export class TrapEventProcessor implements DungeonEventProcessor {
       delta: {
         type: 'TRAP',
         detail: {
-          damage,
-          hpBefore: input.state.hp,
-          hpAfter: nextHp,
+          stats: {
+            hp: nextHp - input.state.hp,
+          },
         },
       },
     };

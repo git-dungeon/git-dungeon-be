@@ -16,9 +16,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       },
       delta: {
         type: 'BATTLE',
-        detail: {
-          result: 'PENDING',
-        },
+        detail: {},
       },
     };
   }

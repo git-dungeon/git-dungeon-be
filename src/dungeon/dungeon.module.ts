@@ -11,10 +11,12 @@ import { RestEventProcessor } from './events/processors/rest-event.processor';
 import { TreasureEventProcessor } from './events/processors/treasure-event.processor';
 import { TrapEventProcessor } from './events/processors/trap-event.processor';
 import { MoveEventProcessor } from './events/processors/move-event.processor';
+import { DungeonLogBuilder } from './events/dungeon-log.builder';
 
 @Module({
   providers: [
     DungeonEventService,
+    DungeonLogBuilder,
     BattleEventProcessor,
     RestEventProcessor,
     TreasureEventProcessor,

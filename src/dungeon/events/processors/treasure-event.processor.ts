@@ -23,6 +23,12 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         type: 'TREASURE',
         detail: {
           gold: reward,
+          rewards: {
+            gold: reward,
+            items: [],
+            buffs: [],
+            unlocks: [],
+          },
         },
       },
     };

@@ -1,4 +1,12 @@
-import type { DungeonAction, DungeonState } from '@prisma/client';
+import type {
+  DungeonAction,
+  DungeonLogAction,
+  DungeonLogCategory,
+  DungeonLogStatus,
+  DungeonState,
+} from '@prisma/client';
+import type { DungeonLogDelta } from '../../common/logs/dungeon-log-delta';
+import type { DungeonLogDetails } from '../../common/logs/dungeon-log-extra';
 
 export enum DungeonEventType {
   BATTLE = 'BATTLE',
@@ -40,8 +48,21 @@ export type DungeonEventContext = {
 export type DungeonEventLogStub = {
   type: DungeonEventType;
   status: 'STARTED' | 'COMPLETED';
-  delta?: unknown;
-  extra?: unknown;
+  delta?: DungeonLogDelta;
+  extra?: DungeonLogDetails;
+};
+
+export type DungeonLogPayload = {
+  category: DungeonLogCategory;
+  action: DungeonLogAction;
+  status: DungeonLogStatus;
+  floor: number;
+  turnNumber?: number;
+  stateVersionBefore?: number;
+  stateVersionAfter?: number;
+  delta?: DungeonLogDelta;
+  extra?: DungeonLogDetails;
+  createdAt: Date;
 };
 
 export type DungeonEventResult = {
@@ -49,7 +70,8 @@ export type DungeonEventResult = {
   forcedMove: boolean;
   stateBefore: DungeonState;
   stateAfter: DungeonState;
-  logs: DungeonEventLogStub[];
+  rawLogs: DungeonEventLogStub[];
+  logs: DungeonLogPayload[];
 };
 
 export type DungeonEventSelectionInput = {
@@ -69,8 +91,8 @@ export type DungeonEventProcessorInput = {
 
 export type DungeonEventProcessorOutput = {
   state: DungeonState;
-  delta?: unknown;
-  extra?: unknown;
+  delta?: DungeonLogDelta;
+  extra?: DungeonLogDetails;
 };
 
 export interface DungeonEventProcessor {

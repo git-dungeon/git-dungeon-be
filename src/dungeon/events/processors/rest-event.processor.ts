@@ -36,7 +36,9 @@ export class RestEventProcessor implements DungeonEventProcessor {
       delta: {
         type: 'REST',
         detail: {
-          healed: nextHp - input.state.hp,
+          stats: {
+            hp: nextHp - input.state.hp,
+          },
         },
       },
     };

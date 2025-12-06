@@ -19,9 +19,14 @@ import {
   DungeonEventType,
   MAX_FLOOR_PROGRESS,
 } from './event.types';
+import type {
+  ProgressDelta,
+  DungeonLogDelta,
+} from '../../common/logs/dungeon-log-delta';
 import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
+import { DungeonLogBuilder } from './dungeon-log.builder';
 
 @Injectable()
 export class DungeonEventService {
@@ -44,6 +49,8 @@ export class DungeonEventService {
       DungeonEventType,
       DungeonEventProcessor
     >,
+    @Inject(DungeonLogBuilder)
+    private readonly logBuilder: DungeonLogBuilder,
   ) {}
 
   execute(context: DungeonEventContext): DungeonEventResult {
@@ -95,10 +102,18 @@ export class DungeonEventService {
         ? processorResult
         : this.applyProgress(processorResult, selectedEvent);
 
+    const progressDetail =
+      selectedEvent === DungeonEventType.MOVE
+        ? undefined
+        : this.buildProgressDetail(
+            startedState.floorProgress,
+            progressedState.state.floorProgress,
+          );
+
     logs.push({
       type: selectedEvent,
       status: 'COMPLETED',
-      delta: processorResult.delta,
+      delta: this.appendProgressDelta(processorResult.delta, progressDetail),
       extra: processorResult.extra,
     });
 
@@ -114,12 +129,20 @@ export class DungeonEventService {
       logs,
     );
 
+    const builtLogs = this.logBuilder.buildExplorationLogs({
+      stateBefore,
+      stateAfter: finalState,
+      logs,
+      turnNumber: context.actionCounter,
+    });
+
     return {
       selectedEvent,
       forcedMove: needsForcedMove,
       stateBefore,
       stateAfter: finalState,
-      logs,
+      rawLogs: logs,
+      logs: builtLogs,
     };
   }
 
@@ -213,6 +236,46 @@ export class DungeonEventService {
         floorProgress: nextProgress,
       },
     };
+  }
+
+  private buildProgressDetail(
+    previous: number,
+    current: number,
+  ): ProgressDelta | undefined {
+    if (previous === current) {
+      return undefined;
+    }
+
+    return {
+      previousProgress: previous,
+      floorProgress: current,
+      delta: current - previous,
+    };
+  }
+
+  private appendProgressDelta(
+    delta: DungeonLogDelta | undefined,
+    progress: ProgressDelta | undefined,
+  ): DungeonLogDelta | undefined {
+    if (!progress || !delta) {
+      return delta;
+    }
+
+    switch (delta.type) {
+      case 'REST':
+      case 'TRAP':
+      case 'TREASURE':
+      case 'BATTLE':
+        return {
+          ...delta,
+          detail: {
+            ...delta.detail,
+            progress,
+          },
+        } as DungeonLogDelta;
+      default:
+        return delta;
+    }
   }
 
   private applyApCost(state: DungeonState, apCost: number): DungeonState {

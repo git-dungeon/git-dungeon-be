@@ -1,6 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
-import type { DungeonState } from '@prisma/client';
+import {
+  DungeonLogAction,
+  DungeonLogStatus,
+  type DungeonState,
+} from '@prisma/client';
 import { DungeonEventService } from './dungeon-event.service';
 import { DungeonModule } from '../dungeon.module';
 import { DungeonEventType } from './event.types';
@@ -39,6 +43,16 @@ describe('DungeonEventService', () => {
     expect(result.stateAfter.floorProgress).toBe(10);
     expect(result.stateAfter.version).toBe(state.version + 1);
     expect(result.stateAfter.currentAction).toBe('IDLE');
+
+    const completedLog = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+
+    expect(completedLog?.stateVersionBefore).toBe(state.version);
+    expect(completedLog?.stateVersionAfter).toBe(state.version + 1);
+    expect(completedLog?.delta && 'detail' in completedLog.delta).toBe(true);
   });
 
   it('진행도가 100 이상이면 강제로 MOVE를 실행한다', () => {
@@ -66,8 +80,16 @@ describe('DungeonEventService', () => {
     expect(result.stateAfter.floorProgress).toBe(0);
     expect(result.stateAfter.hp).toBeGreaterThan(state.hp);
     expect(
-      result.logs.filter((log) => log.type === DungeonEventType.MOVE),
+      result.logs.filter((log) => log.action === DungeonLogAction.MOVE),
     ).toHaveLength(2);
+
+    const moveCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.MOVE &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+
+    expect(moveCompleted?.stateVersionAfter).toBe(state.version + 1);
   });
 });
 

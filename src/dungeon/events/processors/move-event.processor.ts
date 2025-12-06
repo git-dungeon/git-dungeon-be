@@ -27,10 +27,11 @@ export class MoveEventProcessor implements DungeonEventProcessor {
           fromFloor: input.state.floor,
           toFloor: nextFloor,
           previousProgress: input.state.floorProgress,
-          cappedProgress: Math.min(
-            input.state.floorProgress,
-            MAX_FLOOR_PROGRESS,
-          ),
+          progress: {
+            previousProgress: input.state.floorProgress,
+            floorProgress: 0,
+            delta: -Math.min(input.state.floorProgress, MAX_FLOOR_PROGRESS),
+          },
         },
       },
     };
