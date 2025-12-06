@@ -49,10 +49,14 @@ export type BuffsDelta = BuffAppliedDelta | BuffExpiredDelta;
 export type ProgressDelta = Partial<{
   floor: number;
   floorProgress: number;
+  previousProgress?: number;
+  delta?: number;
 }>;
 
 export type RewardsDelta = {
-  skillPoints?: number;
+  gold?: number;
+  items?: InventoryDelta['added']; // 전투/보물 공통 드랍 규칙
+  buffs?: BuffAppliedDelta['detail']['applied'];
   unlocks?: string[];
 };
 
@@ -61,6 +65,7 @@ export type BattleDelta = {
   detail: {
     stats?: StatsDelta;
     gold?: number;
+    progress?: ProgressDelta;
   };
 };
 
@@ -70,6 +75,41 @@ export type DeathDelta = {
     stats: StatsDelta;
     progress: ProgressDelta;
     buffs?: BuffExpiredDelta['detail']['expired'];
+  };
+};
+
+export type RestDelta = {
+  type: 'REST';
+  detail: {
+    stats: StatsDelta;
+    progress?: ProgressDelta;
+  };
+};
+
+export type TrapDelta = {
+  type: 'TRAP';
+  detail: {
+    stats: StatsDelta;
+    progress?: ProgressDelta;
+  };
+};
+
+export type TreasureDelta = {
+  type: 'TREASURE';
+  detail: {
+    rewards?: RewardsDelta;
+    gold?: number;
+    progress?: ProgressDelta;
+  };
+};
+
+export type MoveDelta = {
+  type: 'MOVE';
+  detail: {
+    fromFloor: number;
+    toFloor: number;
+    previousProgress: number;
+    progress: ProgressDelta;
   };
 };
 
@@ -112,6 +152,10 @@ export type DungeonLogDelta =
   | AcquireItemDelta
   | EquipItemDelta
   | LevelUpDelta
-  | BuffDelta;
+  | BuffDelta
+  | RestDelta
+  | TrapDelta
+  | TreasureDelta
+  | MoveDelta;
 
 export const toJsonDelta = (delta: DungeonLogDelta) => delta;

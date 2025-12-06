@@ -1,0 +1,33 @@
+{
+  "weights": {
+    "BATTLE": 50,
+    "TREASURE": 5,
+    "REST": 40,
+    "TRAP": 5
+  },
+  "effects": {
+    "REST": {
+      "stats": {
+        "hp": 2
+      },
+      "scaling": {
+        "hpRatio": 0.3
+      }
+    },
+    "TRAP": {
+      "stats": {
+        "hp": -3
+      },
+      "scaling": {
+        "hpRatio": -0.05
+      }
+    },
+    "TREASURE": {
+      "rewards": {
+        "gold": 5,
+        "items": [],
+        "buffs": []
+      }
+    }
+  }
+}

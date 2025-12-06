@@ -54,6 +54,38 @@ export type LevelUpDetails = {
   };
 };
 
+export type RestDetails = {
+  type: 'REST';
+  details: {
+    source?: string;
+  };
+};
+
+export type TrapDetails = {
+  type: 'TRAP';
+  details: {
+    trapCode?: string;
+  };
+};
+
+export type TreasureDetails = {
+  type: 'TREASURE';
+  details: {
+    rewardCode?: string;
+    rarity?: string;
+  };
+};
+
+export type MoveDetails = {
+  type: 'MOVE';
+  details: {
+    rewards?: {
+      gold?: number;
+      buff?: Record<string, unknown>;
+    };
+  };
+};
+
 export type BuffDetails = {
   type: 'BUFF_APPLIED' | 'BUFF_EXPIRED';
   details: {
@@ -74,6 +106,10 @@ export type DungeonLogDetails =
   | AcquireItemDetails
   | EquipItemDetails
   | LevelUpDetails
-  | BuffDetails;
+  | BuffDetails
+  | RestDetails
+  | TrapDetails
+  | TreasureDetails
+  | MoveDetails;
 
 export const toJsonDetails = (details: DungeonLogDetails) => details;

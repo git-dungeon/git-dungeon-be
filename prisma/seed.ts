@@ -426,7 +426,7 @@ async function main() {
         type: 'LEVEL_UP',
         detail: {
           stats: { level: 3, maxHp: 24, atk: 2 },
-          rewards: { skillPoints: 1 },
+          rewards: { unlocks: [] },
         },
       }) as Prisma.InputJsonValue,
       extra: toJsonDetails({

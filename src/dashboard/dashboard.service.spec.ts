@@ -103,6 +103,7 @@ describe('DashboardService', () => {
 
     expect(result.state.expToLevel).toBeNull();
     expect(result.state.equippedItems).toEqual([]);
+    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('상태를 찾지 못하면 DASHBOARD_UNAUTHORIZED 예외를 던져야 한다', async () => {
