@@ -45,6 +45,17 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
     });
 
     const drops = this.rollDrops(rng);
+    const dropMeta =
+      drops.length > 0
+        ? {
+            tableId: DEFAULT_DROP_TABLE_ID,
+            isElite: false,
+            items: drops.map((drop) => ({
+              itemCode: drop.itemCode,
+              quantity: drop.quantity,
+            })),
+          }
+        : undefined;
     const dropAdds = mapDropsToInventoryAdds(drops);
     const baseAdds = this.toInventoryAdds(this.effect.rewards?.items);
 
@@ -63,6 +74,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         },
       },
       drops,
+      dropMeta,
     };
   }
 

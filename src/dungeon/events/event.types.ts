@@ -48,6 +48,7 @@ export type DungeonEventLogStub = {
   delta?: DungeonLogDelta;
   extra?: DungeonLogDetails;
   actionOverride?: DungeonLogAction;
+  categoryOverride?: DungeonLogCategory;
 };
 
 export type DungeonLogPayload = {
@@ -102,6 +103,12 @@ export type DungeonEventProcessorOutput = {
   expGained?: number;
   followUpLogs?: DungeonEventLogStub[];
   drops?: DropResult[];
+  dropMeta?: {
+    tableId?: string | null;
+    isElite?: boolean;
+    rolls?: number;
+    items?: Array<{ itemCode: string; quantity?: number }>;
+  };
 };
 
 export interface DungeonEventProcessor {

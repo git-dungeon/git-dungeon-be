@@ -33,6 +33,14 @@ export type AcquireItemDetails = {
   details: {
     reward: {
       source: string;
+      drop?: {
+        tableId?: string | null;
+        isElite?: boolean;
+        items?: Array<{
+          itemCode: string;
+          quantity?: number;
+        }>;
+      };
     };
   };
 };

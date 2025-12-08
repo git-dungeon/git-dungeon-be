@@ -253,6 +253,21 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       statsDelta.hp = nextState.hp - input.state.hp;
     }
 
+    const dropMeta =
+      params.drops && params.drops.length > 0
+        ? {
+            tableId:
+              params.monsterMeta.dropTableId ??
+              this.options.defaultDropTableId ??
+              DEFAULT_DROP_TABLE_ID,
+            isElite: params.monsterMeta.rarity === 'elite',
+            items: params.drops.map((drop) => ({
+              itemCode: drop.itemCode,
+              quantity: drop.quantity,
+            })),
+          }
+        : undefined;
+
     return {
       state: nextState,
       delta: {
@@ -289,6 +304,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       ),
       expGained,
       drops: params.drops?.length ? params.drops : undefined,
+      dropMeta,
     };
   }
 

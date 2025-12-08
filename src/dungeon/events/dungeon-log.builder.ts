@@ -32,7 +32,7 @@ export class DungeonLogBuilder {
     const { stateBefore, stateAfter, logs, turnNumber } = params;
 
     return logs.map((log) => ({
-      category: DungeonLogCategory.EXPLORATION,
+      category: log.categoryOverride ?? DungeonLogCategory.EXPLORATION,
       action: log.actionOverride ?? actionMapping[log.type],
       status:
         log.status === 'STARTED'

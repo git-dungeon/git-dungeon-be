@@ -55,6 +55,11 @@ describe('TreasureEventProcessor', () => {
     expect(result.drops).toEqual([
       { itemCode: 'weapon-wooden-sword', quantity: 1 },
     ]);
+    expect(result.dropMeta).toEqual({
+      tableId: 'drops-default',
+      isElite: false,
+      items: [{ itemCode: 'weapon-wooden-sword', quantity: 1 }],
+    });
     expect(result.delta?.type).toBe('TREASURE');
     if (result.delta?.type === 'TREASURE') {
       expect(result.delta.detail.rewards?.items).toEqual([
