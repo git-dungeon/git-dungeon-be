@@ -27,6 +27,7 @@ import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
 import { DungeonLogBuilder } from './dungeon-log.builder';
+import type { SeededRandom } from './seeded-rng.provider';
 
 @Injectable()
 export class DungeonEventService {
@@ -102,27 +103,46 @@ export class DungeonEventService {
         ? processorResult
         : this.applyProgress(processorResult, selectedEvent);
 
+    const deathApplied = this.applyDeathIfNeeded(
+      progressedState.state,
+      selectedEvent,
+      processorResult.extra,
+      logs,
+    );
+
+    const expApplied = this.applyExpAndLevelUp(
+      deathApplied.state,
+      deathApplied.alive ? (processorResult.expGained ?? 0) : 0,
+      rng,
+      logs,
+    );
+
     const progressDetail =
       selectedEvent === DungeonEventType.MOVE
         ? undefined
         : this.buildProgressDetail(
             startedState.floorProgress,
-            progressedState.state.floorProgress,
+            expApplied.state.floorProgress,
           );
+
+    const completedDelta = this.appendProgressDelta(
+      processorResult.delta,
+      progressDetail,
+    );
 
     logs.push({
       type: selectedEvent,
       status: 'COMPLETED',
-      delta: this.appendProgressDelta(processorResult.delta, progressDetail),
+      delta: completedDelta,
       extra: processorResult.extra,
     });
 
     const needsForcedMove =
       selectedEvent !== DungeonEventType.MOVE &&
-      progressedState.state.floorProgress >= MAX_FLOOR_PROGRESS;
+      expApplied.state.floorProgress >= MAX_FLOOR_PROGRESS;
 
     const finalState = this.completeFlow(
-      progressedState.state,
+      expApplied.state,
       needsForcedMove,
       rngValue,
       startedAt,
@@ -209,10 +229,147 @@ export class DungeonEventService {
       status: 'STARTED',
     });
 
-    return processor.process({
+    const result = processor.process({
       state,
       rngValue,
     });
+
+    if (result.followUpLogs?.length) {
+      logs.push(...result.followUpLogs);
+    }
+
+    return result;
+  }
+
+  private applyExpAndLevelUp(
+    state: DungeonState,
+    expGained: number,
+    rng: SeededRandom,
+    logs: DungeonEventLogStub[],
+  ): {
+    state: DungeonState;
+    statsDelta?: Partial<DungeonState>;
+    alive: boolean;
+  } {
+    if (expGained <= 0) {
+      return { state, alive: state.hp > 0 };
+    }
+
+    let nextState: DungeonState = { ...state, exp: state.exp + expGained };
+    const statsDelta: Partial<DungeonState> = { exp: expGained };
+
+    const levelUps: DungeonEventLogStub[] = [];
+    let currentLevel = state.level;
+
+    while (nextState.exp >= currentLevel * 10) {
+      const threshold = currentLevel * 10;
+      nextState.exp -= threshold;
+      currentLevel += 1;
+      nextState = { ...nextState, level: currentLevel };
+      statsDelta.level = (statsDelta.level ?? 0) + 1;
+
+      // 랜덤 스탯 증가
+      const stats = ['atk', 'def', 'luck'] as const;
+      const statKey = stats[Math.floor(rng.next() * stats.length)];
+      nextState = { ...nextState, [statKey]: nextState[statKey] + 1 };
+      statsDelta[statKey] = (statsDelta[statKey] ?? 0) + 1;
+
+      // HP/MaxHP 보너스
+      nextState = {
+        ...nextState,
+        maxHp: nextState.maxHp + 2,
+        hp: Math.min(nextState.maxHp + 2, nextState.hp + 2),
+      };
+      statsDelta.maxHp = (statsDelta.maxHp ?? 0) + 2;
+      statsDelta.hp = (statsDelta.hp ?? 0) + 2;
+
+      levelUps.push({
+        type: DungeonEventType.BATTLE,
+        status: 'COMPLETED',
+        actionOverride: 'LEVEL_UP',
+        delta: {
+          type: 'LEVEL_UP',
+          detail: {
+            stats: {
+              level: 1,
+              [statKey]: 1,
+              maxHp: 2,
+              hp: 2,
+            },
+          },
+        },
+        extra: {
+          type: 'LEVEL_UP',
+          details: {
+            previousLevel: currentLevel - 1,
+            currentLevel,
+            threshold,
+            statsGained: {
+              [statKey]: 1,
+              maxHp: 2,
+              hp: 2,
+            },
+          },
+        },
+      });
+    }
+
+    if (levelUps.length) {
+      logs.push(...levelUps);
+    }
+
+    return { state: nextState, statsDelta, alive: nextState.hp > 0 };
+  }
+
+  private applyDeathIfNeeded(
+    state: DungeonState,
+    eventType: DungeonEventType,
+    extra: DungeonEventProcessorOutput['extra'],
+    logs: DungeonEventLogStub[],
+  ): { state: DungeonState; alive: boolean } {
+    if (state.hp > 0) {
+      return { state, alive: true };
+    }
+
+    const preState = { ...state };
+    const resetState: DungeonState = {
+      ...state,
+      hp: state.maxHp,
+      floor: 1,
+      floorProgress: 0,
+    };
+
+    logs.push({
+      type: eventType,
+      status: 'COMPLETED',
+      actionOverride: 'DEATH',
+      delta: {
+        type: 'DEATH',
+        detail: {
+          stats: {
+            hp: resetState.hp - preState.hp,
+          },
+          progress: {
+            previousProgress: preState.floorProgress,
+            floorProgress: 0,
+            delta: -preState.floorProgress,
+          },
+        },
+      },
+      extra: {
+        type: 'DEATH',
+        details: {
+          cause:
+            extra && extra.type === 'BATTLE'
+              ? (extra.details.cause ?? 'PLAYER_DEFEATED')
+              : eventType === DungeonEventType.TRAP
+                ? 'TRAP_DAMAGE'
+                : 'HP_DEPLETED',
+        },
+      },
+    });
+
+    return { state: resetState, alive: false };
   }
 
   private applyProgress(

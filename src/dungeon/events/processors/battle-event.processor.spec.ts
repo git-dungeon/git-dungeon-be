@@ -137,8 +137,47 @@ describe('BattleEventProcessor', () => {
       throw new Error('battle extra가 없습니다');
     }
     expect(extra.details.result).toBe('DEFEAT');
-    expect(result.state.floor).toBe(1);
-    expect(result.state.floorProgress).toBeLessThanOrEqual(0);
-    expect(result.state.hp).toBe(state.maxHp);
+    expect(result.state.floor).toBe(state.floor); // 사망 리셋은 엔진 후처리에서 수행
+    expect(result.state.hp).toBeLessThan(state.maxHp);
+  });
+
+  it('승리 시 EXP를 지급하고 레벨업을 적용한다', () => {
+    const expMonster: CatalogMonster = {
+      ...monsters[0],
+      id: 'monster-exp',
+      hp: 4,
+      atk: 1,
+      def: 0,
+      rarity: 'normal',
+      variantOf: null,
+    };
+    const expRegistry = MonsterRegistry.from([expMonster]);
+    const processor = new BattleEventProcessor(expRegistry, {
+      rngFactory: fixedRngFactory([0, 0, 0, 0]),
+    });
+
+    const state = createState({
+      atk: 10,
+      def: 0,
+      hp: 10,
+      maxHp: 10,
+      exp: 9,
+      level: 1,
+    });
+
+    const result = processor.process({
+      state,
+      rngValue: 0,
+    });
+
+    // processor 단계에서는 EXP만 계산하고 레벨업은 엔진에서 처리한다.
+    expect(result.state.level).toBe(state.level);
+    expect(result.expGained).toBeGreaterThan(0);
+
+    const extra = result.extra;
+    if (!extra || extra.type !== 'BATTLE') {
+      throw new Error('battle extra가 없습니다');
+    }
+    expect(extra.details.expGained).toBeGreaterThan(0);
   });
 });

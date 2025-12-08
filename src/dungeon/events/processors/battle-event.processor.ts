@@ -26,6 +26,9 @@ type BattleEngineOptions = {
   turnLimit?: number;
   rngFactory?: RngFactory;
   scalingOptions?: MonsterScalingOptions;
+  critBase?: number;
+  critLuckFactor?: number;
+  eliteExpBonus?: number;
 };
 
 const DEFAULT_ELITE_RATE = 0.05; // 5%
@@ -69,15 +72,26 @@ const pickMonster = (
   return pool[index];
 };
 
+const computeExpReward = (
+  monster: CatalogMonster,
+  scaled: ReturnType<typeof getScaledStats>,
+  eliteBonus: number,
+): number => {
+  const base = (scaled.hp + scaled.atk + scaled.def) / 3;
+  const rarityBonus = monster.rarity === 'elite' ? eliteBonus : 1;
+  return Math.max(1, Math.round(base * rarityBonus));
+};
+
 const computeDamage = (
   attackerAtk: number,
   defenderDef: number,
   luck: number,
   rng: DeterministicRng,
+  options: { critBase: number; critLuckFactor: number },
 ): { damage: number; crit: boolean } => {
   const base = Math.max(1, attackerAtk - defenderDef);
   const critChance = clamp01(
-    DEFAULT_CRIT_BASE + luck * DEFAULT_CRIT_LUCK_FACTOR,
+    options.critBase + luck * options.critLuckFactor,
     0.5,
   );
   const crit = rng() < critChance;
@@ -102,6 +116,10 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     const rngFactory = this.options.rngFactory ?? createDeterministicRng;
     const rng = rngFactory(input.rngValue);
     const eliteRate = this.options.eliteRate ?? DEFAULT_ELITE_RATE;
+    const critBase = this.options.critBase ?? DEFAULT_CRIT_BASE;
+    const critLuckFactor =
+      this.options.critLuckFactor ?? DEFAULT_CRIT_LUCK_FACTOR;
+    const eliteExpBonus = this.options.eliteExpBonus ?? 1.5;
     const monsterMeta = pickMonster(
       this.registry,
       rng,
@@ -130,6 +148,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         scaled.def,
         input.state.luck,
         rng,
+        { critBase, critLuckFactor },
       );
       monsterHp -= playerHit.damage;
 
@@ -144,6 +163,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         input.state.def,
         0, // 몬스터 luck은 현재 모델링하지 않음
         rng,
+        { critBase, critLuckFactor },
       );
       playerHp -= monsterHit.damage;
 
@@ -159,6 +179,11 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       cause = 'TURN_LIMIT';
     }
 
+    const expGained =
+      outcome === 'VICTORY'
+        ? computeExpReward(monsterMeta, scaled, eliteExpBonus)
+        : 0;
+
     return this.buildResult({
       input,
       outcome,
@@ -166,6 +191,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       scaled,
       playerHp: Math.max(0, playerHp),
       cause,
+      expGained,
     });
   }
 
@@ -175,9 +201,11 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     monsterMeta: CatalogMonster;
     scaled: ReturnType<typeof getScaledStats>;
     playerHp: number;
+    expGained: number;
     cause?: string;
   }): DungeonEventProcessorOutput {
-    const { input, outcome, monsterMeta, scaled, playerHp, cause } = params;
+    const { input, outcome, monsterMeta, scaled, playerHp, cause, expGained } =
+      params;
 
     const nextState = this.buildNextState(input.state, outcome, playerHp);
     const statsDelta: StatsDelta = {};
@@ -211,8 +239,12 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         monsterMeta,
         scaled,
         outcome === 'VICTORY' ? 'VICTORY' : 'DEFEAT',
-        cause,
+        {
+          cause,
+          expGained,
+        },
       ),
+      expGained,
     };
   }
 
@@ -221,15 +253,6 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     outcome: BattleOutcome,
     playerHp: number,
   ): DungeonState {
-    if (outcome === 'DEFEAT') {
-      return {
-        ...state,
-        hp: state.maxHp, // 사망 후 초기화
-        floor: 1,
-        floorProgress: -BATTLE_PROGRESS_INCREMENT, // 진행도 리셋을 위해 전투 보너스와 상쇄
-      };
-    }
-
     return {
       ...state,
       hp: Math.max(0, Math.min(playerHp, state.maxHp)),
@@ -241,7 +264,10 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     monster: CatalogMonster,
     scaled: ReturnType<typeof getScaledStats>,
     result: 'VICTORY' | 'DEFEAT',
-    cause?: string,
+    options: {
+      cause?: string;
+      expGained?: number;
+    },
   ): DungeonLogDetails {
     return {
       type: 'BATTLE',
@@ -254,7 +280,8 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           spriteId: monster.spriteId,
         },
         result,
-        cause,
+        cause: options.cause,
+        expGained: options.expGained,
       },
     };
   }

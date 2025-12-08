@@ -12,6 +12,7 @@ export type BattleDetails = {
     };
     result?: BattleResult;
     cause?: string;
+    expGained?: number;
   };
 };
 
@@ -51,6 +52,13 @@ export type LevelUpDetails = {
     previousLevel: number;
     currentLevel: number;
     threshold: number;
+    statsGained: Partial<{
+      hp: number;
+      maxHp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    }>;
   };
 };
 

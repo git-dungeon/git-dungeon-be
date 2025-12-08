@@ -46,6 +46,7 @@ export type DungeonEventLogStub = {
   status: 'STARTED' | 'COMPLETED';
   delta?: DungeonLogDelta;
   extra?: DungeonLogDetails;
+  actionOverride?: DungeonLogAction;
 };
 
 export type DungeonLogPayload = {
@@ -89,6 +90,8 @@ export type DungeonEventProcessorOutput = {
   state: DungeonState;
   delta?: DungeonLogDelta;
   extra?: DungeonLogDetails;
+  expGained?: number;
+  followUpLogs?: DungeonEventLogStub[];
 };
 
 export interface DungeonEventProcessor {
