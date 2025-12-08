@@ -4,7 +4,11 @@ import {
   Injectable,
   PreconditionFailedException,
 } from '@nestjs/common';
-import type { DungeonAction, DungeonState } from '@prisma/client';
+import {
+  DungeonLogCategory,
+  type DungeonAction,
+  type DungeonState,
+} from '@prisma/client';
 import {
   BASE_PROGRESS_INCREMENT,
   BATTLE_PROGRESS_INCREMENT,
@@ -23,12 +27,15 @@ import type {
   ProgressDelta,
   DungeonLogDelta,
   StatsDelta,
+  InventoryDelta,
 } from '../../common/logs/dungeon-log-delta';
 import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
 import { DungeonLogBuilder } from './dungeon-log.builder';
 import type { SeededRandom } from './seeded-rng.provider';
+import { DropInventoryService } from '../drops/drop-inventory.service';
+import { mapDropsToInventoryAdds } from '../drops/drop.utils';
 
 @Injectable()
 export class DungeonEventService {
@@ -53,9 +60,10 @@ export class DungeonEventService {
     >,
     @Inject(DungeonLogBuilder)
     private readonly logBuilder: DungeonLogBuilder,
+    private readonly dropInventoryService?: DropInventoryService,
   ) {}
 
-  execute(context: DungeonEventContext): DungeonEventResult {
+  async execute(context: DungeonEventContext): Promise<DungeonEventResult> {
     const apCost = context.apCost ?? 1;
     const weights = context.weights ?? DEFAULT_EVENT_WEIGHTS;
     const rng = this.rngFactory.create(
@@ -150,6 +158,57 @@ export class DungeonEventService {
       logs,
     );
 
+    let inventoryAdds: InventoryDelta['added'] | undefined;
+
+    const shouldApplyDrops =
+      !!processorResult.drops?.length &&
+      !!this.dropInventoryService &&
+      !this.shouldSkipInventoryApply();
+
+    if (shouldApplyDrops) {
+      inventoryAdds = await this.dropInventoryService.applyDrops({
+        userId: stateBefore.userId,
+        drops: processorResult.drops ?? [],
+      });
+    } else if (processorResult.drops?.length) {
+      inventoryAdds = mapDropsToInventoryAdds(processorResult.drops);
+    }
+
+    if (inventoryAdds?.length) {
+      logs.push({
+        type: selectedEvent,
+        status: 'COMPLETED',
+        actionOverride: 'ACQUIRE_ITEM',
+        categoryOverride: DungeonLogCategory.STATUS,
+        delta: {
+          type: 'ACQUIRE_ITEM',
+          detail: {
+            inventory: {
+              added: inventoryAdds,
+            },
+          },
+        },
+        extra: {
+          type: 'ACQUIRE_ITEM',
+          details: {
+            reward: {
+              source: selectedEvent,
+              drop: processorResult.dropMeta
+                ? {
+                    tableId: processorResult.dropMeta.tableId ?? undefined,
+                    isElite: processorResult.dropMeta.isElite,
+                    items: processorResult.dropMeta.items?.map((item) => ({
+                      itemCode: item.itemCode,
+                      quantity: item.quantity,
+                    })),
+                  }
+                : undefined,
+            },
+          },
+        },
+      });
+    }
+
     const builtLogs = this.logBuilder.buildExplorationLogs({
       stateBefore,
       stateAfter: finalState,
@@ -164,6 +223,8 @@ export class DungeonEventService {
       stateAfter: finalState,
       rawLogs: logs,
       logs: builtLogs,
+      drops: processorResult.drops,
+      inventoryAdds,
     };
   }
 
@@ -471,6 +532,13 @@ export class DungeonEventService {
       default:
         return delta;
     }
+  }
+
+  private shouldSkipInventoryApply(): boolean {
+    return (
+      process.env.DATABASE_SKIP_CONNECTION === 'true' ||
+      process.env.NODE_ENV === 'test'
+    );
   }
 
   private applyApCost(state: DungeonState, apCost: number): DungeonState {

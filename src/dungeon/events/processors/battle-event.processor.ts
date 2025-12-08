@@ -14,6 +14,9 @@ import {
   getScaledStats,
   type MonsterScalingOptions,
 } from '../../monsters';
+import type { DropService } from '../../drops/drop.service';
+import { DEFAULT_DROP_TABLE_ID } from '../../drops/drop.service';
+import { rollDrops } from '../../drops/drop.utils';
 
 type BattleOutcome = 'VICTORY' | 'DEFEAT';
 
@@ -29,6 +32,8 @@ type BattleEngineOptions = {
   critBase?: number;
   critLuckFactor?: number;
   eliteExpBonus?: number;
+  dropService?: DropService;
+  defaultDropTableId?: string;
 };
 
 const DEFAULT_ELITE_RATE = 0.05; // 5%
@@ -188,6 +193,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         ? computeExpReward(monsterMeta, scaled, eliteExpBonus)
         : 0;
 
+    const drops =
+      outcome === 'VICTORY' ? this.rollDrops(monsterMeta, { next: rng }) : [];
+
     return this.buildResult({
       input,
       outcome,
@@ -199,6 +207,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       turns: turn,
       damageDealt,
       damageTaken,
+      drops,
     });
   }
 
@@ -213,6 +222,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     turns?: number;
     damageDealt?: number;
     damageTaken?: number;
+    drops?: ReturnType<DropService['roll']>;
   }): DungeonEventProcessorOutput {
     const {
       input,
@@ -232,6 +242,21 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     if (nextState.hp !== input.state.hp) {
       statsDelta.hp = nextState.hp - input.state.hp;
     }
+
+    const dropMeta =
+      params.drops && params.drops.length > 0
+        ? {
+            tableId:
+              params.monsterMeta.dropTableId ??
+              this.options.defaultDropTableId ??
+              DEFAULT_DROP_TABLE_ID,
+            isElite: params.monsterMeta.rarity === 'elite',
+            items: params.drops.map((drop) => ({
+              itemCode: drop.itemCode,
+              quantity: drop.quantity,
+            })),
+          }
+        : undefined;
 
     return {
       state: nextState,
@@ -268,6 +293,8 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         },
       ),
       expGained,
+      drops: params.drops?.length ? params.drops : undefined,
+      dropMeta,
     };
   }
 
@@ -286,6 +313,21 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       hp: Math.max(0, Math.min(playerHp, state.maxHp)),
       floorProgress: defeatedProgress,
     };
+  }
+
+  private rollDrops(
+    monster: CatalogMonster,
+    rng: { next: () => number },
+  ): ReturnType<DropService['roll']> {
+    return rollDrops({
+      dropService: this.options.dropService,
+      tableId:
+        monster.dropTableId ??
+        this.options.defaultDropTableId ??
+        DEFAULT_DROP_TABLE_ID,
+      rng,
+      isElite: monster.rarity === 'elite',
+    });
   }
 
   private buildBattleDetails(

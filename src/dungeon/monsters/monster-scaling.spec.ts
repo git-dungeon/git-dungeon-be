@@ -12,7 +12,7 @@ const baseMonster: CatalogMonster = {
   atk: 2,
   def: 1,
   spriteId: 'sprite/monster-test',
-  dropTableId: 'drops-floor-1',
+  dropTableId: 'drops-default',
   description: 'A placeholder monster for scaling tests.',
   rarity: 'normal',
   variantOf: null,

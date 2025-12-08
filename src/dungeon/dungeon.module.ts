@@ -17,11 +17,15 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { MonsterRegistry } from './monsters';
 import type { CatalogMonster } from '../catalog';
+import { DropService } from './drops/drop.service';
+import { DropInventoryService } from './drops/drop-inventory.service';
 
 @Module({
   providers: [
     DungeonEventService,
     DungeonLogBuilder,
+    DropService,
+    DropInventoryService,
     {
       provide: MonsterRegistry,
       useFactory: () => {
@@ -36,13 +40,22 @@ import type { CatalogMonster } from '../catalog';
     },
     {
       provide: DungeonEventProcessors,
-      useFactory: (monsterRegistry: MonsterRegistry) => {
+      useFactory: (
+        monsterRegistry: MonsterRegistry,
+        dropService: DropService,
+      ) => {
         const config = loadEventConfig();
         const effects = config.effects ?? {};
 
-        const battle = new BattleEventProcessor(monsterRegistry);
+        const battle = new BattleEventProcessor(monsterRegistry, {
+          dropService,
+        });
         const rest = new RestEventProcessor(effects.REST);
-        const treasure = new TreasureEventProcessor(effects.TREASURE);
+        const treasure = new TreasureEventProcessor(
+          effects.TREASURE,
+          undefined,
+          dropService,
+        );
         const trap = new TrapEventProcessor(effects.TRAP);
         const move = new MoveEventProcessor();
 
@@ -54,7 +67,7 @@ import type { CatalogMonster } from '../catalog';
           [DungeonEventType.MOVE]: move,
         };
       },
-      inject: [MonsterRegistry],
+      inject: [MonsterRegistry, DropService],
     },
     {
       provide: SEEDED_RNG_FACTORY,

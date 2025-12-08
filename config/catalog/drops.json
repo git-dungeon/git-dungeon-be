@@ -3,7 +3,7 @@
   "updatedAt": "2025-11-23T10:15:55.832Z",
   "dropTables": [
     {
-      "tableId": "drops-floor-1",
+      "tableId": "drops-default",
       "drops": [
         {
           "itemCode": "weapon-wooden-sword",
@@ -252,37 +252,7 @@
       "drops": [
         {
           "itemCode": "angel-ring",
-          "weight": 10,
-          "minQuantity": 1,
-          "maxQuantity": 1
-        },
-        {
-          "itemCode": "weapon-excalibur",
-          "weight": 8,
-          "minQuantity": 1,
-          "maxQuantity": 1
-        },
-        {
-          "itemCode": "armor-divine-cloak",
-          "weight": 8,
-          "minQuantity": 1,
-          "maxQuantity": 1
-        },
-        {
-          "itemCode": "helmet-crown-of-valor",
-          "weight": 8,
-          "minQuantity": 1,
-          "maxQuantity": 1
-        },
-        {
-          "itemCode": "ring-mythril",
-          "weight": 6,
-          "minQuantity": 1,
-          "maxQuantity": 1
-        },
-        {
-          "itemCode": "weapon-spear-of-valor",
-          "weight": 6,
+          "weight": 100,
           "minQuantity": 1,
           "maxQuantity": 1
         }

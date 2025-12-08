@@ -11,7 +11,7 @@
       "atk": 2,
       "def": 0,
       "spriteId": "sprite/monster-giant-rat",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Small but vicious rodent.",
       "rarity": "normal",
       "variantOf": null
@@ -25,7 +25,7 @@
       "atk": 2,
       "def": 2,
       "spriteId": "sprite/monster-cave-beetle",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Armored insect with sturdy shell.",
       "rarity": "normal",
       "variantOf": null
@@ -39,7 +39,7 @@
       "atk": 3,
       "def": 1,
       "spriteId": "sprite/monster-zombie",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Slow undead with relentless attacks.",
       "rarity": "normal",
       "variantOf": null
@@ -53,7 +53,7 @@
       "atk": 4,
       "def": 1,
       "spriteId": "sprite/monster-cave-spider",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Venomous spider lurking in caves.",
       "rarity": "normal",
       "variantOf": null
@@ -67,7 +67,7 @@
       "atk": 4,
       "def": 2,
       "spriteId": "sprite/monster-serpent",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Sly serpent striking swiftly.",
       "rarity": "normal",
       "variantOf": null
@@ -81,7 +81,7 @@
       "atk": 5,
       "def": 2,
       "spriteId": "sprite/monster-skeleton-warrior",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Undead soldier guarding the early floors.",
       "rarity": "normal",
       "variantOf": null
@@ -95,7 +95,7 @@
       "atk": 3,
       "def": 1,
       "spriteId": "sprite/monster-slime",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Basic blob with surprising endurance.",
       "rarity": "normal",
       "variantOf": null
@@ -109,7 +109,7 @@
       "atk": 5,
       "def": 1,
       "spriteId": "sprite/monster-cave-bat",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Fast bat striking from the dark.",
       "rarity": "normal",
       "variantOf": null
@@ -123,7 +123,7 @@
       "atk": 6,
       "def": 2,
       "spriteId": "sprite/monster-fire-imp",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Fiery imp with aggressive attacks.",
       "rarity": "normal",
       "variantOf": null
@@ -151,7 +151,7 @@
       "atk": 2,
       "def": 0,
       "spriteId": "sprite/monster-giant-rat",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Small but vicious rodent.",
       "rarity": "elite",
       "variantOf": "monster-giant-rat"
@@ -165,7 +165,7 @@
       "atk": 2,
       "def": 2,
       "spriteId": "sprite/monster-cave-beetle",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Armored insect with sturdy shell.",
       "rarity": "elite",
       "variantOf": "monster-cave-beetle"
@@ -179,7 +179,7 @@
       "atk": 3,
       "def": 1,
       "spriteId": "sprite/monster-zombie",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Slow undead with relentless attacks.",
       "rarity": "elite",
       "variantOf": "monster-zombie"
@@ -193,7 +193,7 @@
       "atk": 4,
       "def": 1,
       "spriteId": "sprite/monster-cave-spider",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Venomous spider lurking in caves.",
       "rarity": "elite",
       "variantOf": "monster-cave-spider"
@@ -207,7 +207,7 @@
       "atk": 4,
       "def": 2,
       "spriteId": "sprite/monster-serpent",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Sly serpent striking swiftly.",
       "rarity": "elite",
       "variantOf": "monster-serpent"
@@ -221,7 +221,7 @@
       "atk": 5,
       "def": 2,
       "spriteId": "sprite/monster-skeleton-warrior",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Undead soldier guarding the early floors.",
       "rarity": "elite",
       "variantOf": "monster-skeleton-warrior"
@@ -235,7 +235,7 @@
       "atk": 3,
       "def": 1,
       "spriteId": "sprite/monster-slime",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Basic blob with surprising endurance.",
       "rarity": "elite",
       "variantOf": "monster-slime"
@@ -249,7 +249,7 @@
       "atk": 5,
       "def": 1,
       "spriteId": "sprite/monster-cave-bat",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Fast bat striking from the dark.",
       "rarity": "elite",
       "variantOf": "monster-cave-bat"
@@ -263,7 +263,7 @@
       "atk": 6,
       "def": 2,
       "spriteId": "sprite/monster-fire-imp",
-      "dropTableId": "drops-floor-1",
+      "dropTableId": "drops-default",
       "description": "Fiery imp with aggressive attacks.",
       "rarity": "elite",
       "variantOf": "monster-fire-imp"

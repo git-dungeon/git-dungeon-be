@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import {
   DungeonLogAction,
   DungeonLogCategory,
@@ -10,6 +10,8 @@ import { DungeonEventService } from './dungeon-event.service';
 import { DungeonModule } from '../dungeon.module';
 import { DungeonEventType } from './event.types';
 import type { DungeonLogPayload } from './event.types';
+import { DropService } from '../drops/drop.service';
+import { DropInventoryService } from '../drops/drop-inventory.service';
 
 describe('DungeonEventService', () => {
   let service: DungeonEventService;
@@ -22,13 +24,13 @@ describe('DungeonEventService', () => {
     service = module.get(DungeonEventService);
   });
 
-  it('가중치 선택과 진행도 증가를 적용한다', () => {
+  it('가중치 선택과 진행도 증가를 적용한다', async () => {
     const state: DungeonState = createState({
       ap: 5,
       floorProgress: 0,
     });
 
-    const result = service.execute({
+    const result = await service.execute({
       state,
       seed: 'test-seed',
       weights: {
@@ -57,14 +59,14 @@ describe('DungeonEventService', () => {
     expect(completedLog?.delta && 'detail' in completedLog.delta).toBe(true);
   });
 
-  it('진행도가 100 이상이면 강제로 MOVE를 실행한다', () => {
+  it('진행도가 100 이상이면 강제로 MOVE를 실행한다', async () => {
     const state: DungeonState = createState({
       ap: 3,
       hp: 5,
       floorProgress: 95,
     });
 
-    const result = service.execute({
+    const result = await service.execute({
       state,
       seed: 'rest-seed',
       weights: {
@@ -94,42 +96,42 @@ describe('DungeonEventService', () => {
     expect(moveCompleted?.stateVersionAfter).toBe(state.version + 1);
   });
 
-  it('결정적 RNG로 동일 시드에서 동일 이벤트를 선택한다', () => {
+  it('결정적 RNG로 동일 시드에서 동일 이벤트를 선택한다', async () => {
     const state: DungeonState = createState({
       ap: 10,
       floorProgress: 0,
     });
 
     const selections = [
-      service.execute({ state, seed: 'seed-1', actionCounter: 1 })
+      (await service.execute({ state, seed: 'seed-1', actionCounter: 1 }))
         .selectedEvent,
-      service.execute({ state, seed: 'seed-2', actionCounter: 1 })
+      (await service.execute({ state, seed: 'seed-2', actionCounter: 1 }))
         .selectedEvent,
-      service.execute({ state, seed: 'seed-1', actionCounter: 1 })
+      (await service.execute({ state, seed: 'seed-1', actionCounter: 1 }))
         .selectedEvent,
     ];
 
     expect(selections[0]).toBe(selections[2]);
   });
 
-  it('AP 부족 시 예외를 던진다', () => {
+  it('AP 부족 시 예외를 던진다', async () => {
     const state: DungeonState = createState({
       ap: 0,
     });
 
-    expect(() =>
+    await expect(
       service.execute({
         state,
         seed: 'ap-fail',
       }),
-    ).toThrow(/AP가 부족합니다/);
+    ).rejects.toThrow(/AP가 부족합니다/);
   });
 
-  it('전투는 진행도 +20, 기타는 +10으로 클램프하고 강제 이동을 트리거한다', () => {
+  it('전투는 진행도 +20, 기타는 +10으로 클램프하고 강제 이동을 트리거한다', async () => {
     const battleState: DungeonState = createState({ floorProgress: 85 });
     const restState: DungeonState = createState({ floorProgress: 95 });
 
-    const battleResult = service.execute({
+    const battleResult = await service.execute({
       state: battleState,
       seed: 'battle-progress',
       weights: {
@@ -144,7 +146,7 @@ describe('DungeonEventService', () => {
     expect(battleResult.stateAfter.floor).toBe(battleState.floor + 1);
     expect(battleResult.stateAfter.floorProgress).toBe(0);
 
-    const restResult = service.execute({
+    const restResult = await service.execute({
       state: restState,
       seed: 'rest-progress',
       weights: {
@@ -159,11 +161,11 @@ describe('DungeonEventService', () => {
     expect(restResult.forcedMove).toBe(true);
   });
 
-  it('휴식만 HP를 회복하고 함정은 피해를 준다', () => {
+  it('휴식만 HP를 회복하고 함정은 피해를 준다', async () => {
     const restState: DungeonState = createState({ hp: 5, floorProgress: 0 });
     const trapState: DungeonState = createState({ hp: 5, floorProgress: 0 });
 
-    const restResult = service.execute({
+    const restResult = await service.execute({
       state: restState,
       seed: 'rest-heal',
       weights: {
@@ -176,7 +178,7 @@ describe('DungeonEventService', () => {
 
     expect(restResult.stateAfter.hp).toBeGreaterThan(restState.hp);
 
-    const trapResult = service.execute({
+    const trapResult = await service.execute({
       state: trapState,
       seed: 'trap-damage',
       weights: {
@@ -190,7 +192,7 @@ describe('DungeonEventService', () => {
     expect(trapResult.stateAfter.hp).toBeLessThan(trapState.hp);
   });
 
-  it('결정적 RNG로 가중치 이벤트 분포가 일관된다', () => {
+  it('결정적 RNG로 가중치 이벤트 분포가 일관된다', async () => {
     const state: DungeonState = createState({
       ap: 100,
       floorProgress: 0,
@@ -213,7 +215,7 @@ describe('DungeonEventService', () => {
 
     for (let i = 0; i < 100; i += 1) {
       const seed = `seed-${i}`;
-      const { selectedEvent } = service.execute({
+      const { selectedEvent } = await service.execute({
         state,
         seed,
         actionCounter: i,
@@ -231,13 +233,13 @@ describe('DungeonEventService', () => {
     expect(counts[DungeonEventType.TREASURE]).toBeGreaterThan(0);
   });
 
-  it('Typia로 로그 payload를 검증한다', () => {
+  it('Typia로 로그 payload를 검증한다', async () => {
     const state: DungeonState = createState({
       ap: 5,
       floorProgress: 90,
     });
 
-    const result = service.execute({
+    const result = await service.execute({
       state,
       seed: 'log-validate',
       weights: {
@@ -270,14 +272,14 @@ describe('DungeonEventService', () => {
     });
   });
 
-  it('HP<=0이면 DEATH 로그가 생성되고 진행도가 리셋된다', () => {
+  it('HP<=0이면 DEATH 로그가 생성되고 진행도가 리셋된다', async () => {
     const state: DungeonState = createState({
       hp: 1,
       floor: 3,
       floorProgress: 70,
     });
 
-    const result = service.execute({
+    const result = await service.execute({
       state,
       seed: 'death-seed',
       weights: {
@@ -297,7 +299,7 @@ describe('DungeonEventService', () => {
     expect(result.stateAfter.hp).toBe(result.stateAfter.maxHp);
   });
 
-  it('승리 시 레벨업과 LEVEL_UP 로그를 생성하고 delta에 stats를 병합한다', () => {
+  it('승리 시 레벨업과 LEVEL_UP 로그를 생성하고 delta에 stats를 병합한다', async () => {
     const state: DungeonState = createState({
       atk: 20,
       def: 1,
@@ -307,7 +309,7 @@ describe('DungeonEventService', () => {
       level: 1,
     });
 
-    const result = service.execute({
+    const result = await service.execute({
       state,
       seed: 'levelup-seed',
       weights: {
@@ -334,6 +336,124 @@ describe('DungeonEventService', () => {
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
+    }
+  });
+
+  it('드랍 시 STATUS 카테고리 ACQUIRE_ITEM 로그를 추가한다', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+    process.env.NODE_ENV = 'development';
+    process.env.DATABASE_SKIP_CONNECTION = 'false';
+
+    const dropService: Pick<DropService, 'roll'> = {
+      roll: vi
+        .fn()
+        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+    };
+    const inventoryAdds = [
+      {
+        itemId: 'inv-1',
+        code: 'weapon-wooden-sword',
+        slot: 'weapon',
+        rarity: 'common',
+        quantity: 1,
+      },
+    ];
+    const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+      applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+    };
+
+    try {
+      const module = await Test.createTestingModule({
+        imports: [DungeonModule],
+      })
+        .overrideProvider(DropService)
+        .useValue(dropService)
+        .overrideProvider(DropInventoryService)
+        .useValue(dropInventoryService)
+        .compile();
+
+      const serviceWithDrops = module.get(DungeonEventService);
+      const state: DungeonState = createState({ ap: 5 });
+
+      const result = await serviceWithDrops.execute({
+        state,
+        seed: 'acquire-log',
+        weights: {
+          [DungeonEventType.BATTLE]: 0,
+          [DungeonEventType.TREASURE]: 1,
+          [DungeonEventType.REST]: 0,
+          [DungeonEventType.TRAP]: 0,
+        },
+      });
+
+      const acquireLog = result.logs.find(
+        (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+      );
+      expect(acquireLog?.category).toBe(DungeonLogCategory.STATUS);
+      expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+      if (acquireLog?.delta?.type === 'ACQUIRE_ITEM') {
+        expect(acquireLog.delta.detail.inventory?.added?.[0]?.code).toBe(
+          'weapon-wooden-sword',
+        );
+      }
+      if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
+        expect(acquireLog.extra.details.reward.drop?.items?.[0]?.itemCode).toBe(
+          'weapon-wooden-sword',
+        );
+      }
+      expect(result.inventoryAdds?.length).toBeGreaterThan(0);
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+      process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
+    }
+  });
+
+  it('DB 연결을 건너뛰는 환경에서도 드랍 로그를 남긴다', async () => {
+    const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+    process.env.DATABASE_SKIP_CONNECTION = 'true';
+
+    const dropService: Pick<DropService, 'roll'> = {
+      roll: vi
+        .fn()
+        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+    };
+    const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+      applyDrops: vi.fn(),
+    };
+
+    try {
+      const module = await Test.createTestingModule({
+        imports: [DungeonModule],
+      })
+        .overrideProvider(DropService)
+        .useValue(dropService)
+        .overrideProvider(DropInventoryService)
+        .useValue(dropInventoryService)
+        .compile();
+
+      const serviceWithSkip = module.get(DungeonEventService);
+      const state: DungeonState = createState({ ap: 5 });
+
+      const result = await serviceWithSkip.execute({
+        state,
+        seed: 'acquire-log-skip',
+        weights: {
+          [DungeonEventType.BATTLE]: 0,
+          [DungeonEventType.TREASURE]: 1,
+          [DungeonEventType.REST]: 0,
+          [DungeonEventType.TRAP]: 0,
+        },
+      });
+
+      expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
+      const acquireLog = result.logs.find(
+        (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+      );
+      expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+      expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+    } finally {
+      process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
     }
   });
 });
