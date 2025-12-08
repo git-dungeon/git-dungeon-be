@@ -8,11 +8,15 @@ export type BattleDetails = {
       name: string;
       hp: number;
       atk: number;
+      def: number;
       spriteId: string;
     };
     result?: BattleResult;
     cause?: string;
     expGained?: number;
+    turns?: number;
+    damageDealt?: number;
+    damageTaken?: number;
   };
 };
 

@@ -137,6 +137,8 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     let outcome: BattleOutcome = 'VICTORY';
     let cause: string | undefined;
     let turn = 0;
+    let damageDealt = 0;
+    let damageTaken = 0;
 
     const turnLimit = this.options.turnLimit ?? DEFAULT_TURN_LIMIT;
 
@@ -151,6 +153,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         { critBase, critLuckFactor },
       );
       monsterHp -= playerHit.damage;
+      damageDealt += playerHit.damage;
 
       if (monsterHp <= 0) {
         outcome = 'VICTORY';
@@ -166,6 +169,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         { critBase, critLuckFactor },
       );
       playerHp -= monsterHit.damage;
+      damageTaken += monsterHit.damage;
 
       if (playerHp <= 0) {
         outcome = 'DEFEAT';
@@ -192,6 +196,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       playerHp: Math.max(0, playerHp),
       cause,
       expGained,
+      turns: turn,
+      damageDealt,
+      damageTaken,
     });
   }
 
@@ -203,9 +210,22 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     playerHp: number;
     expGained: number;
     cause?: string;
+    turns?: number;
+    damageDealt?: number;
+    damageTaken?: number;
   }): DungeonEventProcessorOutput {
-    const { input, outcome, monsterMeta, scaled, playerHp, cause, expGained } =
-      params;
+    const {
+      input,
+      outcome,
+      monsterMeta,
+      scaled,
+      playerHp,
+      cause,
+      expGained,
+      turns,
+      damageDealt,
+      damageTaken,
+    } = params;
 
     const nextState = this.buildNextState(input.state, outcome, playerHp);
     const statsDelta: StatsDelta = {};
@@ -242,6 +262,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         {
           cause,
           expGained,
+          turns,
+          damageDealt,
+          damageTaken,
         },
       ),
       expGained,
@@ -267,6 +290,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     options: {
       cause?: string;
       expGained?: number;
+      turns?: number;
+      damageDealt?: number;
+      damageTaken?: number;
     },
   ): DungeonLogDetails {
     return {
@@ -277,11 +303,15 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           name: monster.name,
           hp: scaled.hp,
           atk: scaled.atk,
+          def: scaled.def,
           spriteId: monster.spriteId,
         },
         result,
         cause: options.cause,
         expGained: options.expGained,
+        turns: options.turns,
+        damageDealt: options.damageDealt,
+        damageTaken: options.damageTaken,
       },
     };
   }

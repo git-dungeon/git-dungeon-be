@@ -22,6 +22,7 @@ import {
 import type {
   ProgressDelta,
   DungeonLogDelta,
+  StatsDelta,
 } from '../../common/logs/dungeon-log-delta';
 import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
@@ -125,9 +126,9 @@ export class DungeonEventService {
             expApplied.state.floorProgress,
           );
 
-    const completedDelta = this.appendProgressDelta(
-      processorResult.delta,
-      progressDetail,
+    const completedDelta = this.mergeStatsDelta(
+      this.appendProgressDelta(processorResult.delta, progressDetail),
+      expApplied.statsDelta,
     );
 
     logs.push({
@@ -248,7 +249,7 @@ export class DungeonEventService {
     logs: DungeonEventLogStub[],
   ): {
     state: DungeonState;
-    statsDelta?: Partial<DungeonState>;
+    statsDelta?: StatsDelta;
     alive: boolean;
   } {
     if (expGained <= 0) {
@@ -256,7 +257,7 @@ export class DungeonEventService {
     }
 
     let nextState: DungeonState = { ...state, exp: state.exp + expGained };
-    const statsDelta: Partial<DungeonState> = { exp: expGained };
+    const statsDelta: StatsDelta = { exp: expGained };
 
     const levelUps: DungeonEventLogStub[] = [];
     let currentLevel = state.level;
@@ -339,6 +340,13 @@ export class DungeonEventService {
       floorProgress: 0,
     };
 
+    const cause =
+      extra?.type === 'BATTLE'
+        ? (extra.details.cause ?? 'PLAYER_DEFEATED')
+        : eventType === DungeonEventType.TRAP
+          ? 'TRAP_DAMAGE'
+          : 'HP_DEPLETED';
+
     logs.push({
       type: eventType,
       status: 'COMPLETED',
@@ -359,17 +367,46 @@ export class DungeonEventService {
       extra: {
         type: 'DEATH',
         details: {
-          cause:
-            extra && extra.type === 'BATTLE'
-              ? (extra.details.cause ?? 'PLAYER_DEFEATED')
-              : eventType === DungeonEventType.TRAP
-                ? 'TRAP_DAMAGE'
-                : 'HP_DEPLETED',
+          cause,
         },
       },
     });
 
     return { state: resetState, alive: false };
+  }
+
+  private mergeStatsDelta(
+    delta: DungeonLogDelta | undefined,
+    statsDelta?: StatsDelta,
+  ): DungeonLogDelta | undefined {
+    if (!delta || !statsDelta) return delta;
+
+    const mergedStats: StatsDelta = {
+      ...(delta.type === 'BATTLE' && delta.detail.stats
+        ? delta.detail.stats
+        : {}),
+    };
+
+    (
+      ['hp', 'maxHp', 'atk', 'def', 'luck', 'ap', 'level', 'exp'] as const
+    ).forEach((key) => {
+      const add = statsDelta[key];
+      if (add !== undefined && add !== 0) {
+        mergedStats[key] = (mergedStats[key] ?? 0) + add;
+      }
+    });
+
+    if (delta.type === 'BATTLE') {
+      return {
+        ...delta,
+        detail: {
+          ...delta.detail,
+          stats: Object.keys(mergedStats).length ? mergedStats : undefined,
+        },
+      };
+    }
+
+    return delta;
   }
 
   private applyProgress(
