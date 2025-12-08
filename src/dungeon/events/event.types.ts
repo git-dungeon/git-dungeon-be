@@ -71,6 +71,13 @@ export type DungeonEventResult = {
   rawLogs: DungeonEventLogStub[];
   logs: DungeonLogPayload[];
   drops?: DropResult[];
+  inventoryAdds?: Array<{
+    itemId: string;
+    code: string;
+    slot?: string;
+    rarity?: string;
+    quantity?: number;
+  }>;
 };
 
 export type DungeonEventSelectionInput = {

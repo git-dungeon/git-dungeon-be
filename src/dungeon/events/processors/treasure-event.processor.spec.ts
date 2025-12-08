@@ -61,8 +61,8 @@ describe('TreasureEventProcessor', () => {
         {
           itemId: 'weapon-wooden-sword',
           code: 'weapon-wooden-sword',
-          slot: 'unknown',
-          rarity: undefined,
+          slot: 'weapon',
+          rarity: 'common',
           quantity: 1,
         },
       ]);

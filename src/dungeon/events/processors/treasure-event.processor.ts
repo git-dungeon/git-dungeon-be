@@ -115,6 +115,4 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       isElite: false,
     });
   }
-
-  // TODO: T-M3-3-03에서 카탈로그 슬롯/희귀도 매핑 후 업데이트
 }

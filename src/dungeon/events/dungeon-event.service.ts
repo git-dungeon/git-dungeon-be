@@ -29,6 +29,7 @@ import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
 import { DungeonLogBuilder } from './dungeon-log.builder';
 import type { SeededRandom } from './seeded-rng.provider';
+import { DropInventoryService } from '../drops/drop-inventory.service';
 
 @Injectable()
 export class DungeonEventService {
@@ -53,9 +54,10 @@ export class DungeonEventService {
     >,
     @Inject(DungeonLogBuilder)
     private readonly logBuilder: DungeonLogBuilder,
+    private readonly dropInventoryService?: DropInventoryService,
   ) {}
 
-  execute(context: DungeonEventContext): DungeonEventResult {
+  async execute(context: DungeonEventContext): Promise<DungeonEventResult> {
     const apCost = context.apCost ?? 1;
     const weights = context.weights ?? DEFAULT_EVENT_WEIGHTS;
     const rng = this.rngFactory.create(
@@ -157,6 +159,14 @@ export class DungeonEventService {
       turnNumber: context.actionCounter,
     });
 
+    const inventoryAdds =
+      processorResult.drops?.length && this.dropInventoryService
+        ? await this.dropInventoryService.applyDrops({
+            userId: stateBefore.userId,
+            drops: processorResult.drops,
+          })
+        : undefined;
+
     return {
       selectedEvent,
       forcedMove: needsForcedMove,
@@ -165,6 +175,7 @@ export class DungeonEventService {
       rawLogs: logs,
       logs: builtLogs,
       drops: processorResult.drops,
+      inventoryAdds,
     };
   }
 

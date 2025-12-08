@@ -1,7 +1,20 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { InventoryDelta } from '../../common/logs/dungeon-log-delta';
 import type { DropResult } from './drop-table';
 import type { DropService } from './drop.service';
 import { DEFAULT_DROP_TABLE_ID } from './drop.service';
+
+type ItemSlot = string;
+
+type CatalogItemMeta = {
+  code: string;
+  slot: ItemSlot;
+  rarity?: string | null;
+  modifiers?: unknown;
+};
+
+let cachedCatalogItems: Map<string, CatalogItemMeta> | null = null;
 
 export type RollDropsParams = {
   dropService?: DropService;
@@ -25,11 +38,40 @@ export const mapDropsToInventoryAdds = (
   drops: DropResult[] | undefined,
 ): InventoryDelta['added'] => {
   if (!Array.isArray(drops)) return [];
+  const catalog = loadCatalogItemMap();
   return drops.map((drop) => ({
     itemId: drop.itemCode,
     code: drop.itemCode,
-    slot: 'unknown',
-    rarity: undefined,
+    slot: catalog.get(drop.itemCode)?.slot ?? 'unknown',
+    rarity: catalog.get(drop.itemCode)?.rarity ?? undefined,
     quantity: drop.quantity,
   }));
+};
+
+export const getCatalogItemMeta = (code: string): CatalogItemMeta | undefined =>
+  loadCatalogItemMap().get(code);
+
+const loadCatalogItemMap = (): Map<string, CatalogItemMeta> => {
+  if (cachedCatalogItems) return cachedCatalogItems;
+  const catalogPath = path.resolve(process.cwd(), 'config/catalog/items.json');
+  try {
+    const raw = fs.readFileSync(catalogPath, 'utf-8');
+    const parsed = JSON.parse(raw) as { items?: CatalogItemMeta[] };
+    const map = new Map<string, CatalogItemMeta>();
+    (parsed.items ?? []).forEach((item) => {
+      if (!item?.code) return;
+      map.set(item.code, {
+        code: item.code,
+        slot: item.slot,
+        rarity: item.rarity,
+        modifiers: item.modifiers,
+      });
+    });
+    cachedCatalogItems = map;
+    return map;
+  } catch (_error) {
+    // 실패 시 빈 맵으로 fallback
+    cachedCatalogItems = new Map();
+    return cachedCatalogItems;
+  }
 };
