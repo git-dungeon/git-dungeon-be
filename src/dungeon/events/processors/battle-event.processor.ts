@@ -194,17 +194,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         : 0;
 
     const drops =
-      outcome === 'VICTORY'
-        ? rollDrops({
-            dropService: this.options.dropService,
-            tableId:
-              monsterMeta.dropTableId ??
-              this.options.defaultDropTableId ??
-              DEFAULT_DROP_TABLE_ID,
-            rng: { next: rng },
-            isElite: monsterMeta.rarity === 'elite',
-          })
-        : [];
+      outcome === 'VICTORY' ? this.rollDrops(monsterMeta, { next: rng }) : [];
 
     return this.buildResult({
       input,

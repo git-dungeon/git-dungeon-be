@@ -30,9 +30,9 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
   ) {}
 
   process(input: DungeonEventProcessorInput): DungeonEventProcessorOutput {
-    const rng = this.rngFactory?.create(String(input.rngValue)) ??
-      // fallback: deterministic on rngValue
-      { next: () => input.rngValue };
+    const rng =
+      this.rngFactory?.create(String(input.rngValue)) ??
+      this.createFallbackRng(input.rngValue);
 
     const baseGold = this.effect.rewards?.gold ?? 0;
     const gold = baseGold;
@@ -126,5 +126,16 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       rng,
       isElite: false,
     });
+  }
+
+  private createFallbackRng(seedValue: number): { next: () => number } {
+    // 간단한 LCG 기반 결정적 RNG: 동일 입력에 대해 동일 시퀀스 보장
+    let seed = Math.floor((seedValue ?? 0) * 1e9) >>> 0;
+    return {
+      next: () => {
+        seed = (1664525 * seed + 1013904223) >>> 0;
+        return seed / 0xffffffff;
+      },
+    };
   }
 }

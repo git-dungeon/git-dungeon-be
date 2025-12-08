@@ -55,8 +55,8 @@ export class DropInventoryService {
           added.push({
             itemId: id,
             code: drop.itemCode,
-            slot,
-            rarity,
+            slot: slot.toLowerCase(),
+            rarity: rarity.toLowerCase(),
             quantity: 1,
           });
         }

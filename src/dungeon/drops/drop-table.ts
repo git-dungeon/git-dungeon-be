@@ -118,10 +118,33 @@ function normalizeDropTable(table: DropTable): DropTable {
 }
 
 function normalizeDropEntry(entry: DropEntry): DropEntry {
+  const itemCode = entry.itemCode;
+  const weight = Number(entry.weight);
+  const minQuantity = Number(entry.minQuantity);
+  const maxQuantity = Number(entry.maxQuantity);
+
+  if (!Number.isFinite(weight) || weight <= 0) {
+    throw new Error(
+      `드랍 weight가 유효하지 않습니다 (itemCode=${itemCode}, weight=${entry.weight})`,
+    );
+  }
+
+  if (!Number.isFinite(minQuantity) || minQuantity < 0) {
+    throw new Error(
+      `드랍 minQuantity가 유효하지 않습니다 (itemCode=${itemCode}, minQuantity=${entry.minQuantity})`,
+    );
+  }
+
+  if (!Number.isFinite(maxQuantity) || maxQuantity < minQuantity) {
+    throw new Error(
+      `드랍 maxQuantity가 유효하지 않습니다 (itemCode=${itemCode}, maxQuantity=${entry.maxQuantity}, minQuantity=${entry.minQuantity})`,
+    );
+  }
+
   return {
-    itemCode: entry.itemCode,
-    weight: Number(entry.weight),
-    minQuantity: Number(entry.minQuantity),
-    maxQuantity: Number(entry.maxQuantity),
+    itemCode,
+    weight,
+    minQuantity,
+    maxQuantity,
   };
 }
