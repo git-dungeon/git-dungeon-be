@@ -47,6 +47,16 @@ pnpm swagger:generate:staging # Swagger 문서 생성 (스테이징 환경)
 pnpm swagger:open       # Swagger UI 브라우저에서 열기
 ```
 
+### 던전 이벤트 설정
+
+- `src/dungeon/events/config/event-config.json`에서 이벤트 가중치와 배틀 기본값을 조정할 수 있습니다.
+  - `battle.eliteRate`(기본 0.05): 몬스터 선택 시 엘리트가 나올 확률.
+  - `battle.critBase`(기본 0.05): 크리티컬 기본 확률.
+  - `battle.critLuckFactor`(기본 0.01): Luck 1당 크리 확률 가산치.
+  - `battle.turnLimit`(기본 30): 전투가 강제 종료되기 전 최대 턴 수.
+  - `battle.exp.eliteBonus`(기본 1.5): 엘리트 몬스터의 EXP 보너스 계수.
+  - JSON 값이 없거나 잘못되면 코드의 기본값으로 폴백합니다.
+
 ## 환경 변수
 
 `.env.example`을 참고하여 필요한 값을 설정합니다.

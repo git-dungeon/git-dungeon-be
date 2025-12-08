@@ -5,6 +5,15 @@
     "REST": 40,
     "TRAP": 5
   },
+  "battle": {
+    "eliteRate": 0.05,
+    "critBase": 0.05,
+    "critLuckFactor": 0.01,
+    "turnLimit": 30,
+    "exp": {
+      "eliteBonus": 1.5
+    }
+  },
   "effects": {
     "REST": {
       "stats": {

@@ -33,7 +33,7 @@ export class DungeonLogBuilder {
 
     return logs.map((log) => ({
       category: DungeonLogCategory.EXPLORATION,
-      action: actionMapping[log.type],
+      action: log.actionOverride ?? actionMapping[log.type],
       status:
         log.status === 'STARTED'
           ? DungeonLogStatus.STARTED

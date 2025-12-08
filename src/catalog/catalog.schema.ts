@@ -11,6 +11,9 @@ export const CATALOG_RARITIES = [
 ] as const;
 export type CatalogRarity = (typeof CATALOG_RARITIES)[number];
 
+export const CATALOG_MONSTER_RARITIES = ['normal', 'elite'] as const;
+export type CatalogMonsterRarity = (typeof CATALOG_MONSTER_RARITIES)[number];
+
 export interface CatalogItem {
   code: string & tags.MinLength<1>;
   nameKey: string & tags.MinLength<1>;
@@ -47,6 +50,8 @@ export interface CatalogMonster {
   spriteId: string;
   dropTableId?: string | null;
   description?: string | null;
+  rarity: CatalogMonsterRarity;
+  variantOf?: string | null;
 }
 
 export interface CatalogDrop {

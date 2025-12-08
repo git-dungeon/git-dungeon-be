@@ -13,18 +13,34 @@ import { TrapEventProcessor } from './events/processors/trap-event.processor';
 import { MoveEventProcessor } from './events/processors/move-event.processor';
 import { DungeonLogBuilder } from './events/dungeon-log.builder';
 import { loadEventConfig } from './events/config/event-config';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { MonsterRegistry } from './monsters';
+import type { CatalogMonster } from '../catalog';
 
 @Module({
   providers: [
     DungeonEventService,
     DungeonLogBuilder,
     {
-      provide: DungeonEventProcessors,
+      provide: MonsterRegistry,
       useFactory: () => {
+        const baseDir = join(__dirname, '..', '..');
+        const raw = readFileSync(
+          join(baseDir, 'config/catalog/monsters.json'),
+          'utf8',
+        );
+        const parsed = JSON.parse(raw) as { monsters: CatalogMonster[] };
+        return MonsterRegistry.from(parsed.monsters);
+      },
+    },
+    {
+      provide: DungeonEventProcessors,
+      useFactory: (monsterRegistry: MonsterRegistry) => {
         const config = loadEventConfig();
         const effects = config.effects ?? {};
 
-        const battle = new BattleEventProcessor();
+        const battle = new BattleEventProcessor(monsterRegistry);
         const rest = new RestEventProcessor(effects.REST);
         const treasure = new TreasureEventProcessor(effects.TREASURE);
         const trap = new TrapEventProcessor(effects.TRAP);
@@ -38,6 +54,7 @@ import { loadEventConfig } from './events/config/event-config';
           [DungeonEventType.MOVE]: move,
         };
       },
+      inject: [MonsterRegistry],
     },
     {
       provide: SEEDED_RNG_FACTORY,

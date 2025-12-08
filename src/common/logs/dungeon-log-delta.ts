@@ -6,6 +6,7 @@ export type StatsDelta = Partial<{
   luck: number;
   ap: number;
   level: number;
+  exp: number;
 }>;
 
 export type InventoryDelta = {

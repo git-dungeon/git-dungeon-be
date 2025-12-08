@@ -176,4 +176,5 @@ export {
   assertCatalogData,
   validateCatalogData,
   CATALOG_RARITIES,
+  CATALOG_MONSTER_RARITIES,
 } from './catalog.schema';
