@@ -8,7 +8,8 @@ import {
 } from '@prisma/client';
 import { DungeonEventService } from './dungeon-event.service';
 import { DungeonModule } from '../dungeon.module';
-import { DungeonEventType, type DungeonLogPayload } from './event.types';
+import { DungeonEventType } from './event.types';
+import type { DungeonLogPayload } from './event.types';
 
 describe('DungeonEventService', () => {
   let service: DungeonEventService;
@@ -267,6 +268,73 @@ describe('DungeonEventService', () => {
       status: DungeonLogStatus.COMPLETED,
       stateVersion: state.version + 1,
     });
+  });
+
+  it('HP<=0이면 DEATH 로그가 생성되고 진행도가 리셋된다', () => {
+    const state: DungeonState = createState({
+      hp: 1,
+      floor: 3,
+      floorProgress: 70,
+    });
+
+    const result = service.execute({
+      state,
+      seed: 'death-seed',
+      weights: {
+        [DungeonEventType.BATTLE]: 0,
+        [DungeonEventType.TREASURE]: 0,
+        [DungeonEventType.REST]: 0,
+        [DungeonEventType.TRAP]: 1,
+      },
+    });
+
+    const deathLog = result.logs.find(
+      (log) => log.action === DungeonLogAction.DEATH,
+    );
+    expect(deathLog).toBeDefined();
+    expect(result.stateAfter.floor).toBe(1);
+    expect(result.stateAfter.floorProgress).toBe(0);
+    expect(result.stateAfter.hp).toBe(result.stateAfter.maxHp);
+  });
+
+  it('승리 시 레벨업과 LEVEL_UP 로그를 생성하고 delta에 stats를 병합한다', () => {
+    const state: DungeonState = createState({
+      atk: 20,
+      def: 1,
+      hp: 10,
+      maxHp: 10,
+      exp: 9,
+      level: 1,
+    });
+
+    const result = service.execute({
+      state,
+      seed: 'levelup-seed',
+      weights: {
+        [DungeonEventType.BATTLE]: 1,
+        [DungeonEventType.TREASURE]: 0,
+        [DungeonEventType.REST]: 0,
+        [DungeonEventType.TRAP]: 0,
+      },
+    });
+
+    const levelUpLog = result.logs.find(
+      (log) => log.action === DungeonLogAction.LEVEL_UP,
+    );
+    expect(levelUpLog).toBeDefined();
+
+    const battleCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+
+    expect(result.stateAfter.level).toBeGreaterThan(state.level);
+    expect(result.stateAfter.maxHp).toBeGreaterThan(state.maxHp);
+    expect(battleCompleted?.delta?.type).toBe('BATTLE');
+    if (battleCompleted?.delta?.type === 'BATTLE') {
+      expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
+    }
   });
 });
 
