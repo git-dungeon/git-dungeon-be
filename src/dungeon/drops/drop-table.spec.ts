@@ -16,9 +16,9 @@ const fixedRng = (values: number[]) => {
 describe('DropTableRegistry', () => {
   it('기본 드랍 테이블 구성을 로드한다', () => {
     const registry = DropTableRegistry.fromFile();
-    const table = registry.get('drops-floor-1');
+    const table = registry.get('drops-default');
 
-    expect(table.tableId).toBe('drops-floor-1');
+    expect(table.tableId).toBe('drops-default');
     expect(table.drops.length).toBeGreaterThan(0);
   });
 });

@@ -7,6 +7,7 @@ import type {
 } from '@prisma/client';
 import type { DungeonLogDelta } from '../../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../../common/logs/dungeon-log-extra';
+import type { DropResult } from '../drops/drop-table';
 
 export enum DungeonEventType {
   BATTLE = 'BATTLE',
@@ -69,6 +70,7 @@ export type DungeonEventResult = {
   stateAfter: DungeonState;
   rawLogs: DungeonEventLogStub[];
   logs: DungeonLogPayload[];
+  drops?: DropResult[];
 };
 
 export type DungeonEventSelectionInput = {
@@ -92,6 +94,7 @@ export type DungeonEventProcessorOutput = {
   extra?: DungeonLogDetails;
   expGained?: number;
   followUpLogs?: DungeonEventLogStub[];
+  drops?: DropResult[];
 };
 
 export interface DungeonEventProcessor {

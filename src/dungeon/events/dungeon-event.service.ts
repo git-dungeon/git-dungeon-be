@@ -164,6 +164,7 @@ export class DungeonEventService {
       stateAfter: finalState,
       rawLogs: logs,
       logs: builtLogs,
+      drops: processorResult.drops,
     };
   }
 

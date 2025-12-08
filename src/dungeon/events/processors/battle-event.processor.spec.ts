@@ -1,8 +1,9 @@
 import type { DungeonState } from '@prisma/client';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { CatalogMonster } from '../../../catalog';
 import { MonsterRegistry } from '../../monsters';
 import { BattleEventProcessor } from './battle-event.processor';
+import type { DropService } from '../../drops/drop.service';
 
 const createState = (overrides: Partial<DungeonState> = {}): DungeonState => ({
   userId: 'user',
@@ -36,7 +37,7 @@ const monsters: CatalogMonster[] = [
     atk: 2,
     def: 0,
     spriteId: 'sprite/normal',
-    dropTableId: 'drops-floor-1',
+    dropTableId: 'drops-default',
     description: 'A basic monster.',
     rarity: 'normal',
     variantOf: null,
@@ -50,7 +51,7 @@ const monsters: CatalogMonster[] = [
     atk: 3,
     def: 1,
     spriteId: 'sprite/elite',
-    dropTableId: 'drops-floor-1',
+    dropTableId: 'drops-default',
     description: 'A stronger monster.',
     rarity: 'elite',
     variantOf: 'monster-normal',
@@ -104,6 +105,24 @@ describe('BattleEventProcessor', () => {
     expect(details.details.monster.id).toBe('monster-normal');
     expect(result.state.hp).toBeGreaterThan(0);
     expect(result.delta?.type).toBe('BATTLE');
+  });
+
+  it('승리 시 드랍 엔진을 호출해 drops를 반환한다', () => {
+    const dropService: Pick<DropService, 'roll'> = {
+      roll: vi.fn().mockReturnValue([{ itemCode: 'angel-ring', quantity: 1 }]),
+    };
+    const processor = new BattleEventProcessor(registry, {
+      rngFactory: fixedRngFactory([0.9, 0.0]), // normal monster
+      dropService: dropService as DropService,
+    });
+
+    const result = processor.process({
+      state: createState({ atk: 10, def: 0, hp: 10, maxHp: 10 }),
+      rngValue: 0,
+    });
+
+    expect(dropService.roll).toHaveBeenCalled();
+    expect(result.drops).toEqual([{ itemCode: 'angel-ring', quantity: 1 }]);
   });
 
   it('패배 시 floor를 1로 리셋하고 HP를 초기화한다', () => {

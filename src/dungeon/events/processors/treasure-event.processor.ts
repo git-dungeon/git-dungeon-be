@@ -10,13 +10,30 @@ import type {
   InventoryDelta,
 } from '../../../common/logs/dungeon-log-delta';
 import { applyEffectDelta } from '../effect-applier';
+import type { DropService } from '../../drops/drop.service';
+import { DEFAULT_DROP_TABLE_ID } from '../../drops/drop.service';
+import {
+  SEEDED_RNG_FACTORY,
+  SeededRandomFactory,
+} from '../seeded-rng.provider';
+import { Inject } from '@nestjs/common';
+import { mapDropsToInventoryAdds } from '../../drops/drop.utils';
 
 export class TreasureEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.TREASURE;
 
-  constructor(private readonly effect: EffectDelta = {}) {}
+  constructor(
+    private readonly effect: EffectDelta = {},
+    @Inject(SEEDED_RNG_FACTORY)
+    private readonly rngFactory?: SeededRandomFactory,
+    private readonly dropService?: DropService,
+  ) {}
 
   process(input: DungeonEventProcessorInput): DungeonEventProcessorOutput {
+    const rng = this.rngFactory?.create(String(input.rngValue)) ??
+      // fallback: deterministic on rngValue
+      { next: () => input.rngValue };
+
     const baseGold = this.effect.rewards?.gold ?? 0;
     const gold = baseGold;
     const applied = applyEffectDelta(input.state, {
@@ -27,6 +44,10 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       },
     });
 
+    const drops = this.rollDrops(rng);
+    const dropAdds = mapDropsToInventoryAdds(drops);
+    const baseAdds = this.toInventoryAdds(this.effect.rewards?.items);
+
     return {
       state: applied.state,
       delta: {
@@ -35,12 +56,13 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
           gold: applied.rewardsDelta.gold ?? gold,
           rewards: {
             gold,
-            items: this.toInventoryAdds(this.effect.rewards?.items),
+            items: [...(baseAdds ?? []), ...(dropAdds ?? [])],
             buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],
           },
         },
       },
+      drops,
     };
   }
 
@@ -82,4 +104,17 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         typeof (buff as { buffId?: unknown }).buffId === 'string',
     );
   }
+
+  private rollDrops(rng: {
+    next: () => number;
+  }): NonNullable<DungeonEventProcessorOutput['drops']> {
+    if (!this.dropService) return [];
+    return this.dropService.roll({
+      tableId: DEFAULT_DROP_TABLE_ID,
+      rng,
+      isElite: false,
+    });
+  }
+
+  // TODO: T-M3-3-03에서 카탈로그 슬롯/희귀도 매핑 후 업데이트
 }
