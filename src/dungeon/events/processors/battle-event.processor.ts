@@ -276,10 +276,15 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     outcome: BattleOutcome,
     playerHp: number,
   ): DungeonState {
+    const defeatedProgress =
+      outcome === 'DEFEAT'
+        ? Math.max(0, state.floorProgress - BATTLE_PROGRESS_INCREMENT)
+        : state.floorProgress;
+
     return {
       ...state,
       hp: Math.max(0, Math.min(playerHp, state.maxHp)),
-      floorProgress: state.floorProgress,
+      floorProgress: defeatedProgress,
     };
   }
 

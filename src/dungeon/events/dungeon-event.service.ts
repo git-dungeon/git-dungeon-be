@@ -276,10 +276,11 @@ export class DungeonEventService {
       statsDelta[statKey] = (statsDelta[statKey] ?? 0) + 1;
 
       // HP/MaxHP 보너스
+      const newMaxHp = nextState.maxHp + 2;
       nextState = {
         ...nextState,
-        maxHp: nextState.maxHp + 2,
-        hp: Math.min(nextState.maxHp + 2, nextState.hp + 2),
+        maxHp: newMaxHp,
+        hp: Math.min(newMaxHp, nextState.hp + 2),
       };
       statsDelta.maxHp = (statsDelta.maxHp ?? 0) + 2;
       statsDelta.hp = (statsDelta.hp ?? 0) + 2;
