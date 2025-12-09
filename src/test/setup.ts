@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, vi } from 'vitest';
 
 beforeAll(() => {
+  vi.stubEnv('NODE_ENV', 'test');
   vi.stubEnv(
     'DATABASE_URL',
     process.env.DATABASE_URL ??
@@ -15,6 +16,7 @@ beforeAll(() => {
     'DATABASE_SKIP_CONNECTION',
     process.env.DATABASE_SKIP_CONNECTION ?? 'true',
   );
+  vi.stubEnv('REDIS_SKIP_CONNECTION', 'true');
 });
 
 afterAll(() => {

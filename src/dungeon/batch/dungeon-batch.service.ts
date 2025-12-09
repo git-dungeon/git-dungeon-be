@@ -1,4 +1,10 @@
-import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+  Optional,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
@@ -8,6 +14,7 @@ import type { DungeonEventResult } from '../events/event.types';
 import { PrismaService } from '../../prisma/prisma.service';
 import { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import { loadEnvironment } from '../../config/environment';
+import { SimpleQueue } from '../../common/queue/simple-queue';
 
 type BatchConfig = {
   cron: string;
@@ -15,6 +22,10 @@ type BatchConfig = {
   maxActionsPerUser: number;
   minAp: number;
   inactiveDays: number;
+};
+
+type DungeonBatchJob = {
+  userId: string;
 };
 
 @Injectable()
@@ -27,10 +38,13 @@ export class DungeonBatchService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly dungeonEventService: DungeonEventService,
     private readonly lockService: DungeonBatchLockService,
+    @Inject('DUNGEON_BATCH_QUEUE')
+    private readonly queue: SimpleQueue<DungeonBatchJob>,
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
     @Optional() private readonly configService?: ConfigService,
   ) {
     const fallbackEnv = configService ? undefined : loadEnvironment();
+
     this.config = {
       cron:
         this.configService?.get<string>('dungeon.batch.cron') ??
@@ -53,6 +67,10 @@ export class DungeonBatchService implements OnModuleInit {
         fallbackEnv?.dungeonBatchInactiveDays ??
         30,
     };
+
+    this.queue.registerHandler(async (job) => {
+      await this.processUser(job.userId);
+    });
   }
 
   onModuleInit(): void {
@@ -77,13 +95,13 @@ export class DungeonBatchService implements OnModuleInit {
   }
 
   async runBatchTick(): Promise<void> {
-    const users = await this.fetchEligibleUsers();
-    for (const userState of users) {
-      await this.processUser(userState);
+    const userIds = await this.fetchEligibleUsers();
+    for (const userId of userIds) {
+      await this.queue.enqueue({ userId });
     }
   }
 
-  private async fetchEligibleUsers(): Promise<DungeonState[]> {
+  private async fetchEligibleUsers(): Promise<string[]> {
     const where: Prisma.DungeonStateWhereInput = {
       ap: { gte: this.config.minAp },
     };
@@ -102,11 +120,12 @@ export class DungeonBatchService implements OnModuleInit {
       ...(this.lastCursorUserId
         ? { cursor: { userId: this.lastCursorUserId }, skip: 1 }
         : {}),
+      select: { userId: true },
     });
 
     if (primary.length === this.config.maxUsersPerTick) {
       this.lastCursorUserId = primary[primary.length - 1]?.userId;
-      return primary;
+      return primary.map((p) => p.userId);
     }
 
     const remaining = this.config.maxUsersPerTick - primary.length;
@@ -116,25 +135,33 @@ export class DungeonBatchService implements OnModuleInit {
             where,
             take: remaining,
             orderBy: { userId: 'asc' },
+            select: { userId: true },
           })
         : [];
 
     const combined = [...primary, ...secondary];
     this.lastCursorUserId = combined[combined.length - 1]?.userId;
-    return combined;
+    return combined.map((p) => p.userId);
   }
 
-  private async processUser(state: DungeonState): Promise<void> {
-    const locked = await this.lockService.acquire(state.userId);
+  private async processUser(userId: string): Promise<void> {
+    const locked = await this.lockService.acquire(userId);
     if (!locked) {
       this.logger.warn(
-        `Skipping dungeon batch for user ${state.userId}: lock not acquired`,
+        `Skipping dungeon batch for user ${userId}: lock not acquired`,
       );
       return;
     }
 
     try {
-      let currentState = state;
+      const latestState = await this.prisma.dungeonState.findUnique({
+        where: { userId },
+      });
+      if (!latestState || latestState.ap < this.config.minAp) {
+        return;
+      }
+
+      let currentState = latestState;
       const allowedActions = Math.min(
         currentState.ap,
         this.config.maxActionsPerUser,
@@ -154,13 +181,13 @@ export class DungeonBatchService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         {
-          userId: state.userId,
+          userId,
           error: error instanceof Error ? error.message : String(error),
         },
         'Dungeon batch execution failed',
       );
     } finally {
-      await this.lockService.release(state.userId);
+      await this.lockService.release(userId);
     }
   }
 

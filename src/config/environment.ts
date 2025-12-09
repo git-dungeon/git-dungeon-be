@@ -26,10 +26,7 @@ export interface Environment {
   githubSyncBatchSize: number;
   githubSyncManualCooldownMs: number;
   redisUrl: string & tags.MinLength<1>;
-  githubSyncRetryMax: number;
-  githubSyncRetryBackoffBaseMs: number;
-  githubSyncRetryTtlMs: number;
-  githubSyncRetryConcurrency: number;
+  // deprecated: use queue* for retry config
   githubTokenLockTtlMs: number;
   githubTokenRateLimitCacheMs: number;
   githubTokenCooldownMs: number;
@@ -42,6 +39,12 @@ export interface Environment {
   dungeonBatchLockTtlMs: number;
   dungeonBatchLockBackoffMs: number;
   dungeonBatchLockMaxRetry: number;
+  queueRetryMax: number;
+  queueRetryBackoffBaseMs: number;
+  queueRetryTtlMs: number;
+  queueDlqTtlDays: number;
+  queueRetryConcurrency: number;
+  alertWebhookUrl: string;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -156,19 +159,6 @@ export const loadEnvironment = (): Environment => {
       6 * 60 * 60 * 1000, // 6 hours
     ),
     redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
-    githubSyncRetryMax: parseNumber(process.env.GITHUB_SYNC_RETRY_MAX, 3),
-    githubSyncRetryBackoffBaseMs: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_BACKOFF_BASE_MS,
-      60 * 1000,
-    ),
-    githubSyncRetryTtlMs: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_TTL_MS,
-      24 * 60 * 60 * 1000,
-    ),
-    githubSyncRetryConcurrency: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_CONCURRENCY,
-      5,
-    ),
     githubTokenLockTtlMs: parseNumber(
       process.env.GITHUB_TOKEN_LOCK_TTL_MS,
       30_000,
@@ -211,6 +201,18 @@ export const loadEnvironment = (): Environment => {
       process.env.DUNGEON_BATCH_LOCK_MAX_RETRY,
       3,
     ),
+    queueRetryMax: parseNumber(process.env.QUEUE_RETRY_MAX, 3),
+    queueRetryBackoffBaseMs: parseNumber(
+      process.env.QUEUE_RETRY_BACKOFF_BASE_MS,
+      1_500,
+    ),
+    queueRetryTtlMs: parseNumber(
+      process.env.QUEUE_RETRY_TTL_MS,
+      2 * 60 * 60 * 1000,
+    ),
+    queueRetryConcurrency: parseNumber(process.env.QUEUE_RETRY_CONCURRENCY, 5),
+    queueDlqTtlDays: parseNumber(process.env.QUEUE_DLQ_TTL_DAYS, 7),
+    alertWebhookUrl: process.env.ALERT_WEBHOOK_URL ?? '',
   };
 
   return typia.assert<Environment>(raw);

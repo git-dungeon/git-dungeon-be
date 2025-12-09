@@ -18,6 +18,8 @@ import { GithubModule } from './github/github.module';
 import { DungeonModule } from './dungeon/dungeon.module';
 import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
 
+const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -68,7 +70,8 @@ import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
     CatalogModule,
     GithubModule,
     DungeonModule,
-    DungeonBatchModule,
+    // 테스트에서는 크론/큐 초기화를 생략해 부트스트랩을 가볍게 유지
+    ...(isTestEnv ? [] : [DungeonBatchModule]),
   ],
   controllers: [AppController],
   providers: [

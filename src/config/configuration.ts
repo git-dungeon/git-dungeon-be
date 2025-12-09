@@ -30,6 +30,13 @@ const configuration = () => {
         lockMaxRetry: env.dungeonBatchLockMaxRetry,
       },
     },
+    queue: {
+      retryMax: env.queueRetryMax,
+      retryBackoffBaseMs: env.queueRetryBackoffBaseMs,
+      retryTtlMs: env.queueRetryTtlMs,
+      dlqTtlDays: env.queueDlqTtlDays,
+      alertWebhookUrl: env.alertWebhookUrl,
+    },
     database: {
       url: env.databaseUrl,
       shadowUrl: env.databaseShadowUrl,
@@ -62,10 +69,10 @@ const configuration = () => {
         cron: env.githubSyncCron,
         batchSize: env.githubSyncBatchSize,
         manualCooldownMs: env.githubSyncManualCooldownMs,
-        retryMax: env.githubSyncRetryMax,
-        retryBackoffBaseMs: env.githubSyncRetryBackoffBaseMs,
-        retryTtlMs: env.githubSyncRetryTtlMs,
-        retryConcurrency: env.githubSyncRetryConcurrency,
+        retryMax: env.queueRetryMax,
+        retryBackoffBaseMs: env.queueRetryBackoffBaseMs,
+        retryTtlMs: env.queueRetryTtlMs,
+        retryConcurrency: env.queueRetryConcurrency,
       },
     },
     redis: {

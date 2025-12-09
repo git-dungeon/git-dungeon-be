@@ -11,6 +11,7 @@ import type { ConfigService } from '@nestjs/config';
 import type { PrismaService } from '../../prisma/prisma.service';
 import type { DungeonEventService } from '../events/dungeon-event.service';
 import type { DungeonBatchLockService } from './dungeon-batch.lock.service';
+import type { SimpleQueue } from '../../common/queue/simple-queue';
 
 type MockConfigService = Pick<ConfigService, 'get'>;
 
@@ -61,6 +62,7 @@ describe('DungeonBatchService 배치 동작', () => {
     dungeonState: {
       findMany: vi.fn(),
       updateMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     dungeonLog: {
       createMany: vi.fn(),
@@ -77,11 +79,41 @@ describe('DungeonBatchService 배치 동작', () => {
     execute: vi.fn(),
   };
 
+  const queueMock = (() => {
+    let handler: ((data: { userId: string }) => Promise<void>) | null = null;
+    return {
+      registerHandler: vi.fn<
+        (cb: (data: { userId: string }) => Promise<void>) => void
+      >((cb) => {
+        handler = cb;
+      }),
+      enqueue: vi.fn(async (data: { userId: string }) => {
+        if (handler) {
+          await handler(data);
+        }
+      }),
+      resetHandler: () => {
+        handler = null;
+      },
+    };
+  })();
+
+  const originalNodeEnv = process.env.NODE_ENV;
+
   beforeEach(() => {
+    process.env.NODE_ENV = 'development';
     vi.clearAllMocks();
     prismaMock.$transaction?.mockImplementation(
       (cb: (tx: typeof prismaMock) => unknown) => cb(prismaMock),
     );
+    prismaMock.dungeonState.findUnique.mockResolvedValue(null);
+    queueMock.registerHandler.mockClear();
+    queueMock.enqueue.mockClear();
+    queueMock.resetHandler();
+  });
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   const buildService = (configService: MockConfigService) =>
@@ -89,6 +121,7 @@ describe('DungeonBatchService 배치 동작', () => {
       prismaMock as unknown as PrismaService,
       eventServiceMock as unknown as DungeonEventService,
       lockMock as unknown as DungeonBatchLockService,
+      queueMock as unknown as SimpleQueue<{ userId: string }>,
       undefined,
       configService as unknown as ConfigService,
     );
@@ -131,6 +164,7 @@ describe('DungeonBatchService 배치 동작', () => {
     prismaMock.dungeonState.findMany
       .mockResolvedValueOnce([state]) // primary fetch
       .mockResolvedValueOnce([]); // secondary wrap fetch
+    prismaMock.dungeonState.findUnique.mockResolvedValue(state);
     lockMock.acquire.mockResolvedValue(true);
     prismaMock.dungeonState.updateMany.mockResolvedValue({ count: 1 });
 
