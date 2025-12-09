@@ -34,6 +34,14 @@ export interface Environment {
   githubTokenRateLimitCacheMs: number;
   githubTokenCooldownMs: number;
   redisSkipConnection: boolean;
+  dungeonBatchCron: string;
+  dungeonBatchMaxUsersPerTick: number;
+  dungeonBatchMaxActionsPerUser: number;
+  dungeonBatchMinAp: number;
+  dungeonBatchInactiveDays: number;
+  dungeonBatchLockTtlMs: number;
+  dungeonBatchLockBackoffMs: number;
+  dungeonBatchLockMaxRetry: number;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -176,6 +184,32 @@ export const loadEnvironment = (): Environment => {
     redisSkipConnection: parseBoolean(
       process.env.REDIS_SKIP_CONNECTION,
       nodeEnv === 'test',
+    ),
+    dungeonBatchCron: process.env.DUNGEON_BATCH_CRON ?? '*/5 * * * *', // every 5 minutes
+    dungeonBatchMaxUsersPerTick: parseNumber(
+      process.env.DUNGEON_BATCH_MAX_USERS_PER_TICK,
+      200,
+    ),
+    dungeonBatchMaxActionsPerUser: parseNumber(
+      process.env.DUNGEON_BATCH_MAX_ACTIONS_PER_USER,
+      5,
+    ),
+    dungeonBatchMinAp: parseNumber(process.env.DUNGEON_BATCH_MIN_AP, 1),
+    dungeonBatchInactiveDays: parseNumber(
+      process.env.DUNGEON_BATCH_INACTIVE_DAYS,
+      30,
+    ),
+    dungeonBatchLockTtlMs: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_TTL_MS,
+      60_000,
+    ),
+    dungeonBatchLockBackoffMs: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_BACKOFF_MS,
+      200,
+    ),
+    dungeonBatchLockMaxRetry: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_MAX_RETRY,
+      3,
     ),
   };
 

@@ -16,6 +16,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { GithubModule } from './github/github.module';
 import { DungeonModule } from './dungeon/dungeon.module';
+import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { DungeonModule } from './dungeon/dungeon.module';
     CatalogModule,
     GithubModule,
     DungeonModule,
+    DungeonBatchModule,
   ],
   controllers: [AppController],
   providers: [

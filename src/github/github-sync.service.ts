@@ -43,18 +43,6 @@ export class GithubSyncService {
     while (true) {
       try {
         return await this.prisma.$transaction(async (tx) => {
-          const lastSuccess = await tx.apSyncLog.findFirst({
-            where: { userId: params.userId, status: ApSyncStatus.SUCCESS },
-            orderBy: { windowEnd: 'desc' },
-            select: {
-              id: true,
-              status: true,
-              apDelta: true,
-              windowStart: true,
-              windowEnd: true,
-            },
-          });
-
           // 동일 anchor(windowStart)로 최신 로그를 조회해 재활용한다.
           const anchorLog = await tx.apSyncLog.findFirst({
             where: { userId: params.userId, windowStart: params.windowStart },

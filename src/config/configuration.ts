@@ -19,6 +19,16 @@ const configuration = () => {
     },
     dungeon: {
       initialAp: env.dungeonInitialAp,
+      batch: {
+        cron: env.dungeonBatchCron,
+        maxUsersPerTick: env.dungeonBatchMaxUsersPerTick,
+        maxActionsPerUser: env.dungeonBatchMaxActionsPerUser,
+        minAp: env.dungeonBatchMinAp,
+        inactiveDays: env.dungeonBatchInactiveDays,
+        lockTtlMs: env.dungeonBatchLockTtlMs,
+        lockBackoffMs: env.dungeonBatchLockBackoffMs,
+        lockMaxRetry: env.dungeonBatchLockMaxRetry,
+      },
     },
     database: {
       url: env.databaseUrl,
