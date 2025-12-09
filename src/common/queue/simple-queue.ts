@@ -9,6 +9,7 @@ type QueueConfig = {
   retryTtlMs: number;
   dlqTtlDays: number;
   alertWebhookUrl?: string | null;
+  alertFailureThreshold: number;
 };
 
 export type SimpleJobHandler<T> = (data: T) => Promise<void>;
@@ -23,6 +24,28 @@ type DeadLetterPayload<T> = {
   stack?: string;
   attempts: number;
   timestamp: number;
+  jobId?: string;
+};
+
+type QueueEventOutcome = 'success' | 'failure' | 'retry' | 'dlq';
+
+export type QueueEvent<T> = {
+  queue: string;
+  dlq: string;
+  outcome: QueueEventOutcome;
+  jobId?: string;
+  attempts: number;
+  durationMs?: number;
+  timestamp: number;
+  error?: string;
+  stack?: string;
+  data?: T;
+  dlqSize?: number;
+  failureCount?: number;
+};
+
+type QueueMonitor<T> = {
+  onEvent?: (event: QueueEvent<T>) => void;
 };
 
 @Injectable()
@@ -39,6 +62,8 @@ export class SimpleQueue<T> implements OnModuleDestroy {
   private readonly inMemoryDlq: DeadLetterPayload<T>[] = [];
   private workerConcurrency = 1;
   private readonly inlineInflight = new Set<string>();
+  private monitor?: QueueMonitor<T>;
+  private readonly failureCounts = new Map<string, number>();
 
   constructor(
     queueName: string,
@@ -55,6 +80,8 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     const dlqTtlDays = this.configService?.get<number>('queue.dlqTtlDays') ?? 7;
     const alertWebhookUrl =
       this.configService?.get<string>('queue.alertWebhookUrl') ?? null;
+    const alertFailureThreshold =
+      this.configService?.get<number>('queue.alertFailureThreshold') ?? 3;
 
     this.config = {
       retryMax,
@@ -62,6 +89,7 @@ export class SimpleQueue<T> implements OnModuleDestroy {
       retryTtlMs,
       dlqTtlDays,
       alertWebhookUrl,
+      alertFailureThreshold,
     };
 
     const redisUrl =
@@ -100,6 +128,10 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     if (!this.skipConnection) {
       this.ensureWorker(handler, this.workerConcurrency);
     }
+  }
+
+  setMonitor(monitor: QueueMonitor<T>): void {
+    this.monitor = monitor;
   }
 
   async enqueue(
@@ -147,11 +179,31 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     this.worker = new Worker<T>(
       this.queueName,
       async (job) => {
+        const startedAt = Date.now();
         try {
           await handler(job.data);
+          this.recordSuccess(
+            job.id ?? job.name,
+            job.attemptsMade + 1,
+            Date.now() - startedAt,
+          );
         } catch (error) {
-          if (job.attemptsMade + 1 >= this.config.retryMax) {
-            await this.sendToDlq(job.data, error, job.attemptsMade + 1);
+          const attempts = job.attemptsMade + 1;
+          const willRetry = attempts < this.config.retryMax;
+          this.recordFailure(
+            job.id ?? job.name,
+            attempts,
+            Date.now() - startedAt,
+            error,
+            willRetry,
+          );
+          if (!willRetry) {
+            await this.sendToDlq(
+              job.data,
+              error,
+              attempts,
+              job.id ?? undefined,
+            );
           }
           throw error;
         }
@@ -173,16 +225,29 @@ export class SimpleQueue<T> implements OnModuleDestroy {
 
     let lastError: unknown;
     for (let attempt = 1; attempt <= this.config.retryMax; attempt += 1) {
+      const startedAt = Date.now();
       try {
         await this.handler?.(data);
+        this.recordSuccess(jobId ?? undefined, attempt, Date.now() - startedAt);
         if (jobId) this.inlineInflight.delete(jobId);
         return;
       } catch (error) {
+        const willRetry = attempt < this.config.retryMax;
+        this.recordFailure(
+          jobId ?? undefined,
+          attempt,
+          Date.now() - startedAt,
+          error,
+          willRetry,
+        );
         lastError = error;
+        if (!willRetry) {
+          await this.sendToDlq(data, lastError, attempt, jobId);
+          break;
+        }
       }
     }
     if (jobId) this.inlineInflight.delete(jobId);
-    await this.sendToDlq(data, lastError, this.config.retryMax);
   }
 
   private buildJobOptions(): JobsOptions {
@@ -204,6 +269,7 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     data: T,
     error: unknown,
     attempts: number,
+    jobId?: string,
   ): Promise<void> {
     const payload: DeadLetterPayload<T> = {
       data,
@@ -211,11 +277,36 @@ export class SimpleQueue<T> implements OnModuleDestroy {
       timestamp: Date.now(),
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
+      jobId,
     };
 
     if (!this.connection || this.skipConnection) {
       this.inMemoryDlq.push(payload);
-      await this.notifyAlert(payload);
+      const dlqSize = this.inMemoryDlq.length;
+      await this.notifyAlert({
+        queue: this.queueName,
+        dlq: this.dlqName,
+        outcome: 'dlq',
+        attempts,
+        jobId,
+        timestamp: payload.timestamp,
+        error: payload.error,
+        stack: payload.stack,
+        data,
+        dlqSize,
+      });
+      this.emitEvent({
+        queue: this.queueName,
+        dlq: this.dlqName,
+        outcome: 'dlq',
+        attempts,
+        jobId,
+        timestamp: payload.timestamp,
+        error: payload.error,
+        stack: payload.stack,
+        data,
+        dlqSize,
+      });
       return;
     }
 
@@ -228,7 +319,26 @@ export class SimpleQueue<T> implements OnModuleDestroy {
       attempts: 1,
       backoff: { type: 'fixed', delay: 0 },
     });
-    await this.notifyAlert(payload);
+    const dlqSize = await dlq.getJobCountByTypes(
+      'waiting',
+      'delayed',
+      'failed',
+      'paused',
+    );
+    const event: QueueEvent<T> = {
+      queue: this.queueName,
+      dlq: this.dlqName,
+      outcome: 'dlq',
+      attempts,
+      jobId,
+      timestamp: payload.timestamp,
+      error: payload.error,
+      stack: payload.stack,
+      data,
+      dlqSize,
+    };
+    await this.notifyAlert(event);
+    this.emitEvent(event);
   }
 
   private ensureDlq(): Queue<DeadLetterPayload<T>> {
@@ -239,16 +349,81 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     return this.dlq;
   }
 
-  private async notifyAlert(payload: DeadLetterPayload<T>): Promise<void> {
+  private recordSuccess(
+    jobId: string | undefined,
+    attempts: number,
+    durationMs?: number,
+  ): void {
+    const key = jobId ?? '__anonymous__';
+    this.failureCounts.delete(key);
+    const event: QueueEvent<T> = {
+      queue: this.queueName,
+      dlq: this.dlqName,
+      outcome: 'success',
+      jobId,
+      attempts,
+      durationMs,
+      timestamp: Date.now(),
+    };
+    this.emitEvent(event);
+  }
+
+  private recordFailure(
+    jobId: string | undefined,
+    attempts: number,
+    durationMs: number | undefined,
+    error: unknown,
+    willRetry: boolean,
+  ): void {
+    const key = jobId ?? '__anonymous__';
+    const nextCount = (this.failureCounts.get(key) ?? 0) + 1;
+    this.failureCounts.set(key, nextCount);
+
+    const outcome: QueueEventOutcome = willRetry ? 'retry' : 'failure';
+    const event: QueueEvent<T> = {
+      queue: this.queueName,
+      dlq: this.dlqName,
+      outcome,
+      jobId,
+      attempts,
+      durationMs,
+      timestamp: Date.now(),
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      failureCount: nextCount,
+    };
+
+    this.emitEvent(event);
+
+    if (!willRetry && nextCount >= this.config.alertFailureThreshold) {
+      void this.notifyAlert(event);
+    }
+  }
+
+  private emitEvent(event: QueueEvent<T>): void {
+    if (this.monitor?.onEvent) {
+      try {
+        this.monitor.onEvent(event);
+      } catch (error) {
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(
+            `[SimpleQueue:${this.queueName}] monitor failed`,
+            error instanceof Error ? error.message : String(error),
+          );
+        }
+      }
+    }
+  }
+
+  private async notifyAlert(event: QueueEvent<T>): Promise<void> {
     if (!this.config.alertWebhookUrl) return;
     try {
       await fetch(this.config.alertWebhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          queue: this.queueName,
-          dlq: this.dlqName,
-          ...payload,
+          ...event,
+          alertThreshold: this.config.alertFailureThreshold,
         }),
       });
     } catch (error) {
@@ -276,6 +451,9 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     let requeued = 0;
 
     if (this.skipConnection || !this.connection) {
+      if (!this.handler) {
+        throw new Error('Queue handler is not registered');
+      }
       const items = this.inMemoryDlq.splice(0, limit);
       for (const item of items) {
         await this.enqueue(item.data);
@@ -292,7 +470,11 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     );
     for (const job of jobs) {
       const payload = job.data;
-      await this.enqueue(payload.data);
+      await (this.ensureQueue() as unknown as Queue<T>).add(
+        'job' as never,
+        payload.data as never,
+        this.buildJobOptions(),
+      );
       await job.remove();
       requeued += 1;
     }

@@ -36,6 +36,7 @@ const configuration = () => {
       retryTtlMs: env.queueRetryTtlMs,
       dlqTtlDays: env.queueDlqTtlDays,
       alertWebhookUrl: env.alertWebhookUrl,
+      alertFailureThreshold: env.alertFailureThreshold,
     },
     database: {
       url: env.databaseUrl,

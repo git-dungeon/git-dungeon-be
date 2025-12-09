@@ -28,6 +28,20 @@ type DungeonBatchJob = {
   userId: string;
 };
 
+enum DungeonBatchErrorCode {
+  PERSIST_CONFLICT = 'PERSIST_CONFLICT',
+  INVALID_STATE = 'INVALID_STATE',
+}
+
+class DungeonBatchError extends Error {
+  constructor(
+    public readonly code: DungeonBatchErrorCode,
+    message?: string,
+  ) {
+    super(message ?? code);
+  }
+}
+
 @Injectable()
 export class DungeonBatchService implements OnModuleInit {
   private readonly logger = new Logger(DungeonBatchService.name);
@@ -70,6 +84,29 @@ export class DungeonBatchService implements OnModuleInit {
 
     this.queue.registerHandler(async (job) => {
       await this.processUser(job.userId);
+    });
+
+    this.queue.setMonitor({
+      onEvent: (event) => {
+        const payload = {
+          queue: event.queue,
+          outcome: event.outcome,
+          jobId: event.jobId,
+          attempts: event.attempts,
+          durationMs: event.durationMs,
+          failureCount: event.failureCount,
+          dlqSize: event.dlqSize,
+          timestamp: event.timestamp,
+          error: event.error,
+        };
+        if (event.outcome === 'success') {
+          this.logger.log(payload);
+        } else if (event.outcome === 'retry') {
+          this.logger.warn(payload);
+        } else {
+          this.logger.error(payload);
+        }
+      },
     });
   }
 
@@ -145,6 +182,7 @@ export class DungeonBatchService implements OnModuleInit {
   }
 
   private async processUser(userId: string): Promise<void> {
+    const startedAt = Date.now();
     const locked = await this.lockService.acquire(userId);
     if (!locked) {
       this.logger.warn(
@@ -162,6 +200,7 @@ export class DungeonBatchService implements OnModuleInit {
       }
 
       let currentState = latestState;
+      let actionsDone = 0;
       const allowedActions = Math.min(
         currentState.ap,
         this.config.maxActionsPerUser,
@@ -173,27 +212,37 @@ export class DungeonBatchService implements OnModuleInit {
         }
 
         const nextState = await this.runSingleAction(currentState);
-        if (!nextState) {
-          break;
-        }
         currentState = nextState;
+        actionsDone += 1;
       }
+      const durationMs = Date.now() - startedAt;
+      this.logger.log({
+        message: 'Dungeon batch processed',
+        userId,
+        actionsDone,
+        durationMs,
+        remainingAp: currentState.ap,
+      });
     } catch (error) {
+      const code =
+        error instanceof DungeonBatchError ? error.code : 'UNKNOWN_ERROR';
       this.logger.error(
         {
           userId,
+          code,
           error: error instanceof Error ? error.message : String(error),
+          durationMs: Date.now() - startedAt,
+          actionsTried: this.config.maxActionsPerUser,
         },
         'Dungeon batch execution failed',
       );
+      throw error;
     } finally {
       await this.lockService.release(userId);
     }
   }
 
-  private async runSingleAction(
-    state: DungeonState,
-  ): Promise<DungeonState | null> {
+  private async runSingleAction(state: DungeonState): Promise<DungeonState> {
     const result = await this.dungeonEventService.execute({
       state,
       seed: this.buildSeed(state),
@@ -201,12 +250,19 @@ export class DungeonBatchService implements OnModuleInit {
       apCost: 1,
     });
 
+    if (result.stateAfter.version <= state.version) {
+      throw new DungeonBatchError(
+        DungeonBatchErrorCode.INVALID_STATE,
+        `State version did not advance for user ${state.userId}`,
+      );
+    }
+
     const persisted = await this.persistResult(state, result);
     if (!persisted) {
-      this.logger.warn(
-        `Skipping user ${state.userId} action: state version changed concurrently.`,
+      throw new DungeonBatchError(
+        DungeonBatchErrorCode.PERSIST_CONFLICT,
+        `State version conflict for user ${state.userId}`,
       );
-      return null;
     }
 
     return persisted;

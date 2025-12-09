@@ -71,6 +71,29 @@ export class GithubSyncRetryQueue {
         fallbackEnv?.queueRetryConcurrency ??
         DEFAULT_CONCURRENCY,
     });
+
+    this.queue.setMonitor({
+      onEvent: (event) => {
+        const payload = {
+          queue: event.queue,
+          outcome: event.outcome,
+          jobId: event.jobId,
+          attempts: event.attempts,
+          durationMs: event.durationMs,
+          failureCount: event.failureCount,
+          dlqSize: event.dlqSize,
+          timestamp: event.timestamp,
+          error: event.error,
+        };
+        if (event.outcome === 'success') {
+          this.logger.log(payload);
+        } else if (event.outcome === 'retry') {
+          this.logger.warn(payload);
+        } else {
+          this.logger.error(payload);
+        }
+      },
+    });
   }
 
   async enqueue(

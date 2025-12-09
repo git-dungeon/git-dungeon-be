@@ -92,6 +92,7 @@ describe('DungeonBatchService 배치 동작', () => {
           await handler(data);
         }
       }),
+      setMonitor: vi.fn(),
       resetHandler: () => {
         handler = null;
       },

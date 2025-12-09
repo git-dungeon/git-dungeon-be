@@ -45,6 +45,7 @@ export interface Environment {
   queueDlqTtlDays: number;
   queueRetryConcurrency: number;
   alertWebhookUrl: string;
+  alertFailureThreshold: number;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -213,6 +214,7 @@ export const loadEnvironment = (): Environment => {
     queueRetryConcurrency: parseNumber(process.env.QUEUE_RETRY_CONCURRENCY, 5),
     queueDlqTtlDays: parseNumber(process.env.QUEUE_DLQ_TTL_DAYS, 7),
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL ?? '',
+    alertFailureThreshold: parseNumber(process.env.ALERT_FAILURE_THRESHOLD, 3),
   };
 
   return typia.assert<Environment>(raw);

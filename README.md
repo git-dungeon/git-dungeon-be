@@ -103,9 +103,32 @@ pnpm swagger:open       # Swagger UI 브라우저에서 열기
 | `QUEUE_RETRY_TTL_MS`      | 작업 타임아웃/유효 시간(ms)                                   | `7200000` (2시간)                                                                                       |
 | `QUEUE_RETRY_CONCURRENCY` | 재시도 워커 동시성                                            | `5`                                                                                                     |
 | `QUEUE_DLQ_TTL_DAYS`      | DLQ 보관 일수                                                 | `7`                                                                                                     |
-| `ALERT_WEBHOOK_URL`       | DLQ/연속 실패 알림용 Webhook URL (준비 슬롯)                  | 빈 값                                                                                                   |
+| `ALERT_WEBHOOK_URL`       | DLQ/연속 실패 알림용 Webhook URL (Discord 등)                  | 빈 값                                                                                                   |
+| `ALERT_FAILURE_THRESHOLD` | 동일 jobId 연속 실패 알림 임계치                               | `3`                                                                                                     |
 
 Typia 검증으로 환경 변수가 부족하거나 형태가 잘못되면 애플리케이션이 부팅 시점에 즉시 실패합니다.
+
+## 로그/웹훅 기반 모니터링 (Discord 예시)
+
+- `ALERT_WEBHOOK_URL`에 Discord Incoming Webhook을 넣으면 큐 실패/연속 실패/DLQ 적재 시 웹훅이 전송됩니다. `ALERT_FAILURE_THRESHOLD`(기본 3회) 이상 연속 실패 시 추가 알림이 발생합니다.
+- 구조화 로그에는 `queue`, `outcome`(`success|retry|failure|dlq`), `jobId`, `attempts`, `durationMs`, `failureCount`, `dlqSize`(DLQ 적재 시) 필드가 포함됩니다. 로그 스토리지에서 `queue="dungeon-batch" AND outcome!="success"` 같은 필터로 조회하세요.
+- Discord payload 예시:
+
+```json
+{
+  "queue": "dungeon-batch",
+  "dlq": "dungeon-batch-dlq",
+  "outcome": "failure",
+  "jobId": "user-123",
+  "attempts": 3,
+  "durationMs": 820,
+  "failureCount": 3,
+  "error": "PERSIST_CONFLICT",
+  "timestamp": 1733731200000
+}
+```
+
+> 운영 대시보드가 없을 때는 로그 쿼리 템플릿을 문서에 기록해 두고, 필요하면 cron으로 주기 보고(최근 10분 실패율 등)를 웹훅으로 보내도록 추가 스크립트를 구성할 수 있습니다.
 
 ## GitHub 동기화 운영 가이드
 
