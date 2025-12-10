@@ -45,7 +45,7 @@
 | `REDIS_SKIP_CONNECTION`                     | 테스트 등에서 Redis 연결을 생략할지 여부                       | `false` (test 기본값 true)                                                                              |
 | `TEST_FORCE_GITHUB_RATE_LIMIT`              | 테스트용 강제 레이트 리밋 트리거 (prod 금지)                   | `false`                                                                                                 |
 | `DUNGEON_INITIAL_AP`                        | 신규 사용자/최초 동기화 시 시드할 AP 값                        | `10`                                                                                                    |
-| `DUNGEON_BATCH_CRON`                        | 던전 배치 크론 표현식                                          | `*/5 * * * *` (5분마다)                                                                                 |
+| `DUNGEON_BATCH_CRON`                        | 던전 배치 크론 표현식                                          | `0 */5 * * * *` (5분마다, 초 필드 포함)                                                                 |
 | `DUNGEON_BATCH_MAX_USERS_PER_TICK`          | 틱당 처리할 최대 사용자 수                                     | `200`                                                                                                   |
 | `DUNGEON_BATCH_MAX_ACTIONS_PER_USER`        | 사용자당 연속 실행 최대 행동 수(AP 소모 횟수)                  | `5`                                                                                                     |
 | `DUNGEON_BATCH_MIN_AP`                      | 배치 실행 최소 AP (미만이면 스킵)                              | `1`                                                                                                     |

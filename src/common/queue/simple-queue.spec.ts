@@ -151,6 +151,8 @@ describe('SimpleQueue 인라인 모드', () => {
     expect(handler).toHaveBeenCalledTimes(2);
     const outcomes = monitor.onEvent.mock.calls.map(([event]) => event.outcome);
     expect(outcomes).toEqual(['retry', 'success']);
+
+    vi.useRealTimers();
   });
 
   it('타임아웃 시 AbortSignal로 중단되고 DLQ로 이동한다', async () => {
@@ -183,5 +185,7 @@ describe('SimpleQueue 인라인 모드', () => {
     expect(handler).toHaveBeenCalledTimes(1);
     const outcomes = monitor.onEvent.mock.calls.map(([event]) => event.outcome);
     expect(outcomes).toEqual(['failure', 'dlq']);
+
+    vi.useRealTimers();
   });
 });
