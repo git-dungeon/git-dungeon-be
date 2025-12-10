@@ -3,7 +3,6 @@ import { DungeonLogAction, DungeonLogCategory, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { encodeLogsCursor } from './logs-cursor.util';
 import type { ValidatedLogsQuery } from './logs-query.validator';
-import { buildCursorNotFoundException } from './logs.errors';
 import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import type { DungeonLogsPayload } from './dto/logs.response';
@@ -45,26 +44,21 @@ export class LogsService {
         { createdAt: Prisma.SortOrder.desc },
         { id: Prisma.SortOrder.desc },
       ],
-      take: params.limit,
+      take: params.limit + 1,
     });
 
-    if (params.cursorPayload && logs.length === 0) {
-      throw buildCursorNotFoundException(
-        '요청한 커서 이후의 로그가 없거나 커서가 일치하지 않습니다.',
-      );
-    }
-
-    const hasNext = logs.length === params.limit;
+    const hasNext = logs.length > params.limit;
+    const visibleLogs = hasNext ? logs.slice(0, params.limit) : logs;
     const nextCursor =
-      hasNext && logs.length > 0
+      hasNext && visibleLogs.length > 0
         ? encodeLogsCursor({
-            createdAt: logs[logs.length - 1].createdAt,
-            id: logs[logs.length - 1].id,
+            createdAt: visibleLogs[visibleLogs.length - 1].createdAt,
+            id: visibleLogs[visibleLogs.length - 1].id,
           })
         : null;
 
     return {
-      logs: logs.map((log) => ({
+      logs: visibleLogs.map((log) => ({
         id: log.id,
         category: log.category,
         action: log.action as LogAction,
