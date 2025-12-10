@@ -7,6 +7,7 @@ import { buildCursorNotFoundException } from './logs.errors';
 import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import type { DungeonLogsPayload } from './dto/logs.response';
+import { isLogAction, type LogAction, type LogStatus } from './logs.types';
 
 @Injectable()
 export class LogsService {
@@ -20,11 +21,8 @@ export class LogsService {
     };
 
     if (params.type) {
-      if (
-        Object.values(DungeonLogAction).includes(
-          params.type as DungeonLogAction,
-        )
-      ) {
+      const isAction = isLogAction(params.type);
+      if (isAction) {
         where.action = params.type as DungeonLogAction;
       } else {
         where.category = params.type as DungeonLogCategory;
@@ -69,8 +67,8 @@ export class LogsService {
       logs: logs.map((log) => ({
         id: log.id,
         category: log.category,
-        action: log.action,
-        status: log.status,
+        action: log.action as LogAction,
+        status: log.status as LogStatus,
         floor: log.floor,
         turnNumber: log.turnNumber,
         stateVersionBefore: log.stateVersionBefore,

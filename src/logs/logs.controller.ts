@@ -13,7 +13,7 @@ import {
 import { applyNoCacheHeaders } from '../common/http/response-helpers';
 import type { DungeonLogsPayload } from './dto/logs.response';
 import { LogsService } from './logs.service';
-import { validateLogsQuery } from './logs-query.validator';
+import { validateLogsQuery, type LogsQueryRaw } from './logs-query.validator';
 
 @ApiTags('Logs')
 @Controller('api')
@@ -43,15 +43,13 @@ export class LogsController {
   })
   async getLogs(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @Req() request: Request & { id?: string },
+    @Req() request: Request & { id: string },
     @Res({ passthrough: true }) response: Response,
-    @Query('limit') limit?: string | number,
-    @Query('cursor') cursor?: string,
-    @Query('type') type?: string,
+    @Query() rawQuery: LogsQueryRaw,
   ): Promise<ApiSuccessResponse<DungeonLogsPayload>> {
     applyNoCacheHeaders(response);
 
-    const validatedQuery = validateLogsQuery({ limit, cursor, type });
+    const validatedQuery = validateLogsQuery(rawQuery);
 
     const result = await this.logsService.getLogs({
       userId: session.view.session.userId,

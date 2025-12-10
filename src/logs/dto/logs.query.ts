@@ -1,12 +1,10 @@
-import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import { tags } from 'typia';
 import {
   LOGS_DEFAULT_LIMIT,
   LOGS_MAX_LIMIT,
   LOGS_MIN_LIMIT,
 } from '../logs.constants';
-
-export type DungeonLogTypeFilter = DungeonLogAction | DungeonLogCategory;
+import type { LogTypeFilter } from '../logs.types';
 
 /**
  * `GET /api/logs` 쿼리 파라미터 DTO.
@@ -21,5 +19,5 @@ export interface LogsQueryDto {
   cursor?: string &
     tags.MinLength<1> &
     tags.Example<'MjAyNS0xMi0xMFQwMDowMDowMC4wMDBafGQ1YzA0MGI0LTg0MzItNDljNC1hYzgwLTdlNmJhMTY4OGQ0ZQ'>;
-  type?: DungeonLogTypeFilter & tags.Example<'BATTLE'>;
+  type?: LogTypeFilter & tags.Example<'BATTLE'>;
 }

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import {
   LOGS_DEFAULT_LIMIT,
   LOGS_MAX_LIMIT,
   LOGS_MIN_LIMIT,
 } from './logs.constants';
 import { validateLogsQuery } from './logs-query.validator';
+import { LOG_ACTION_VALUES, LOG_CATEGORY_VALUES } from './logs.types';
 
 describe('validateLogsQuery', () => {
   it('limit 기본값을 적용한다', () => {
@@ -28,13 +28,11 @@ describe('validateLogsQuery', () => {
   });
 
   it('type이 유효하면 파싱한다', () => {
-    const action = validateLogsQuery({ type: DungeonLogAction.BATTLE }).type;
-    const category = validateLogsQuery({
-      type: DungeonLogCategory.EXPLORATION,
-    }).type;
+    const action = validateLogsQuery({ type: LOG_ACTION_VALUES[0] }).type;
+    const category = validateLogsQuery({ type: LOG_CATEGORY_VALUES[0] }).type;
 
-    expect(action).toBe(DungeonLogAction.BATTLE);
-    expect(category).toBe(DungeonLogCategory.EXPLORATION);
+    expect(action).toBe(LOG_ACTION_VALUES[0]);
+    expect(category).toBe(LOG_CATEGORY_VALUES[0]);
   });
 
   it('type이 잘못되면 예외를 던진다', () => {

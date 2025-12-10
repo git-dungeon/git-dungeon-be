@@ -1,4 +1,3 @@
-import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import {
   LOGS_DEFAULT_LIMIT,
   LOGS_MAX_LIMIT,
@@ -6,23 +5,19 @@ import {
 } from './logs.constants';
 import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
 import { buildInvalidQueryException } from './logs.errors';
+import { isLogAction, isLogCategory, type LogTypeFilter } from './logs.types';
 
-export interface LogsQueryDto {
+export interface LogsQueryRaw {
   limit?: string | number | (string | number)[];
   cursor?: string | string[];
   type?: string | string[];
 }
 
-const LOG_TYPES = new Set<string>([
-  ...Object.values(DungeonLogAction),
-  ...Object.values(DungeonLogCategory),
-]);
-
 export type ValidatedLogsQuery = {
   limit: number;
   cursor?: string;
   cursorPayload?: LogsCursor;
-  type?: DungeonLogAction | DungeonLogCategory;
+  type?: LogTypeFilter;
 };
 
 const parseLimit = (rawLimit: string | number | undefined): number => {
@@ -47,15 +42,13 @@ const parseLimit = (rawLimit: string | number | undefined): number => {
   return parsed;
 };
 
-const parseType = (
-  rawType: string | undefined,
-): DungeonLogAction | DungeonLogCategory | undefined => {
+const parseType = (rawType: string | undefined): LogTypeFilter | undefined => {
   if (rawType === undefined || rawType === null || rawType === '') {
     return undefined;
   }
 
-  if (LOG_TYPES.has(rawType)) {
-    return rawType as DungeonLogAction | DungeonLogCategory;
+  if (isLogAction(rawType) || isLogCategory(rawType)) {
+    return rawType;
   }
 
   throw buildInvalidQueryException('지원하지 않는 type 값입니다.', {
@@ -63,14 +56,15 @@ const parseType = (
   });
 };
 
-export const validateLogsQuery = (raw: LogsQueryDto): ValidatedLogsQuery => {
+export const validateLogsQuery = (raw: LogsQueryRaw): ValidatedLogsQuery => {
   const limitRaw = Array.isArray(raw.limit) ? raw.limit[0] : raw.limit;
   const typeRaw = Array.isArray(raw.type) ? raw.type[0] : raw.type;
   const cursor = Array.isArray(raw.cursor) ? raw.cursor[0] : raw.cursor;
 
   const limit = parseLimit(limitRaw);
   const type = parseType(typeRaw);
-  const cursorPayload = cursor ? decodeLogsCursor(cursor) : undefined;
+  const cursorPayload =
+    cursor !== undefined ? decodeLogsCursor(cursor) : undefined;
 
   return {
     limit,
