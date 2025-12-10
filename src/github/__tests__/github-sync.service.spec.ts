@@ -2,7 +2,6 @@
 import { Prisma, ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GithubSyncService } from '../github-sync.service';
-import type { PrismaService } from '../../prisma/prisma.service';
 import { createSyncServiceTestbed } from './helpers';
 
 type MockPrismaTx = {
@@ -18,10 +17,6 @@ type MockPrismaTx = {
   account: {
     updateMany: (args: Prisma.AccountUpdateManyArgs) => Promise<unknown>;
   };
-};
-
-type PrismaLike = {
-  $transaction: <T>(fn: (tx: MockPrismaTx) => Promise<T> | T) => Promise<T> | T;
 };
 
 const createPrismaMock = () => {
@@ -40,7 +35,7 @@ const createPrismaMock = () => {
 
   return {
     tx: tx as unknown as MockPrismaTx,
-    prisma: prisma as PrismaService,
+    prisma: prisma,
     mocks: {
       findFirst,
       findUnique,
@@ -52,7 +47,7 @@ const createPrismaMock = () => {
   };
 };
 
-describe('GithubSyncService', () => {
+describe('GithubSyncService 동작', () => {
   const baseParams = {
     userId: 'user-1',
     contributions: 5,

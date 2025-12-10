@@ -26,14 +26,26 @@ export interface Environment {
   githubSyncBatchSize: number;
   githubSyncManualCooldownMs: number;
   redisUrl: string & tags.MinLength<1>;
-  githubSyncRetryMax: number;
-  githubSyncRetryBackoffBaseMs: number;
-  githubSyncRetryTtlMs: number;
-  githubSyncRetryConcurrency: number;
+  // deprecated: use queue* for retry config
   githubTokenLockTtlMs: number;
   githubTokenRateLimitCacheMs: number;
   githubTokenCooldownMs: number;
   redisSkipConnection: boolean;
+  dungeonBatchCron: string;
+  dungeonBatchMaxUsersPerTick: number;
+  dungeonBatchMaxActionsPerUser: number;
+  dungeonBatchMinAp: number;
+  dungeonBatchInactiveDays: number;
+  dungeonBatchLockTtlMs: number;
+  dungeonBatchLockBackoffMs: number;
+  dungeonBatchLockMaxRetry: number;
+  queueRetryMax: number;
+  queueRetryBackoffBaseMs: number;
+  queueRetryTtlMs: number;
+  queueDlqTtlDays: number;
+  queueRetryConcurrency: number;
+  alertWebhookUrl: string;
+  alertFailureThreshold: number;
 }
 
 const parseBoolean = (value: string | undefined, defaultValue: boolean) => {
@@ -148,19 +160,6 @@ export const loadEnvironment = (): Environment => {
       6 * 60 * 60 * 1000, // 6 hours
     ),
     redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
-    githubSyncRetryMax: parseNumber(process.env.GITHUB_SYNC_RETRY_MAX, 3),
-    githubSyncRetryBackoffBaseMs: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_BACKOFF_BASE_MS,
-      60 * 1000,
-    ),
-    githubSyncRetryTtlMs: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_TTL_MS,
-      24 * 60 * 60 * 1000,
-    ),
-    githubSyncRetryConcurrency: parseNumber(
-      process.env.GITHUB_SYNC_RETRY_CONCURRENCY,
-      5,
-    ),
     githubTokenLockTtlMs: parseNumber(
       process.env.GITHUB_TOKEN_LOCK_TTL_MS,
       30_000,
@@ -177,6 +176,45 @@ export const loadEnvironment = (): Environment => {
       process.env.REDIS_SKIP_CONNECTION,
       nodeEnv === 'test',
     ),
+    dungeonBatchCron: process.env.DUNGEON_BATCH_CRON ?? '0 */5 * * * *', // every 5 minutes
+    dungeonBatchMaxUsersPerTick: parseNumber(
+      process.env.DUNGEON_BATCH_MAX_USERS_PER_TICK,
+      200,
+    ),
+    dungeonBatchMaxActionsPerUser: parseNumber(
+      process.env.DUNGEON_BATCH_MAX_ACTIONS_PER_USER,
+      5,
+    ),
+    dungeonBatchMinAp: parseNumber(process.env.DUNGEON_BATCH_MIN_AP, 1),
+    dungeonBatchInactiveDays: parseNumber(
+      process.env.DUNGEON_BATCH_INACTIVE_DAYS,
+      30,
+    ),
+    dungeonBatchLockTtlMs: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_TTL_MS,
+      60_000,
+    ),
+    dungeonBatchLockBackoffMs: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_BACKOFF_MS,
+      200,
+    ),
+    dungeonBatchLockMaxRetry: parseNumber(
+      process.env.DUNGEON_BATCH_LOCK_MAX_RETRY,
+      3,
+    ),
+    queueRetryMax: parseNumber(process.env.QUEUE_RETRY_MAX, 3),
+    queueRetryBackoffBaseMs: parseNumber(
+      process.env.QUEUE_RETRY_BACKOFF_BASE_MS,
+      1_500,
+    ),
+    queueRetryTtlMs: parseNumber(
+      process.env.QUEUE_RETRY_TTL_MS,
+      2 * 60 * 60 * 1000,
+    ),
+    queueRetryConcurrency: parseNumber(process.env.QUEUE_RETRY_CONCURRENCY, 5),
+    queueDlqTtlDays: parseNumber(process.env.QUEUE_DLQ_TTL_DAYS, 7),
+    alertWebhookUrl: process.env.ALERT_WEBHOOK_URL ?? '',
+    alertFailureThreshold: parseNumber(process.env.ALERT_FAILURE_THRESHOLD, 3),
   };
 
   return typia.assert<Environment>(raw);

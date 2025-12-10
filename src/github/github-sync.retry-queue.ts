@@ -1,20 +1,5 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-  OnModuleInit,
-  Optional,
-} from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  Queue,
-  Worker,
-  JobsOptions,
-  QueueEvents,
-  Job,
-  type DefaultJobOptions,
-} from 'bullmq';
-import IORedis from 'ioredis';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { GithubGraphqlClient } from './github-graphql.client';
@@ -27,11 +12,16 @@ import {
   getLastContributionsTotal,
 } from './github-sync.util';
 import { loadEnvironment } from '../config/environment';
+import { SimpleQueue } from '../common/queue/simple-queue';
 
-type RetryJobData = {
+type RetryJobPayload = {
   userId: string;
   reason: string;
   resetAt?: number | null;
+};
+
+type RetryJobData = RetryJobPayload & {
+  enqueuedAt: number;
 };
 
 const DEFAULT_MAX_RETRIES = 3;
@@ -42,19 +32,12 @@ const DEFAULT_CONCURRENCY = 5;
 class NonRetryableError extends Error {}
 
 @Injectable()
-export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
+export class GithubSyncRetryQueue {
   private readonly logger = new Logger(GithubSyncRetryQueue.name);
-  private queue?: Queue<RetryJobData>;
-  private worker?: Worker<RetryJobData>;
-  private events?: QueueEvents;
-  private connection?: IORedis;
-
-  private readonly redisUrl: string;
   private readonly maxRetries: number;
   private readonly backoffBaseMs: number;
   private readonly ttlMs: number;
-  private readonly concurrency: number;
-  private readonly skipConnection: boolean;
+  private readonly queue: SimpleQueue<RetryJobData>;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -64,177 +47,85 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
     @Optional() private readonly configService?: ConfigService,
   ) {
     const fallbackEnv = configService ? undefined : loadEnvironment();
-    const nodeEnv =
-      this.configService?.get<string>('nodeEnv') ??
-      process.env.NODE_ENV ??
-      'development';
-    this.redisUrl =
-      this.configService?.get<string>('redis.url') ??
-      fallbackEnv?.redisUrl ??
-      'redis://localhost:6379';
     this.maxRetries =
       this.configService?.get<number>('github.sync.retryMax') ??
-      fallbackEnv?.githubSyncRetryMax ??
+      fallbackEnv?.queueRetryMax ??
       DEFAULT_MAX_RETRIES;
     this.backoffBaseMs =
       this.configService?.get<number>('github.sync.retryBackoffBaseMs') ??
-      fallbackEnv?.githubSyncRetryBackoffBaseMs ??
+      fallbackEnv?.queueRetryBackoffBaseMs ??
       DEFAULT_BACKOFF_MS;
     this.ttlMs =
       this.configService?.get<number>('github.sync.retryTtlMs') ??
-      fallbackEnv?.githubSyncRetryTtlMs ??
+      fallbackEnv?.queueRetryTtlMs ??
       DEFAULT_TTL_MS;
-    this.concurrency =
-      this.configService?.get<number>('github.sync.retryConcurrency') ??
-      fallbackEnv?.githubSyncRetryConcurrency ??
-      DEFAULT_CONCURRENCY;
-    this.skipConnection =
-      this.configService?.get<boolean>('redis.skipConnection') ??
-      fallbackEnv?.redisSkipConnection ??
-      nodeEnv === 'test';
-  }
 
-  async onModuleInit(): Promise<void> {
-    if (this.skipConnection) {
-      this.logger.warn('Redis connection skipped by configuration.');
-      return;
-    }
-
-    this.connection = new IORedis(this.redisUrl, {
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-    });
-    const defaultJobOptions: DefaultJobOptions = {
-      attempts: this.maxRetries,
-      backoff: { type: 'exponential', delay: this.backoffBaseMs },
-      removeOnComplete: true,
-      removeOnFail: false,
-    };
-
-    this.queue = new Queue<RetryJobData>('github-sync-retry', {
-      connection: this.connection,
-      defaultJobOptions,
-    });
-
-    this.events = new QueueEvents('github-sync-retry', {
-      connection: this.connection,
-    });
-    this.events.on('failed', ({ jobId, failedReason }) => {
-      this.logger.error(
-        { jobId, failedReason },
-        'GitHub sync retry job failed',
-      );
-    });
-
-    this.worker = new Worker<RetryJobData>(
+    this.queue = new SimpleQueue<RetryJobData>(
       'github-sync-retry',
-      async (job) => this.handleJob(job),
-      {
-        connection: this.connection,
-        concurrency: this.concurrency,
-      },
+      configService,
     );
 
-    this.worker.on('failed', (job, err) => {
-      this.logger.warn(
-        {
-          jobId: job?.id,
-          userId: job?.data.userId,
-          attemptsMade: job?.attemptsMade,
-          failedReason: err?.message,
-        },
-        'GitHub sync retry worker failed',
-      );
+    this.queue.registerHandler(async (job) => this.handleJob(job), {
+      concurrency:
+        this.configService?.get<number>('github.sync.retryConcurrency') ??
+        fallbackEnv?.queueRetryConcurrency ??
+        DEFAULT_CONCURRENCY,
     });
 
-    this.worker.on('completed', (job) => {
-      this.logger.log({
-        message: 'GitHub sync retry completed',
-        jobId: job.id,
-        userId: job.data.userId,
-        attemptsMade: job.attemptsMade,
-      });
+    this.queue.setMonitor({
+      onEvent: (event) => {
+        const payload = {
+          queue: event.queue,
+          outcome: event.outcome,
+          jobId: event.jobId,
+          attempts: event.attempts,
+          durationMs: event.durationMs,
+          failureCount: event.failureCount,
+          dlqSize: event.dlqSize,
+          timestamp: event.timestamp,
+          error: event.error,
+        };
+        if (event.outcome === 'success') {
+          this.logger.log(payload);
+        } else if (event.outcome === 'retry') {
+          this.logger.warn(payload);
+        } else {
+          this.logger.error(payload);
+        }
+      },
     });
-
-    if (this.queue && this.worker && this.events) {
-      await Promise.all([
-        this.queue.waitUntilReady(),
-        this.worker.waitUntilReady(),
-        this.events.waitUntilReady(),
-      ]);
-    }
-
-    this.logger.log('GitHub sync retry queue initialized');
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.worker?.close();
-    await this.events?.close();
-    await this.queue?.close();
-    await this.connection?.quit();
   }
 
   async enqueue(
-    data: RetryJobData,
-    opts?: Partial<JobsOptions>,
+    data: RetryJobPayload,
+    opts?: { delayMs?: number },
   ): Promise<void> {
-    if (!this.queue) return;
-
-    const existing = await this.queue.getJob(data.userId);
-    if (existing) {
-      const state = await existing.getState();
-      if (state !== 'failed' && state !== 'completed') {
-        this.logger.warn(
-          {
-            userId: data.userId,
-            reason: data.reason,
-            state,
-          },
-          'Retry job already queued; skipping duplicate enqueue',
-        );
-        return;
-      }
-
-      try {
-        await existing.remove();
-      } catch (error) {
-        this.logger.warn(
-          {
-            userId: data.userId,
-            state,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          'Failed to remove completed/failed retry job before re-enqueue',
-        );
-      }
-    }
+    const jobData: RetryJobData = {
+      ...data,
+      enqueuedAt: Date.now(),
+    };
 
     const delay =
-      data.resetAt && data.resetAt > Date.now()
-        ? data.resetAt - Date.now()
+      jobData.resetAt && jobData.resetAt > Date.now()
+        ? jobData.resetAt - Date.now()
         : this.backoffBaseMs;
 
     try {
-      await this.queue.add('github-sync-retry', data, {
-        jobId: data.userId,
-        delay,
-        attempts: this.maxRetries,
-        backoff: { type: 'exponential', delay: this.backoffBaseMs },
-        removeOnComplete: true,
-        removeOnFail: false,
-        ...(opts as JobsOptions),
-      } as JobsOptions);
+      await this.queue.enqueue(jobData, {
+        delayMs: opts?.delayMs ?? delay,
+        jobId: jobData.userId,
+      });
       this.logger.log({
         message: 'Enqueued GitHub sync retry job',
-        userId: data.userId,
-        reason: data.reason,
+        userId: jobData.userId,
+        reason: jobData.reason,
         delay,
       });
     } catch (error) {
       this.logger.warn(
         {
-          userId: data.userId,
-          reason: data.reason,
+          userId: jobData.userId,
+          reason: jobData.reason,
           error: error instanceof Error ? error.message : String(error),
         },
         'Failed to enqueue GitHub sync retry job',
@@ -242,15 +133,14 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async handleJob(job: Job<RetryJobData>): Promise<void> {
-    const { userId } = job.data;
+  private async handleJob(job: RetryJobData): Promise<void> {
+    const { userId } = job;
 
-    if (Date.now() - job.timestamp > this.ttlMs) {
+    if (Date.now() - job.enqueuedAt > this.ttlMs) {
       this.logger.warn(
-        { userId, jobId: job.id, ttlMs: this.ttlMs },
+        { userId, ttlMs: this.ttlMs },
         'Dropping expired GitHub sync retry job due to TTL',
       );
-      job.discard();
       return;
     }
 
@@ -360,7 +250,6 @@ export class GithubSyncRetryQueue implements OnModuleInit, OnModuleDestroy {
           },
           'Non-retryable GitHub sync error; discarding job',
         );
-        job.discard();
         return;
       }
       throw error;

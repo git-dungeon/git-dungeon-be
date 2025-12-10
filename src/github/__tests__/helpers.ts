@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import { GithubManualSyncService } from '../github-sync.manual.service';
 import { GithubSyncService } from '../github-sync.service';
 import { GithubSyncScheduler } from '../github-sync.scheduler';
+import type { PrismaService } from '../../prisma/prisma.service';
 
 type PrismaManualMock = {
   account: {
@@ -186,11 +187,12 @@ export const createSyncServiceTestbed = () => {
     $transaction: <T>(fn: (txArg: MockPrismaTx) => Promise<T> | T) => fn(tx),
   };
 
-  const service = new GithubSyncService(prisma as unknown as any);
+  const prismaService = prisma as unknown as PrismaService;
+  const service = new GithubSyncService(prismaService);
 
   return {
     service,
-    prisma: prisma as unknown,
+    prisma: prismaService,
     tx,
     mocks: {
       findFirst,
