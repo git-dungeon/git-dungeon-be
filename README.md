@@ -26,7 +26,7 @@ docker compose up -d postgres redis
 pnpm dev
 ```
 
-API 문서: http://localhost:3000/api
+API 문서: [로컬 API 문서](http://localhost:3000/api)
 
 ### 테스트 / 빌드
 

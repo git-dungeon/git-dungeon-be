@@ -12,7 +12,10 @@ type QueueConfig = {
   alertFailureThreshold: number;
 };
 
-export type SimpleJobHandler<T> = (data: T) => Promise<void>;
+export type SimpleJobHandler<T> = (
+  data: T,
+  signal?: AbortSignal,
+) => Promise<void>;
 
 type RegisterOptions = {
   concurrency?: number;
@@ -181,7 +184,9 @@ export class SimpleQueue<T> implements OnModuleDestroy {
       async (job) => {
         const startedAt = Date.now();
         try {
-          await handler(job.data);
+          await this.runWithTimeout(async (signal) => {
+            await handler(job.data, signal);
+          }, this.config.retryTtlMs);
           this.recordSuccess(
             job.id ?? job.name,
             job.attemptsMade + 1,
@@ -216,6 +221,11 @@ export class SimpleQueue<T> implements OnModuleDestroy {
   }
 
   private async runInline(data: T, jobId?: string): Promise<void> {
+    const handler = this.handler;
+    if (!handler) {
+      throw new Error('Queue handler is not registered');
+    }
+
     if (jobId) {
       if (this.inlineInflight.has(jobId)) {
         return;
@@ -227,7 +237,10 @@ export class SimpleQueue<T> implements OnModuleDestroy {
     for (let attempt = 1; attempt <= this.config.retryMax; attempt += 1) {
       const startedAt = Date.now();
       try {
-        await this.handler?.(data);
+        await this.runWithTimeout(
+          (signal) => handler(data, signal),
+          this.config.retryTtlMs,
+        );
         this.recordSuccess(jobId ?? undefined, attempt, Date.now() - startedAt);
         if (jobId) this.inlineInflight.delete(jobId);
         return;
@@ -245,6 +258,9 @@ export class SimpleQueue<T> implements OnModuleDestroy {
           await this.sendToDlq(data, lastError, attempt, jobId);
           break;
         }
+        const backoff =
+          this.config.retryBackoffBaseMs * 2 ** Math.max(0, attempt - 1);
+        await this.delay(backoff);
       }
     }
     if (jobId) this.inlineInflight.delete(jobId);
@@ -261,7 +277,6 @@ export class SimpleQueue<T> implements OnModuleDestroy {
       removeOnFail: {
         age: this.config.dlqTtlDays * 24 * 60 * 60,
       },
-      timeout: this.config.retryTtlMs,
     } as JobsOptions;
   }
 
@@ -440,6 +455,39 @@ export class SimpleQueue<T> implements OnModuleDestroy {
   // 테스트/디버깅용: 인메모리 DLQ 확인
   getInMemoryDlq(): DeadLetterPayload<T>[] {
     return [...this.inMemoryDlq];
+  }
+
+  private async runWithTimeout(
+    fn: (signal: AbortSignal) => Promise<void>,
+    timeoutMs: number,
+  ): Promise<void> {
+    const controller = new AbortController();
+    if (timeoutMs <= 0) {
+      await fn(controller.signal);
+      return;
+    }
+
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutHandle = setTimeout(() => {
+        controller.abort();
+        reject(
+          new Error(
+            `[SimpleQueue:${this.queueName}] processor timed out after ${timeoutMs}ms`,
+          ),
+        );
+      }, timeoutMs);
+    });
+
+    try {
+      await Promise.race([fn(controller.signal), timeoutPromise]);
+    } finally {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

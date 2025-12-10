@@ -56,7 +56,7 @@
 | (동작 메모)                                 | 라운드 로빈 사용자 순회                                        | `userId asc` 커서 기반, 최대치 미달 시 시작점으로 래핑                                                  |
 | `QUEUE_RETRY_MAX`                           | BullMQ 재시도 최대 횟수                                        | `3`                                                                                                     |
 | `QUEUE_RETRY_BACKOFF_BASE_MS`               | BullMQ 지수 백오프 시작값(ms)                                  | `1500`                                                                                                  |
-| `QUEUE_RETRY_TTL_MS`                        | 작업 타임아웃/유효 시간(ms)                                    | `7200000` (2시간)                                                                                       |
+| `QUEUE_RETRY_TTL_MS`                        | 핸들러 실행 타임아웃(ms, 초과 시 AbortSignal로 중단)           | `7200000` (2시간)                                                                                       |
 | `QUEUE_RETRY_CONCURRENCY`                   | 재시도 워커 동시성                                             | `5`                                                                                                     |
 | `QUEUE_DLQ_TTL_DAYS`                        | DLQ 보관 일수                                                  | `7`                                                                                                     |
 | `ALERT_WEBHOOK_URL`                         | DLQ/연속 실패 알림용 Webhook URL (Discord 등)                  | 빈 값                                                                                                   |

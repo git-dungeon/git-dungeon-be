@@ -67,7 +67,9 @@ describe('SimpleQueue 인라인 모드', () => {
 
   it('재시도 후 실패하면 failure/dlq 이벤트와 웹훅이 발행된다', async () => {
     const configService = createConfigService({ 'queue.retryMax': 2 });
-    const monitor = { onEvent: vi.fn() };
+    const monitor = {
+      onEvent: vi.fn<(event: QueueEvent<{ foo: string }>) => void>(),
+    };
     const queue = new SimpleQueue<{ foo: string }>(
       'test-queue',
       configService as unknown as ConfigService,
@@ -82,9 +84,7 @@ describe('SimpleQueue 인라인 모드', () => {
 
     await queue.enqueue({ foo: 'baz' }, { jobId: 'job-2' });
 
-    const events = monitor.onEvent.mock.calls.map(
-      (call) => call[0] as QueueEvent<{ foo: string }>,
-    );
+    const events = monitor.onEvent.mock.calls.map(([event]) => event);
     expect(events.map((e) => e.outcome)).toEqual(['retry', 'failure', 'dlq']);
 
     expect(global.fetch).toHaveBeenCalledTimes(2); // failure 알림 + dlq 알림
@@ -121,5 +121,67 @@ describe('SimpleQueue 인라인 모드', () => {
     expect(events.map((e) => e.outcome)).toEqual(['failure', 'dlq', 'success']);
     expect(requeued).toBe(1);
     expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it('재시도 시 백오프 후 성공한다', async () => {
+    vi.useFakeTimers();
+    const configService = createConfigService({
+      'queue.retryMax': 2,
+      'queue.retryBackoffBaseMs': 50,
+    });
+    const monitor = {
+      onEvent: vi.fn<(event: QueueEvent<{ foo: string }>) => void>(),
+    };
+    const queue = new SimpleQueue<{ foo: string }>(
+      'test-queue',
+      configService as unknown as ConfigService,
+    );
+    queue.setMonitor(monitor);
+
+    const handler = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('first'))
+      .mockResolvedValueOnce(undefined);
+    queue.registerHandler(handler);
+
+    const promise = queue.enqueue({ foo: 'retry' }, { jobId: 'job-4' });
+    await vi.advanceTimersByTimeAsync(50);
+    await promise;
+
+    expect(handler).toHaveBeenCalledTimes(2);
+    const outcomes = monitor.onEvent.mock.calls.map(([event]) => event.outcome);
+    expect(outcomes).toEqual(['retry', 'success']);
+  });
+
+  it('타임아웃 시 AbortSignal로 중단되고 DLQ로 이동한다', async () => {
+    vi.useFakeTimers();
+    const configService = createConfigService({
+      'queue.retryMax': 1,
+      'queue.retryTtlMs': 5,
+    });
+    const monitor = {
+      onEvent: vi.fn<(event: QueueEvent<{ foo: string }>) => void>(),
+    };
+    const queue = new SimpleQueue<{ foo: string }>(
+      'test-queue',
+      configService as unknown as ConfigService,
+    );
+    queue.setMonitor(monitor);
+
+    const handler = vi.fn(
+      (_data: { foo: string }, signal?: AbortSignal) =>
+        new Promise<void>((_, reject) => {
+          signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        }),
+    );
+    queue.registerHandler(handler);
+
+    const promise = queue.enqueue({ foo: 'timeout' }, { jobId: 'job-5' });
+    await vi.advanceTimersByTimeAsync(5);
+    await promise;
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    const outcomes = monitor.onEvent.mock.calls.map(([event]) => event.outcome);
+    expect(outcomes).toEqual(['failure', 'dlq']);
   });
 });

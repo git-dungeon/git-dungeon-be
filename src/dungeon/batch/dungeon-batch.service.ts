@@ -160,25 +160,31 @@ export class DungeonBatchService implements OnModuleInit {
       select: { userId: true },
     });
 
+    const primaryIds = primary.map((p) => p.userId);
+
     if (primary.length === this.config.maxUsersPerTick) {
-      this.lastCursorUserId = primary[primary.length - 1]?.userId;
-      return primary.map((p) => p.userId);
+      this.lastCursorUserId = primaryIds[primaryIds.length - 1];
+      return primaryIds;
     }
 
     const remaining = this.config.maxUsersPerTick - primary.length;
     const secondary =
       remaining > 0
         ? await this.prisma.dungeonState.findMany({
-            where,
+            where: {
+              ...where,
+              userId: primaryIds.length > 0 ? { notIn: primaryIds } : undefined,
+            },
             take: remaining,
             orderBy: { userId: 'asc' },
             select: { userId: true },
           })
         : [];
 
-    const combined = [...primary, ...secondary];
-    this.lastCursorUserId = combined[combined.length - 1]?.userId;
-    return combined.map((p) => p.userId);
+    const combinedIds = [...primaryIds, ...secondary.map((p) => p.userId)];
+    this.lastCursorUserId =
+      combinedIds.length > 0 ? combinedIds[combinedIds.length - 1] : undefined;
+    return combinedIds;
   }
 
   private async processUser(userId: string): Promise<void> {
