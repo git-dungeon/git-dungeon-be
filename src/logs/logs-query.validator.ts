@@ -1,18 +1,8 @@
-import {
-  LOGS_DEFAULT_LIMIT,
-  LOGS_MAX_LIMIT,
-  LOGS_MIN_LIMIT,
-} from './logs.constants';
+import { LOGS_DEFAULT_LIMIT } from './logs.constants';
 import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
 import { buildInvalidQueryException } from './logs.errors';
 import { isLogAction, isLogCategory, type LogTypeFilter } from './logs.types';
 import type { LogsQueryDto } from './dto/logs.query';
-
-export interface LogsQueryRaw {
-  limit?: string | number | (string | number)[];
-  cursor?: string | string[];
-  type?: string | string[];
-}
 
 export type ValidatedLogsQuery = {
   limit: number;
@@ -21,33 +11,23 @@ export type ValidatedLogsQuery = {
   type?: LogTypeFilter;
 };
 
-export type LogsQueryInput = LogsQueryRaw | LogsQueryDto;
-
-const parseLimit = (rawLimit: string | number | undefined): number => {
-  if (rawLimit === undefined || rawLimit === null || rawLimit === '') {
+const parseLimit = (rawLimit: number | undefined): number => {
+  if (rawLimit === undefined || rawLimit === null) {
     return LOGS_DEFAULT_LIMIT;
   }
 
-  const parsed =
-    typeof rawLimit === 'number' ? rawLimit : Number.parseInt(rawLimit, 10);
-
-  if (
-    !Number.isInteger(parsed) ||
-    parsed < LOGS_MIN_LIMIT ||
-    parsed > LOGS_MAX_LIMIT
-  ) {
-    throw buildInvalidQueryException(
-      `limit은 ${LOGS_MIN_LIMIT}~${LOGS_MAX_LIMIT} 사이의 정수여야 합니다.`,
-      { limit: rawLimit },
-    );
-  }
-
-  return parsed;
+  return rawLimit;
 };
 
 const parseType = (rawType: string | undefined): LogTypeFilter | undefined => {
-  if (rawType === undefined || rawType === null || rawType === '') {
+  if (rawType === undefined || rawType === null) {
     return undefined;
+  }
+
+  if (rawType === '') {
+    throw buildInvalidQueryException('type 값은 비어 있을 수 없습니다.', {
+      type: rawType,
+    });
   }
 
   if (isLogAction(rawType) || isLogCategory(rawType)) {
@@ -59,20 +39,16 @@ const parseType = (rawType: string | undefined): LogTypeFilter | undefined => {
   });
 };
 
-export const validateLogsQuery = (raw: LogsQueryInput): ValidatedLogsQuery => {
-  const limitRaw = Array.isArray(raw.limit) ? raw.limit[0] : raw.limit;
-  const typeRaw = Array.isArray(raw.type) ? raw.type[0] : raw.type;
-  const cursor = Array.isArray(raw.cursor) ? raw.cursor[0] : raw.cursor;
-
-  const limit = parseLimit(limitRaw);
-  const type = parseType(typeRaw);
+export const validateLogsQuery = (raw: LogsQueryDto): ValidatedLogsQuery => {
+  const limit = parseLimit(raw.limit);
+  const type = parseType(raw.type);
   const cursorPayload =
-    cursor !== undefined ? decodeLogsCursor(cursor) : undefined;
+    raw.cursor !== undefined ? decodeLogsCursor(raw.cursor) : undefined;
 
   return {
     limit,
     type,
-    cursor,
+    cursor: raw.cursor,
     cursorPayload,
   };
 };

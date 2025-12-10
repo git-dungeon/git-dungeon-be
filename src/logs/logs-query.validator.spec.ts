@@ -5,7 +5,11 @@ import {
   LOGS_MIN_LIMIT,
 } from './logs.constants';
 import { validateLogsQuery } from './logs-query.validator';
-import { LOG_ACTION_VALUES, LOG_CATEGORY_VALUES } from './logs.types';
+import {
+  LOG_ACTION_VALUES,
+  LOG_CATEGORY_VALUES,
+  LogTypeEnum,
+} from './logs.types';
 
 describe('validateLogsQuery', () => {
   it('limit 기본값을 적용한다', () => {
@@ -28,14 +32,16 @@ describe('validateLogsQuery', () => {
   });
 
   it('type이 유효하면 파싱한다', () => {
-    const action = validateLogsQuery({ type: LOG_ACTION_VALUES[0] }).type;
-    const category = validateLogsQuery({ type: LOG_CATEGORY_VALUES[0] }).type;
+    const action = validateLogsQuery({ type: LogTypeEnum.BATTLE }).type;
+    const category = validateLogsQuery({ type: LogTypeEnum.EXPLORATION }).type;
 
     expect(action).toBe(LOG_ACTION_VALUES[0]);
     expect(category).toBe(LOG_CATEGORY_VALUES[0]);
   });
 
   it('type이 잘못되면 예외를 던진다', () => {
-    expect(() => validateLogsQuery({ type: 'UNKNOWN' })).toThrow();
+    expect(() =>
+      validateLogsQuery({ type: 'UNKNOWN' as unknown as LogTypeEnum }),
+    ).toThrow();
   });
 });

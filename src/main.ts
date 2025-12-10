@@ -114,7 +114,7 @@ async function bootstrap() {
     // Setup Swagger UI at runtime
     try {
       const document = (await NestiaSwaggerComposer.document(app, {
-        openapi: '3.1',
+        openapi: '3.0',
         servers: [
           {
             url: `http://localhost:${port}`,
