@@ -176,7 +176,7 @@ export const loadEnvironment = (): Environment => {
       process.env.REDIS_SKIP_CONNECTION,
       nodeEnv === 'test',
     ),
-    dungeonBatchCron: process.env.DUNGEON_BATCH_CRON ?? '*/5 * * * *', // every 5 minutes
+    dungeonBatchCron: process.env.DUNGEON_BATCH_CRON ?? '0 */5 * * * *', // every 5 minutes
     dungeonBatchMaxUsersPerTick: parseNumber(
       process.env.DUNGEON_BATCH_MAX_USERS_PER_TICK,
       200,

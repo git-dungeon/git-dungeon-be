@@ -138,7 +138,7 @@ pnpm dev
 ## 배치/큐 운영
 
 - 역할: 적립된 AP를 사용해 일정 간격으로 던전 이벤트를 자동 실행합니다.
-- CRON: `DUNGEON_BATCH_CRON` (기본: `*/5 * * * *`, 5분마다, 서버 로컬 시간 기준).
+- CRON: `DUNGEON_BATCH_CRON` (기본: `0 */5 * * * *`, 5분마다, 서버 로컬 시간 기준).
 - 대상 선정: `DUNGEON_BATCH_MIN_AP` 이상 AP를 가진 사용자 중 최근 `DUNGEON_BATCH_INACTIVE_DAYS` 이내 업데이트된 사용자에서 최대 `DUNGEON_BATCH_MAX_USERS_PER_TICK`명까지 선택합니다.
 - 1인당 액션 수: 사용자당 최대 `DUNGEON_BATCH_MAX_ACTIONS_PER_USER`회까지, 액션당 AP 1씩 소모하며 던전 이벤트를 실행합니다.
 - 작업 처리:
