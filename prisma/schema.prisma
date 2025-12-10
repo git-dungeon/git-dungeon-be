@@ -189,6 +189,7 @@ model DungeonLog {
   user                User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([userId, createdAt])
+  @@index([userId, createdAt, id])
   @@index([category, action])
   @@index([createdAt])
 }

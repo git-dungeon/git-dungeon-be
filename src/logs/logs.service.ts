@@ -1,0 +1,85 @@
+import { Injectable } from '@nestjs/common';
+import { DungeonLogAction, DungeonLogCategory, Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { encodeLogsCursor } from './logs-cursor.util';
+import type { ValidatedLogsQuery } from './logs-query.validator';
+import { buildCursorNotFoundException } from './logs.errors';
+import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
+import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
+import type { DungeonLogsPayload } from './dto/logs.response';
+
+@Injectable()
+export class LogsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async getLogs(
+    params: { userId: string } & ValidatedLogsQuery,
+  ): Promise<DungeonLogsPayload> {
+    const where: Prisma.DungeonLogWhereInput = {
+      userId: params.userId,
+    };
+
+    if (params.type) {
+      if (
+        Object.values(DungeonLogAction).includes(
+          params.type as DungeonLogAction,
+        )
+      ) {
+        where.action = params.type as DungeonLogAction;
+      } else {
+        where.category = params.type as DungeonLogCategory;
+      }
+    }
+
+    if (params.cursorPayload) {
+      where.OR = [
+        { createdAt: { lt: params.cursorPayload.createdAt } },
+        {
+          createdAt: params.cursorPayload.createdAt,
+          id: { lt: params.cursorPayload.id },
+        },
+      ];
+    }
+
+    const logs = await this.prisma.dungeonLog.findMany({
+      where,
+      orderBy: [
+        { createdAt: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.desc },
+      ],
+      take: params.limit,
+    });
+
+    if (params.cursorPayload && logs.length === 0) {
+      throw buildCursorNotFoundException(
+        '요청한 커서 이후의 로그가 없거나 커서가 일치하지 않습니다.',
+      );
+    }
+
+    const hasNext = logs.length === params.limit;
+    const nextCursor =
+      hasNext && logs.length > 0
+        ? encodeLogsCursor({
+            createdAt: logs[logs.length - 1].createdAt,
+            id: logs[logs.length - 1].id,
+          })
+        : null;
+
+    return {
+      logs: logs.map((log) => ({
+        id: log.id,
+        category: log.category,
+        action: log.action,
+        status: log.status,
+        floor: log.floor,
+        turnNumber: log.turnNumber,
+        stateVersionBefore: log.stateVersionBefore,
+        stateVersionAfter: log.stateVersionAfter,
+        delta: (log.delta as DungeonLogDelta | null) ?? null,
+        extra: (log.extra as DungeonLogDetails | null) ?? null,
+        createdAt: log.createdAt.toISOString(),
+      })),
+      nextCursor,
+    };
+  }
+}
