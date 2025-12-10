@@ -278,4 +278,93 @@ describe('DungeonBatchService 배치 동작', () => {
       }),
     );
   });
+
+  it('여러 사용자 AP를 소모하며 로그/버전을 증가시킨다', async () => {
+    const configService = createConfigService({
+      'dungeon.batch.maxUsersPerTick': 3,
+      'dungeon.batch.maxActionsPerUser': 2,
+    });
+    const users = [
+      createState({ userId: 'user-a', ap: 2, version: 1 }),
+      createState({ userId: 'user-b', ap: 2, version: 5 }),
+      createState({ userId: 'user-c', ap: 1, version: 10 }),
+    ];
+
+    prismaMock.dungeonState.findMany
+      .mockResolvedValueOnce(users)
+      .mockResolvedValue([]);
+    prismaMock.dungeonState.findUnique.mockImplementation(
+      ({ where }: { where: { userId: string } }) =>
+        Promise.resolve(users.find((u) => u.userId === where.userId)),
+    );
+    lockMock.acquire.mockResolvedValue(true);
+    prismaMock.dungeonState.updateMany.mockResolvedValue({ count: 1 });
+
+    eventServiceMock.execute.mockImplementation(
+      ({ state }: { state: DungeonState }) => {
+        const nextState = {
+          ...state,
+          ap: state.ap - 1,
+          version: state.version + 1,
+        };
+        return Promise.resolve({
+          selectedEvent: DungeonEventType.BATTLE,
+          forcedMove: false,
+          stateBefore: state,
+          stateAfter: nextState,
+          rawLogs: [],
+          logs: [
+            {
+              category: DungeonLogCategory.EXPLORATION,
+              action: DungeonLogAction.BATTLE,
+              status: DungeonLogStatus.COMPLETED,
+              floor: state.floor,
+              stateVersionBefore: state.version,
+              stateVersionAfter: nextState.version,
+            },
+          ],
+        });
+      },
+    );
+
+    const service = buildService(configService);
+    await service.runBatchTick();
+
+    // user-a/user-b는 AP 2 → 2회, user-c는 AP 1 → 1회 실행
+    expect(eventServiceMock.execute).toHaveBeenCalledTimes(5);
+    expect(prismaMock.dungeonLog.createMany).toHaveBeenCalledTimes(5);
+
+    // 마지막 업데이트 호출이 AP 감소와 버전 증가를 반영했는지 확인
+    const lastUpdateCall = prismaMock.dungeonState.updateMany.mock.calls.at(-1);
+    const lastArgs = (
+      lastUpdateCall?.[0] as {
+        data?: { ap?: number; version?: number };
+      }
+    )?.data;
+    expect(typeof lastArgs?.ap).toBe('number');
+    expect(typeof lastArgs?.version).toBe('number');
+  });
+
+  it('상태 버전 충돌 시 DungeonBatchError로 실패하고 락을 해제한다', async () => {
+    const configService = createConfigService();
+    const state = createState({ userId: 'user-x', ap: 1, version: 3 });
+
+    prismaMock.dungeonState.findMany.mockResolvedValue([state]);
+    prismaMock.dungeonState.findUnique.mockResolvedValue(state);
+    lockMock.acquire.mockResolvedValue(true);
+    prismaMock.dungeonState.updateMany.mockResolvedValue({ count: 0 }); // 버전 불일치로 실패
+    eventServiceMock.execute.mockResolvedValue({
+      selectedEvent: DungeonEventType.BATTLE,
+      forcedMove: false,
+      stateBefore: state,
+      stateAfter: { ...state, ap: state.ap - 1, version: state.version + 1 },
+      rawLogs: [],
+      logs: [],
+    });
+
+    const service = buildService(configService);
+
+    await expect(service.runBatchTick()).rejects.toThrow();
+    expect(lockMock.release).toHaveBeenCalledWith(state.userId);
+  });
 });
