@@ -7,6 +7,12 @@ import {
 import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
 import { buildInvalidQueryException } from './logs.errors';
 
+export interface LogsQueryDto {
+  limit?: string | number | (string | number)[];
+  cursor?: string | string[];
+  type?: string | string[];
+}
+
 const LOG_TYPES = new Set<string>([
   ...Object.values(DungeonLogAction),
   ...Object.values(DungeonLogCategory),
@@ -57,9 +63,7 @@ const parseType = (
   });
 };
 
-export const validateLogsQuery = (
-  raw: Record<string, string | string[] | undefined>,
-): ValidatedLogsQuery => {
+export const validateLogsQuery = (raw: LogsQueryDto): ValidatedLogsQuery => {
   const limitRaw = Array.isArray(raw.limit) ? raw.limit[0] : raw.limit;
   const typeRaw = Array.isArray(raw.type) ? raw.type[0] : raw.type;
   const cursor = Array.isArray(raw.cursor) ? raw.cursor[0] : raw.cursor;
