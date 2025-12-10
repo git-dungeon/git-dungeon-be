@@ -1,6 +1,6 @@
-import { Controller, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { TypedRoute } from '@nestia/core';
+import { TypedQuery, TypedRoute } from '@nestia/core';
 import type { Request, Response } from 'express';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
@@ -13,7 +13,9 @@ import {
 import { applyNoCacheHeaders } from '../common/http/response-helpers';
 import type { DungeonLogsPayload } from './dto/logs.response';
 import { LogsService } from './logs.service';
-import { validateLogsQuery, type LogsQueryRaw } from './logs-query.validator';
+import { validateLogsQuery } from './logs-query.validator';
+import type { LogsQueryDto } from './dto/logs.query';
+import { LogTypeEnum } from './logs.types';
 
 @ApiTags('Logs')
 @Controller('api')
@@ -38,18 +40,19 @@ export class LogsController {
   @ApiQuery({
     name: 'type',
     required: false,
-    type: String,
+    enum: LogTypeEnum,
+    enumName: 'LogType',
     description: '액션/카테고리 필터(DungeonLogAction | DungeonLogCategory)',
   })
   async getLogs(
     @CurrentAuthSession() session: ActiveSessionResult,
     @Req() request: Request & { id: string },
     @Res({ passthrough: true }) response: Response,
-    @Query() rawQuery: LogsQueryRaw,
+    @TypedQuery() query: LogsQueryDto,
   ): Promise<ApiSuccessResponse<DungeonLogsPayload>> {
     applyNoCacheHeaders(response);
 
-    const validatedQuery = validateLogsQuery(rawQuery);
+    const validatedQuery = validateLogsQuery(query);
 
     const result = await this.logsService.getLogs({
       userId: session.view.session.userId,

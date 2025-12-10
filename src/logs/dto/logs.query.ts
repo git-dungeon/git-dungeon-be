@@ -4,7 +4,7 @@ import {
   LOGS_MAX_LIMIT,
   LOGS_MIN_LIMIT,
 } from '../logs.constants';
-import type { LogTypeFilter } from '../logs.types';
+import { LogTypeEnum } from '../logs.types';
 
 /**
  * `GET /api/logs` 쿼리 파라미터 DTO.
@@ -19,5 +19,5 @@ export interface LogsQueryDto {
   cursor?: string &
     tags.MinLength<1> &
     tags.Example<'MjAyNS0xMi0xMFQwMDowMDowMC4wMDBafGQ1YzA0MGI0LTg0MzItNDljNC1hYzgwLTdlNmJhMTY4OGQ0ZQ'>;
-  type?: LogTypeFilter & tags.Example<'BATTLE'>;
+  type?: LogTypeEnum & tags.Example<'BATTLE'>;
 }

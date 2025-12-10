@@ -6,6 +6,7 @@ import {
 import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
 import { buildInvalidQueryException } from './logs.errors';
 import { isLogAction, isLogCategory, type LogTypeFilter } from './logs.types';
+import type { LogsQueryDto } from './dto/logs.query';
 
 export interface LogsQueryRaw {
   limit?: string | number | (string | number)[];
@@ -19,6 +20,8 @@ export type ValidatedLogsQuery = {
   cursorPayload?: LogsCursor;
   type?: LogTypeFilter;
 };
+
+export type LogsQueryInput = LogsQueryRaw | LogsQueryDto;
 
 const parseLimit = (rawLimit: string | number | undefined): number => {
   if (rawLimit === undefined || rawLimit === null || rawLimit === '') {
@@ -56,7 +59,7 @@ const parseType = (rawType: string | undefined): LogTypeFilter | undefined => {
   });
 };
 
-export const validateLogsQuery = (raw: LogsQueryRaw): ValidatedLogsQuery => {
+export const validateLogsQuery = (raw: LogsQueryInput): ValidatedLogsQuery => {
   const limitRaw = Array.isArray(raw.limit) ? raw.limit[0] : raw.limit;
   const typeRaw = Array.isArray(raw.type) ? raw.type[0] : raw.type;
   const cursor = Array.isArray(raw.cursor) ? raw.cursor[0] : raw.cursor;

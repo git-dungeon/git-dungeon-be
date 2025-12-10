@@ -12,7 +12,7 @@ import { TreasureEventProcessor } from './events/processors/treasure-event.proce
 import { TrapEventProcessor } from './events/processors/trap-event.processor';
 import { MoveEventProcessor } from './events/processors/move-event.processor';
 import { DungeonLogBuilder } from './events/dungeon-log.builder';
-import { loadEventConfig } from './events/config/event-config';
+import { loadEventConfig } from './events/config/event-config.loader';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { MonsterRegistry } from './monsters';
