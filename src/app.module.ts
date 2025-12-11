@@ -17,6 +17,7 @@ import { CatalogModule } from './catalog/catalog.module';
 import { GithubModule } from './github/github.module';
 import { DungeonModule } from './dungeon/dungeon.module';
 import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
+import { LogsModule } from './logs/logs.module';
 
 const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
 
@@ -70,6 +71,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     CatalogModule,
     GithubModule,
     DungeonModule,
+    LogsModule,
     // 테스트에서는 크론/큐 초기화를 생략해 부트스트랩을 가볍게 유지
     ...(isTestEnv ? [] : [DungeonBatchModule]),
   ],

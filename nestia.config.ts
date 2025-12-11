@@ -16,6 +16,7 @@ const config: INestiaConfig = {
   swagger: {
     output: 'generated/swagger.json',
     beautify: true,
+    openapi: '3.0',
     servers: [
       {
         url: process.env.PUBLIC_BASE_URL || 'http://localhost:3000',
