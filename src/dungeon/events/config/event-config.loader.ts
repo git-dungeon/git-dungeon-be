@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
 import { DEFAULT_EVENT_WEIGHTS, type EffectDelta } from '../event.types';
 
 export type EventWeightsConfig = {
@@ -26,22 +26,29 @@ export type EventConfig = {
 };
 
 export const loadEventConfig = (): EventConfig => {
-  const filePath = join(__dirname, 'event-config.json');
-  let parsed: unknown = {};
+  const candidates = [
+    resolve(process.cwd(), 'config/dungeon/event-config.json'),
+    join(__dirname, 'event-config.json'),
+  ];
 
-  try {
-    const json = readFileSync(filePath, 'utf-8');
-    parsed = JSON.parse(json);
-  } catch (_error) {
-    // fallback to defaults if config file is missing or invalid JSON
-    parsed = {
-      weights: DEFAULT_EVENT_WEIGHTS,
-      battle: defaultBattleConfig(),
-      effects: {},
-    };
+  const filePath = candidates.find((p) => existsSync(p));
+
+  if (filePath) {
+    try {
+      const json = readFileSync(filePath, 'utf-8');
+      const parsed: unknown = JSON.parse(json);
+      return validateEventConfig(parsed);
+    } catch (_error) {
+      // 아래에서 기본값으로 대체
+    }
   }
 
-  return validateEventConfig(parsed);
+  // fallback to defaults if config file is missing or invalid JSON
+  return validateEventConfig({
+    weights: DEFAULT_EVENT_WEIGHTS,
+    battle: defaultBattleConfig(),
+    effects: {},
+  });
 };
 
 const isNumber = (value: unknown): value is number =>

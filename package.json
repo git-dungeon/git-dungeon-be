@@ -32,8 +32,8 @@
     "swagger:open": "open http://localhost:3000/api",
     "contract:generate": "pnpm build && tsx scripts/contract.ts all",
     "pretest": "pnpm db:generate",
-    "catalog:bump": "pnpm exec ts-node --compiler ts-patch/compiler scripts/bump-catalog-version.ts",
-    "validate:catalog": "pnpm exec ts-node --compiler ts-patch/compiler scripts/validate-catalog.ts",
+    "config:bump": "pnpm exec ts-node --compiler ts-patch/compiler scripts/bump-config-version.ts",
+    "validate:config": "pnpm exec ts-node --compiler ts-patch/compiler scripts/validate-config.ts",
     "sim:all": "pnpm ts-node scripts/simulate-all.ts",
     "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user user-baseline --seed baseline --max-actions 3 --dry-run",
     "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --dry-run"

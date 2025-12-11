@@ -1,0 +1,5 @@
+#!/bin/sh
+set -euo pipefail
+. "$(dirname "$0")/_/husky.sh"
+
+pnpm sim:all --mode full --compare reports/baseline.full.json --tolerance 0.1 --strict

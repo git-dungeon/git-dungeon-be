@@ -131,22 +131,29 @@ pnpm dev
   - 테스트 스냅샷 가이드: `src/test-support/simulation/docs/snapshots.md`
   - CLI 실행 예제 모음: `src/test-support/simulation/docs/examples.md`
 - **단축 명령**
-  - 모든 fixture 요약 실행: `pnpm sim:all`
+  - 모든 fixture 요약/리포트 실행: `pnpm sim:all --mode full|fast --report pretty|json --out <path> [--compare reports/baseline*.json --tolerance 0.1 --strict]`
+  - 리포트 지표: 승률, 평균 턴, EXP 획득, 레벨업 횟수, 엘리트 드랍률, AP당 실행시간(ms/AP), AP/action, duration(p95) 포함
+  - baseline 생성: `pnpm sim:all --mode full --report json --out reports/baseline.full.json` (fast 기준선 필요 시 `baseline.json`)
+  - pre-push 훅: `pnpm sim:all --mode full --compare reports/baseline.full.json --tolerance 0.1 --strict` 실행(전체 시나리오 필수)
   - 대표 시나리오: `pnpm sim:baseline`, `pnpm sim:turn-limit`
   - 차이점: `pnpm test`는 스냅샷과 비교해 불일치 시 실패(회귀 검증), `pnpm sim:all`은 스냅샷 비교 없이 실행 요약만 출력(수동 확인용).
 - RNG 사용 위치 예시:
   - 이벤트 타입 선택: `WeightedDungeonEventSelector` (`src/dungeon/events/event-selector.ts`)
   - 드랍 테이블 롤: `DropTableRegistry.rollTable` (`src/dungeon/drops/drop-table.ts`)
   - 레벨업 시 랜덤 스탯 선택: `DungeonEventService.applyExpAndLevelUp` (`src/dungeon/events/dungeon-event.service.ts`)
-- 이 RNG는 게임 로직 재현성을 위한 것이며, 암호/보안 목적으로는 사용하지 않습니다.
+  - 이 RNG는 게임 로직 재현성을 위한 것이며, 암호/보안 목적으로는 사용하지 않습니다.
+
+환경/설정 분리 가이드
+- 기본 밸런스/이벤트 설정: `config/dungeon/event-config.json` (PRD 기본값, Git으로 관리)
+- 드랍 테이블 기본값: `config/catalog/drops.json`
 
 ---
 
 ## 카탈로그 운영
 
-- `config/catalog` 내 items/buffs/monsters/drops + i18n
-- `catalog.hashes.json` 자동 관리
-- 변경 → `pnpm catalog:bump` → `pnpm validate:catalog`
+- `config/catalog` 내 items/buffs/monsters/drops + i18n, `config/dungeon/event-config.json`
+- `config/config.hashes.json` 자동 관리 (catalog + event-config + i18n hash 추적)
+- 변경 → `pnpm config:bump` → `pnpm validate:config`
 - `/api/catalog?locale=ko` 제공
 
 ---

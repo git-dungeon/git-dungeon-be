@@ -2,8 +2,8 @@
 set -euo pipefail
 . "$(dirname "$0")/_/husky.sh"
 
-pnpm catalog:bump
-pnpm validate:catalog
+pnpm config:bump
+pnpm validate:config
 git add config/catalog/items.json \
   config/catalog/buffs.json \
   config/catalog/monsters.json \

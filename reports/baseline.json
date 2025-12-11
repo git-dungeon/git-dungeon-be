@@ -1,0 +1,37 @@
+{
+  "summary": {
+    "fixtures": 3,
+    "passed": 3,
+    "failed": 0,
+    "passRate": 1,
+    "avgDurationMs": 0.6666666666666666,
+    "p95DurationMs": 2,
+    "avgActionsCompleted": 1.6666666666666667,
+    "details": {
+      "baseline": {
+        "passed": true,
+        "durationMs": 2,
+        "actionsCompleted": 3,
+        "mismatches": []
+      },
+      "no-drop": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": []
+      },
+      "turn-limit": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": []
+      }
+    }
+  },
+  "compare": {
+    "found": false,
+    "tolerance": 0.1,
+    "exceeded": false,
+    "messages": []
+  }
+}
