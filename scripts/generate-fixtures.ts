@@ -131,7 +131,7 @@ async function runSnapshot(snapshot: Snapshot): Promise<OutputStep[]> {
 async function main() {
   const outDir = path.join(
     __dirname,
-    '../docs/db/fixtures/dungeon-simulation/generated',
+    '../src/test-support/simulation/generated',
   );
   fs.mkdirSync(outDir, { recursive: true });
   const snapshots = [

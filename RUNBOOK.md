@@ -118,6 +118,22 @@ pnpm dev
 - 던전 이벤트/드랍/레벨업 스탯 증가는 시드 기반 RNG(`seedrandom`)로 결정합니다.
 - 던전 이벤트 실행 시 시드는 `userId`와 행동 카운터(`actionCounter`)를 조합해 생성합니다(예: `userId:turnNumber`).
 - 같은 사용자/같은 턴 번호에 대해서는 항상 동일한 RNG 시퀀스를 사용하므로, 로그를 기준으로 결과를 재현하거나 디버깅/리플레이에 활용할 수 있습니다.
+
+---
+
+## 던전 시뮬레이션 실행/검증
+
+- **빠른 실행 예제**: `pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline`
+- **스냅샷 테스트**: `pnpm test -- --runInBand --testNamePattern "simulation fixtures"` (변경 시 `--update`)
+- **JSON 리포트 재생성**: `pnpm sim:fixtures:gen` → `src/test-support/simulation/generated/*.json`
+- **비결정 값 마스킹**: 로그의 Date, duration 등은 테스트에서 정규화됨(자세한 규칙은 아래 링크).
+- **자세한 가이드/예제**
+  - 테스트 스냅샷 가이드: `src/test-support/simulation/docs/snapshots.md`
+  - CLI 실행 예제 모음: `src/test-support/simulation/docs/examples.md`
+- **단축 명령**
+  - 모든 fixture 요약 실행: `pnpm sim:all`
+  - 대표 시나리오: `pnpm sim:baseline`, `pnpm sim:turn-limit`
+  - 차이점: `pnpm test`는 스냅샷과 비교해 불일치 시 실패(회귀 검증), `pnpm sim:all`은 스냅샷 비교 없이 실행 요약만 출력(수동 확인용).
 - RNG 사용 위치 예시:
   - 이벤트 타입 선택: `WeightedDungeonEventSelector` (`src/dungeon/events/event-selector.ts`)
   - 드랍 테이블 롤: `DropTableRegistry.rollTable` (`src/dungeon/drops/drop-table.ts`)
