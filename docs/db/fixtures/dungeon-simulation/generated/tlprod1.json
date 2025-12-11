@@ -1,0 +1,57 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "BATTLE",
+    "stateAfter": {
+      "hp": 116,
+      "ap": 0,
+      "floor": 120,
+      "floorProgress": 20,
+      "level": 30,
+      "exp": 0,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "BATTLE",
+        "status": "STARTED"
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -34
+            },
+            "progress": {
+              "previousProgress": 0,
+              "floorProgress": 20,
+              "delta": 20
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "id": "monster-ancient-dragon",
+              "name": "Ancient Dragon",
+              "hp": 110,
+              "atk": 22,
+              "def": 11,
+              "spriteId": "sprite/monster-ancient-dragon"
+            },
+            "result": "DEFEAT",
+            "cause": "TURN_LIMIT",
+            "expGained": 0,
+            "turns": 30,
+            "damageDealt": 33,
+            "damageTaken": 34
+          }
+        }
+      }
+    ]
+  }
+]

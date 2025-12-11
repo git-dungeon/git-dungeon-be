@@ -1,0 +1,106 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "BATTLE",
+    "stateAfter": {
+      "hp": 19,
+      "ap": 0,
+      "floor": 5,
+      "floorProgress": 20,
+      "level": 5,
+      "exp": 10,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "BATTLE",
+        "status": "STARTED"
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -1,
+              "exp": 10
+            },
+            "progress": {
+              "previousProgress": 0,
+              "floorProgress": 20,
+              "delta": 20
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "id": "monster-cave-spider-elite",
+              "name": "Cave Spider (Elite)",
+              "hp": 14,
+              "atk": 5,
+              "def": 1,
+              "spriteId": "sprite/monster-cave-spider"
+            },
+            "result": "VICTORY",
+            "expGained": 10,
+            "turns": 2,
+            "damageDealt": 15,
+            "damageTaken": 1
+          }
+        }
+      },
+      {
+        "action": "ACQUIRE_ITEM",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "ACQUIRE_ITEM",
+          "detail": {
+            "inventory": {
+              "added": [
+                {
+                  "itemId": "weapon-battle-axe",
+                  "code": "weapon-battle-axe",
+                  "slot": "weapon",
+                  "rarity": "rare",
+                  "quantity": 1
+                },
+                {
+                  "itemId": "helmet-bronze-helm",
+                  "code": "helmet-bronze-helm",
+                  "slot": "helmet",
+                  "rarity": "uncommon",
+                  "quantity": 1
+                }
+              ]
+            }
+          }
+        },
+        "extra": {
+          "type": "ACQUIRE_ITEM",
+          "details": {
+            "reward": {
+              "source": "BATTLE",
+              "drop": {
+                "tableId": "drops-default",
+                "isElite": true,
+                "items": [
+                  {
+                    "itemCode": "weapon-battle-axe",
+                    "quantity": 1
+                  },
+                  {
+                    "itemCode": "helmet-bronze-helm",
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

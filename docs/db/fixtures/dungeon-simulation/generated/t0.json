@@ -1,0 +1,95 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "BATTLE",
+    "stateAfter": {
+      "hp": 5,
+      "ap": 0,
+      "floor": 1,
+      "floorProgress": 40,
+      "level": 1,
+      "exp": 3,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "BATTLE",
+        "status": "STARTED"
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -5,
+              "exp": 3
+            },
+            "progress": {
+              "previousProgress": 20,
+              "floorProgress": 40,
+              "delta": 20
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "id": "monster-giant-rat",
+              "name": "Giant Rat",
+              "hp": 8,
+              "atk": 2,
+              "def": 0,
+              "spriteId": "sprite/monster-giant-rat"
+            },
+            "result": "VICTORY",
+            "expGained": 3,
+            "turns": 6,
+            "damageDealt": 8,
+            "damageTaken": 5
+          }
+        }
+      },
+      {
+        "action": "ACQUIRE_ITEM",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "ACQUIRE_ITEM",
+          "detail": {
+            "inventory": {
+              "added": [
+                {
+                  "itemId": "ring-silver-band",
+                  "code": "ring-silver-band",
+                  "slot": "ring",
+                  "rarity": "common",
+                  "quantity": 1
+                }
+              ]
+            }
+          }
+        },
+        "extra": {
+          "type": "ACQUIRE_ITEM",
+          "details": {
+            "reward": {
+              "source": "BATTLE",
+              "drop": {
+                "tableId": "drops-default",
+                "isElite": false,
+                "items": [
+                  {
+                    "itemCode": "ring-silver-band",
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

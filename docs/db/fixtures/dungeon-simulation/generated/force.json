@@ -1,0 +1,116 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "BATTLE",
+    "stateAfter": {
+      "hp": 9,
+      "ap": 2,
+      "floor": 2,
+      "floorProgress": 0,
+      "level": 1,
+      "exp": 3,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "BATTLE",
+        "status": "STARTED"
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -1,
+              "exp": 3
+            },
+            "progress": {
+              "previousProgress": 90,
+              "floorProgress": 100,
+              "delta": 10
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "id": "monster-giant-rat",
+              "name": "Giant Rat",
+              "hp": 8,
+              "atk": 2,
+              "def": 0,
+              "spriteId": "sprite/monster-giant-rat"
+            },
+            "result": "VICTORY",
+            "expGained": 3,
+            "turns": 2,
+            "damageDealt": 9,
+            "damageTaken": 1
+          }
+        }
+      },
+      {
+        "action": "MOVE",
+        "status": "STARTED"
+      },
+      {
+        "action": "MOVE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "MOVE",
+          "detail": {
+            "fromFloor": 1,
+            "toFloor": 2,
+            "previousProgress": 100,
+            "progress": {
+              "previousProgress": 100,
+              "floorProgress": 0,
+              "delta": -100
+            }
+          }
+        }
+      },
+      {
+        "action": "ACQUIRE_ITEM",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "ACQUIRE_ITEM",
+          "detail": {
+            "inventory": {
+              "added": [
+                {
+                  "itemId": "weapon-battle-axe",
+                  "code": "weapon-battle-axe",
+                  "slot": "weapon",
+                  "rarity": "rare",
+                  "quantity": 1
+                }
+              ]
+            }
+          }
+        },
+        "extra": {
+          "type": "ACQUIRE_ITEM",
+          "details": {
+            "reward": {
+              "source": "BATTLE",
+              "drop": {
+                "tableId": "drops-default",
+                "isElite": false,
+                "items": [
+                  {
+                    "itemCode": "weapon-battle-axe",
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

@@ -24,6 +24,7 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "tsx scripts/db-reset.ts",
+    "sim:fixtures:gen": "pnpm ts-node scripts/generate-fixtures.ts",
     "sdk:generate": "npx nestia sdk",
     "swagger:generate": "npx nestia swagger",
     "swagger:generate:prod": "PUBLIC_BASE_URL=https://api.gitdungeon.com npx nestia swagger",

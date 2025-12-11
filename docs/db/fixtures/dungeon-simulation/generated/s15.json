@@ -1,0 +1,56 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "TRAP",
+    "stateAfter": {
+      "hp": 10,
+      "ap": 1,
+      "floor": 1,
+      "floorProgress": 0,
+      "level": 1,
+      "exp": 0,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "TRAP",
+        "status": "STARTED"
+      },
+      {
+        "action": "DEATH",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "DEATH",
+          "detail": {
+            "stats": {
+              "hp": 10
+            },
+            "progress": {
+              "previousProgress": 10,
+              "floorProgress": 0,
+              "delta": -10
+            }
+          }
+        },
+        "extra": {
+          "type": "DEATH",
+          "details": {
+            "cause": "TRAP_DAMAGE"
+          }
+        }
+      },
+      {
+        "action": "TRAP",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "TRAP",
+          "detail": {
+            "stats": {
+              "hp": -3
+            }
+          }
+        }
+      }
+    ]
+  }
+]
