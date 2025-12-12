@@ -123,20 +123,74 @@ pnpm dev
 
 ## 던전 시뮬레이션 실행/검증
 
-- **빠른 실행 예제**: `pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline`
+- **대표 시나리오 빠른 실행**: `pnpm sim:baseline`, `pnpm sim:turn-limit`
+- **전체 fixture 빠른 회귀**: `pnpm sim:all --mode fast`
 - **스냅샷 테스트**: `pnpm test -- --runInBand --testNamePattern "simulation fixtures"` (변경 시 `--update`)
 - **JSON 리포트 재생성**: `pnpm sim:fixtures:gen` → `src/test-support/simulation/generated/*.json`
 - **비결정 값 마스킹**: 로그의 Date, duration 등은 테스트에서 정규화됨(자세한 규칙은 아래 링크).
+- **자세한 옵션/절차**: 아래 `CLI 상세`, `기준선/지표 비교 절차`, `실패/엣지 케이스 재현` 참고
 - **자세한 가이드/예제**
   - 테스트 스냅샷 가이드: `src/test-support/simulation/docs/snapshots.md`
   - CLI 실행 예제 모음: `src/test-support/simulation/docs/examples.md`
-- **단축 명령**
-  - 모든 fixture 요약/리포트 실행: `pnpm sim:all --mode full|fast --report pretty|json --out <path> [--compare reports/baseline*.json --tolerance 0.1 --strict]`
-  - 리포트 지표: 승률, 평균 턴, EXP 획득, 레벨업 횟수, 엘리트 드랍률, AP당 실행시간(ms/AP), AP/action, duration(p95) 포함
-  - baseline 생성: `pnpm sim:all --mode full --report json --out reports/baseline.full.json` (fast 기준선 필요 시 `baseline.json`)
-  - pre-push 훅: `pnpm sim:all --mode full --compare reports/baseline.full.json --tolerance 0.1 --strict` 실행(전체 시나리오 필수)
-  - 대표 시나리오: `pnpm sim:baseline`, `pnpm sim:turn-limit`
-  - 차이점: `pnpm test`는 스냅샷과 비교해 불일치 시 실패(회귀 검증), `pnpm sim:all`은 스냅샷 비교 없이 실행 요약만 출력(수동 확인용).
+
+### CLI 상세
+
+- 단일 시나리오 실행: `scripts/simulate.ts`
+  - **필수 옵션**(fixture 사용 시에도 파서가 강제): `--user/-u <userId>`, `--seed/-s <seed>`, `--max-actions/-m <n>`
+  - **옵션**
+    - `--fixture <name>`: 준비된 fixture 실행. fixture의 `initialState`/`seed`를 사용하며 `--seed` 값은 무시됩니다.
+    - `--dry-run`(기본): DB에 기록하지 않고 메모리 상태로만 실행합니다. fixture 없이 dry-run을 실행하면 초기 상태가 없어 실패하므로 fixture 사용이 전제입니다.
+    - `--commit`: DB의 `dungeonState`를 읽어 실행하고 결과를 `dungeonState` 업데이트 + `dungeonLog` 삽입으로 트랜잭션 저장합니다. 버전 충돌(동시 배치 등) 시 실패하므로 운영 DB에서는 배치 중지/락 상태 확인 후 사용하세요.
+    - `--report <pretty|json>`(기본 pretty), `--out <path>`(report=json일 때 저장)
+  - 사용 가능한 fixture: `baseline`, `trap-death`, `forced-move`, `no-drop`, `long-battle`, `turn-limit`, `elite-battle`, `rest-clamp`, `level-up`
+  - 예제
+    ```bash
+    pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline
+    pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline --report json --out reports/baseline.single.json
+    ```
+- 전체 fixture 실행/지표 리포트: `scripts/simulate-all.ts` (`pnpm sim:all`)
+  - dry-run 전용(항상 DB 미기록)이며 fixture의 초기 상태로 모든 시나리오를 실행합니다.
+  - `--mode fast`는 `baseline`, `turn-limit`, `no-drop`만 실행해 빠르게 회귀를 확인합니다.
+  - 예제
+    ```bash
+    pnpm sim:all --mode fast --report pretty
+    pnpm sim:all --mode full --report json --out reports/current.full.json
+    ```
+
+### 기준선/지표 비교 절차
+
+1. **baseline 생성**
+   ```bash
+   pnpm sim:all --mode full --report json --out reports/baseline.full.json
+   ```
+   - `reports/baseline.full.json`을 기준선으로 Git에 커밋해 관리합니다.
+2. **파라미터 변경 후 비교**
+   ```bash
+   pnpm sim:all --mode full --compare reports/baseline.full.json --tolerance 0.1
+   ```
+   - `tolerance`는 상대 오차 비율입니다. `|current - baseline| / baseline > tolerance`이면 drift로 판단합니다.
+   - 자동 비교 대상은 현재 **pass rate, avg duration, p95 duration**입니다. 나머지 지표(승률/턴수/EXP/레벨업/엘리트 드랍률/ms/AP 등)는 출력/JSON을 보고 수동 검토합니다.
+3. **drift 허용/반영**
+   - 의도된 밸런스 변화로 판단되면 baseline을 재생성해 교체합니다.
+   - 의도치 않은 변화면 fixture별 `mismatches`/`metrics`를 보고 원인(이벤트 확률/드랍 테이블/전투 규칙)을 추적합니다.
+
+### 실패/엣지 케이스 재현
+
+- 단일 실행(로컬/CI):
+  ```bash
+  # trap 사망
+  pnpm ts-node scripts/simulate.ts --user user-trap-death --seed trap-death --max-actions 1 --fixture trap-death
+  # no-drop 패배
+  pnpm ts-node scripts/simulate.ts --user user-no-drop --seed no-drop --max-actions 1 --fixture no-drop
+  # turn limit 패배 (battle.turnLimit이 낮게 설정된 상태 기준)
+  pnpm ts-node scripts/simulate.ts --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --fixture turn-limit
+  ```
+  - turn-limit 재현이 어려우면 `config/dungeon/event-config.json`의 `battle.turnLimit`을 임시로 낮춰 재현하고, 완료 후 원복하세요.
+- 배치 기반(스테이징 권장):
+  1. 대상 유저의 AP를 `DUNGEON_BATCH_MIN_AP` 이상으로 세팅합니다.
+  2. 크론 실행을 기다리거나 서버 재기동 후 `DUNGEON_BATCH_MAX_ACTIONS_PER_USER`를 1로 낮춰 재현합니다.
+  3. 결과는 `dungeonState`/`dungeonLog` 및 배치 로그에서 확인합니다.
+
 - RNG 사용 위치 예시:
   - 이벤트 타입 선택: `WeightedDungeonEventSelector` (`src/dungeon/events/event-selector.ts`)
   - 드랍 테이블 롤: `DropTableRegistry.rollTable` (`src/dungeon/drops/drop-table.ts`)
