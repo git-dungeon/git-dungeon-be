@@ -52,6 +52,14 @@ async function main() {
   await prisma.dungeonStateSnapshot.deleteMany({ where: { userId: user.id } });
   await prisma.inventoryItem.deleteMany({ where: { userId: user.id } });
 
+  const seedWithSamples = process.env.SEED_WITH_SAMPLES === 'true';
+  if (!seedWithSamples) {
+    console.info('Seeded user:', user.email);
+    console.info('Seeded dungeon state for:', user.email);
+    console.info('Seed samples skipped (SEED_WITH_SAMPLES=false).');
+    return;
+  }
+
   const baseTime = new Date();
 
   const inventoryItems: Prisma.InventoryItemUncheckedCreateInput[] = [

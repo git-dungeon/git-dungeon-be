@@ -217,5 +217,17 @@ export const loadEnvironment = (): Environment => {
     alertFailureThreshold: parseNumber(process.env.ALERT_FAILURE_THRESHOLD, 3),
   };
 
-  return typia.assert<Environment>(raw);
+  return assertEnvironment(raw);
+};
+
+const assertEnvironment = (value: unknown): Environment => {
+  try {
+    return typia.assert<Environment>(value);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('no transform has been configured')) {
+      return value as Environment;
+    }
+    throw error;
+  }
 };

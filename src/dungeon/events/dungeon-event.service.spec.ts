@@ -10,6 +10,7 @@ import { DungeonEventService } from './dungeon-event.service';
 import { DungeonModule } from '../dungeon.module';
 import { DungeonEventType } from './event.types';
 import type { DungeonLogPayload } from './event.types';
+import type { InventoryDelta } from '../../common/logs/dungeon-log-delta';
 import { DropService } from '../drops/drop.service';
 import { DropInventoryService } from '../drops/drop-inventory.service';
 
@@ -453,6 +454,67 @@ describe('DungeonEventService', () => {
       expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
       expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
     } finally {
+      process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
+    }
+  });
+
+  it('skipInventoryApply 옵션이면 드랍 인벤토리 적용을 스킵한다', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+    process.env.NODE_ENV = 'development';
+    delete process.env.DATABASE_SKIP_CONNECTION;
+
+    const inventoryAdds: InventoryDelta['added'] = [
+      {
+        itemId: 'item-1',
+        code: 'weapon-wooden-sword',
+        slot: 'weapon',
+        rarity: 'common',
+        quantity: 1,
+      },
+    ];
+    const dropService: Pick<DropService, 'roll'> = {
+      roll: vi
+        .fn()
+        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+    };
+    const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+      applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+    };
+
+    try {
+      const module = await Test.createTestingModule({
+        imports: [DungeonModule],
+      })
+        .overrideProvider(DropService)
+        .useValue(dropService)
+        .overrideProvider(DropInventoryService)
+        .useValue(dropInventoryService)
+        .compile();
+
+      const serviceWithSkip = module.get(DungeonEventService);
+      const state: DungeonState = createState({ ap: 5 });
+
+      const result = await serviceWithSkip.execute({
+        state,
+        seed: 'acquire-log-skip-inventory',
+        skipInventoryApply: true,
+        weights: {
+          [DungeonEventType.BATTLE]: 0,
+          [DungeonEventType.TREASURE]: 1,
+          [DungeonEventType.REST]: 0,
+          [DungeonEventType.TRAP]: 0,
+        },
+      });
+
+      expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
+      const acquireLog = result.logs.find(
+        (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+      );
+      expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+      expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
       process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
     }
   });

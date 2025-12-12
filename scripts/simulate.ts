@@ -1,9 +1,14 @@
 #!/usr/bin/env ts-node
 import fs from 'node:fs';
 import path from 'node:path';
-import { SimulationRunner } from '../src/simulation/sim-runner';
+import type { DungeonState } from '@prisma/client';
+import {
+  SimulationPersistConflictError,
+  SimulationRunner,
+} from '../src/simulation/sim-runner';
 import { getFixture, listFixtureNames } from '../src/simulation/fixtures';
 import type { SimulationResult } from '../src/simulation/types';
+import { DungeonBatchLockService } from '../src/dungeon/batch/dungeon-batch.lock.service';
 
 type ParsedArgs = {
   user?: string;
@@ -14,6 +19,10 @@ type ParsedArgs = {
   report: 'pretty' | 'json';
   out?: string;
   fixture?: string;
+  initialStatePath?: string;
+  useDbState: boolean;
+  lock: boolean;
+  skipInventory: boolean;
 };
 
 const parseArgs = (argv: string[]): ParsedArgs => {
@@ -21,11 +30,17 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     dryRun: true,
     commit: false,
     report: 'pretty',
+    useDbState: false,
+    lock: false,
+    skipInventory: false,
   };
 
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     switch (arg) {
+      case '--':
+        // pnpm/npm scripts pass a standalone "--" before forwarded args
+        break;
       case '--user':
       case '-u':
         args.user = argv[++i];
@@ -41,6 +56,12 @@ const parseArgs = (argv: string[]): ParsedArgs => {
       case '--fixture':
         args.fixture = argv[++i];
         break;
+      case '--initial-state':
+        args.initialStatePath = argv[++i];
+        break;
+      case '--use-db-state':
+        args.useDbState = true;
+        break;
       case '--dry-run':
         args.dryRun = true;
         args.commit = false;
@@ -48,6 +69,12 @@ const parseArgs = (argv: string[]): ParsedArgs => {
       case '--commit':
         args.commit = true;
         args.dryRun = false;
+        break;
+      case '--lock':
+        args.lock = true;
+        break;
+      case '--skip-inventory':
+        args.skipInventory = true;
         break;
       case '--report':
         args.report = (argv[++i] as ParsedArgs['report']) ?? 'pretty';
@@ -80,6 +107,10 @@ const printHelp = () => {
   --fixture <name>    준비된 시나리오 실행 (${listFixtureNames().join(', ')})
   --dry-run           상태/로그를 DB에 기록하지 않고 실행 (기본)
   --commit            DB에 상태/로그를 기록 (DATABASE_URL 필요)
+  --initial-state <path>  DungeonState JSON 파일로 초기 상태 지정
+  --use-db-state      commit 모드에서 DB의 dungeonState를 초기 상태로 사용 (fixture/initial-state 없을 때 필수)
+  --lock              commit 모드에서 배치 락을 획득한 뒤 실행 (실패 시 exit 2)
+  --skip-inventory    드랍 인벤토리(DB insert) 적용 없이 로그만 생성
   --report <pretty|json> 출력 형식 (기본 pretty)
   --out <path>        report=json일 때 파일로 저장
   --help, -h          도움말
@@ -125,39 +156,81 @@ async function main() {
     );
   }
 
-  const runner = new SimulationRunner(args.commit);
-  const result = await runner.run(
-    {
-      userId: args.user,
-      seed: fixture?.seed ?? args.seed,
-      maxActions: args.maxActions,
-      dryRun: args.dryRun,
-      initialState: fixture?.initialState,
-      fixtureName: args.fixture,
-    },
-    fixture
-      ? {
-          name: args.fixture ?? fixture.seed,
-          snapshot: fixture,
-        }
-      : undefined,
-  );
+  const fileInitialState: DungeonState | undefined = args.initialStatePath
+    ? (JSON.parse(
+        fs.readFileSync(path.resolve(args.initialStatePath), 'utf-8'),
+      ) as DungeonState)
+    : undefined;
 
-  if (args.report === 'json') {
-    const payload = JSON.stringify(result, null, 2);
-    if (args.out) {
-      const target = path.resolve(args.out);
-      fs.writeFileSync(target, payload, 'utf-8');
-      console.log(`JSON 리포트를 저장했습니다: ${target}`);
-    } else {
-      console.log(payload);
+  if (args.dryRun && !fixture && !fileInitialState) {
+    throw new Error('dry-run은 fixture 또는 --initial-state가 필요합니다.');
+  }
+
+  if (args.commit && !fixture && !fileInitialState && !args.useDbState) {
+    throw new Error(
+      'commit에서 fixture/--initial-state가 없으면 --use-db-state를 명시해야 합니다.',
+    );
+  }
+
+  let lockService: DungeonBatchLockService | undefined;
+  let lockAcquired = false;
+  if (args.commit && args.lock) {
+    lockService = new DungeonBatchLockService();
+    lockAcquired = await lockService.acquire(args.user);
+    if (!lockAcquired) {
+      console.error(`락 획득 실패로 실행을 중단합니다 (userId=${args.user}).`);
+      process.exit(2);
     }
-  } else {
-    formatPretty(result);
+  }
+
+  let runner: SimulationRunner | undefined;
+  try {
+    runner = new SimulationRunner(args.commit);
+    const result = await runner.run(
+      {
+        userId: args.user,
+        seed: fixture?.seed ?? args.seed,
+        maxActions: args.maxActions,
+        dryRun: args.dryRun,
+        initialState: fixture?.initialState ?? fileInitialState,
+        fixtureName: args.fixture,
+        skipInventoryApply: args.skipInventory,
+      },
+      fixture
+        ? {
+            name: args.fixture ?? fixture.seed,
+            snapshot: fixture,
+          }
+        : undefined,
+    );
+
+    if (args.report === 'json') {
+      const payload = JSON.stringify(result, null, 2);
+      if (args.out) {
+        const target = path.resolve(args.out);
+        fs.writeFileSync(target, payload, 'utf-8');
+        console.log(`JSON 리포트를 저장했습니다: ${target}`);
+      } else {
+        console.log(payload);
+      }
+    } else {
+      formatPretty(result);
+    }
+  } finally {
+    if (lockAcquired && lockService) {
+      await lockService.release(args.user);
+      await lockService.onModuleDestroy();
+    }
+    if (runner) {
+      await runner.close();
+    }
   }
 }
 
 main().catch((err) => {
   console.error(err instanceof Error ? err.message : err);
+  if (err instanceof SimulationPersistConflictError) {
+    process.exit(3);
+  }
   process.exit(1);
 });

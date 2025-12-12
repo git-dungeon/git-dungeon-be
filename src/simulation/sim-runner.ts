@@ -29,6 +29,7 @@ type RunOptions = {
   dryRun: boolean;
   initialState?: DungeonState;
   fixtureName?: string;
+  skipInventoryApply?: boolean;
 };
 
 type FixtureExpectation = {
@@ -73,6 +74,17 @@ const processors: Record<DungeonEventType, DungeonEventProcessor> = {
   [DungeonEventType.MOVE]: new MoveEventProcessor(),
 };
 
+export class SimulationPersistConflictError extends Error {
+  constructor(
+    message: string,
+    public readonly userId: string,
+    public readonly version: number,
+  ) {
+    super(message);
+    this.name = 'SimulationPersistConflictError';
+  }
+}
+
 export class SimulationRunner {
   private readonly logBuilder = new DungeonLogBuilder();
   private readonly dryRunService: DungeonEventService;
@@ -98,6 +110,19 @@ export class SimulationRunner {
         this.logBuilder,
         this.persistDeps.dropInventoryService,
       );
+    }
+  }
+
+  /**
+   * CLI/스크립트 환경에서 commit 모드로 실행 시 생성한 Prisma 연결을 정리한다.
+   * Nest 모듈에서는 onModuleDestroy로 정리되므로 별도 호출이 필요 없다.
+   */
+  async close(): Promise<void> {
+    if (!this.persistDeps) return;
+    try {
+      await this.persistDeps.prisma.$disconnect();
+    } catch {
+      // best-effort
     }
   }
 
@@ -137,13 +162,16 @@ export class SimulationRunner {
         actionCounter,
         apCost: 1,
         weights: eventConfig.weights,
+        skipInventoryApply: options.skipInventoryApply,
       });
 
       if (!options.dryRun && this.persistDeps) {
         const persisted = await this.persistResult(state, result);
         if (!persisted) {
-          throw new Error(
+          throw new SimulationPersistConflictError(
             `상태 저장에 실패했습니다 (userId=${options.userId}, version=${state.version})`,
+            options.userId,
+            state.version ?? 0,
           );
         }
         state = persisted;

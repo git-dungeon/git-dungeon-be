@@ -125,6 +125,7 @@ pnpm dev
 
 - **대표 시나리오 빠른 실행**: `pnpm sim:baseline`, `pnpm sim:turn-limit`
 - **전체 fixture 빠른 회귀**: `pnpm sim:all --mode fast`
+- **임시 DB commit 플로우 자동화**: `pnpm sim:commit-flow`
 - **스냅샷 테스트**: `pnpm test -- --runInBand --testNamePattern "simulation fixtures"` (변경 시 `--update`)
 - **JSON 리포트 재생성**: `pnpm sim:fixtures:gen` → `src/test-support/simulation/generated/*.json`
 - **비결정 값 마스킹**: 로그의 Date, duration 등은 테스트에서 정규화됨(자세한 규칙은 아래 링크).
@@ -135,19 +136,65 @@ pnpm dev
 
 ### CLI 상세
 
-- 단일 시나리오 실행: `scripts/simulate.ts`
+- 단일 시나리오 실행: `pnpm sim -- ...` (`scripts/simulate.ts` 래퍼)
   - **필수 옵션**(fixture 사용 시에도 파서가 강제): `--user/-u <userId>`, `--seed/-s <seed>`, `--max-actions/-m <n>`
   - **옵션**
     - `--fixture <name>`: 준비된 fixture 실행. fixture의 `initialState`/`seed`를 사용하며 `--seed` 값은 무시됩니다.
-    - `--dry-run`(기본): DB에 기록하지 않고 메모리 상태로만 실행합니다. fixture 없이 dry-run을 실행하면 초기 상태가 없어 실패하므로 fixture 사용이 전제입니다.
-    - `--commit`: DB의 `dungeonState`를 읽어 실행하고 결과를 `dungeonState` 업데이트 + `dungeonLog` 삽입으로 트랜잭션 저장합니다. 버전 충돌(동시 배치 등) 시 실패하므로 운영 DB에서는 배치 중지/락 상태 확인 후 사용하세요.
+    - `--initial-state <path>`: DungeonState JSON 파일로 초기 상태를 지정합니다(샘플/스냅샷 재현용).
+    - `--use-db-state`: commit 모드에서 fixture/initial-state가 없을 때 DB의 `dungeonState`를 초기 상태로 사용합니다(명시 없으면 실패).
+    - `--dry-run`(기본): DB에 기록하지 않고 메모리 상태로만 실행합니다. fixture 또는 `--initial-state`가 필요합니다.
+    - `--commit`: 결과를 `dungeonState` 업데이트 + `dungeonLog` 삽입으로 저장합니다. fixture/initial-state가 없으면 `--use-db-state`로 DB 상태를 사용합니다.
+    - `--lock`: commit 전에 배치 락을 획득한 뒤 실행합니다(락 실패 시 exit 2).
+    - `--skip-inventory`: 드랍 인벤토리(DB insert) 적용 없이 로그/델타만 생성합니다.
     - `--report <pretty|json>`(기본 pretty), `--out <path>`(report=json일 때 저장)
   - 사용 가능한 fixture: `baseline`, `trap-death`, `forced-move`, `no-drop`, `long-battle`, `turn-limit`, `elite-battle`, `rest-clamp`, `level-up`
+  - 종료 코드: `0` 성공, `1` 기타 오류, `2` 락 미획득, `3` 상태 버전 충돌(동시 업데이트)
   - 예제
     ```bash
-    pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline
-    pnpm ts-node scripts/simulate.ts --user user-baseline --seed baseline --max-actions 3 --fixture baseline --report json --out reports/baseline.single.json
+    pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline
+    pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline --report json --out reports/baseline.single.json
     ```
+
+#### 환경 변수(시뮬레이션/commit-flow)
+
+- `SIM_DATABASE_URL` (필수, `pnpm sim:commit-flow` 전용)
+  - 임시 시뮬레이션 DB 접속 문자열. `sim:commit-flow`가 이 값을 `DATABASE_URL`로 주입해 reset/commit을 **항상 임시 DB에서만** 수행합니다.
+  - 예: `postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_sim?schema=public`
+- `SIM_USER_EMAIL` (선택, 기본 `admin@example.com`)
+  - `db:reset` 후 seed된 유저 중 어떤 이메일을 시뮬레이션 대상으로 쓸지 지정합니다.
+- `SIM_NO_WAIT` (선택, 기본 `false`)
+  - `sim:commit-flow`가 시뮬레이션 후 Enter 대기 없이 자동 reset 하도록 합니다. (`SIM_NO_WAIT=true`)
+- `SIM_DB_NAME` (선택)
+  - 임시 DB 이름. `SIM_DATABASE_URL`의 DB명이 우선이며, 필요 시 이 값으로 강제할 수 있습니다.
+- `SEED_WITH_SAMPLES` (선택, 기본 `false`)
+  - `pnpm db:seed`/`pnpm db:reset`에서 예시 던전 로그/인벤토리/스냅샷까지 함께 시드할지 결정합니다. 시뮬레이션 검증 목적이면 기본 `false` 권장.
+- 공통 환경 변수(시뮬레이션에도 영향): `DATABASE_URL`, `DATABASE_SKIP_CONNECTION`, `REDIS_SKIP_CONNECTION` 등은 상단 `## 환경 변수` 섹션을 참고하세요.
+
+#### dry-run → commit (임시 DB 분리)
+
+1. **임시 DB 생성/초기화(같은 postgres 인스턴스 내)**
+   ```bash
+   createdb git_dungeon_sim
+   export SIM_DATABASE_URL="postgresql://gitdungeon:gitdungeon@localhost:5432/git_dungeon_sim"
+   DATABASE_URL="$SIM_DATABASE_URL" pnpm db:reset
+   ```
+   - 주의: `pnpm db:reset`은 **DATABASE_URL이 가리키는 DB를 리셋**합니다. 위처럼 항상 임시 DB URL로 명시해서 실행하세요.
+2. **dry-run으로 결과 확인(데이터 미기록)**
+   ```bash
+   pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline --dry-run
+   ```
+3. **commit으로 실제 적재 확인(임시 DB에만 저장)**
+   ```bash
+   DATABASE_URL="$SIM_DATABASE_URL" pnpm sim -- --user <userId> --seed <seed> --max-actions <n> --commit --use-db-state --lock
+   ```
+4. **확인 후 원복**
+   - 임시 DB만 초기화(권장):
+     ```bash
+     DATABASE_URL="$SIM_DATABASE_URL" pnpm db:reset
+     ```
+   - 임시 DB를 **완전히 삭제/재생성/초기화**하려면 수동으로 `dropdb/createdb`를 실행하기보다,
+     `pnpm sim:commit-flow` 실행 후 **2번(임시 DB 삭제/생성/초기화)** 모드를 선택하세요. (`SIM_DATABASE_URL` 기준)
+   - 주의: 임시 DB를 리셋하려는 의도라면 `pnpm db:reset`을 **그냥 실행하지 마세요.** 기본 DB가 리셋될 수 있습니다.
 - 전체 fixture 실행/지표 리포트: `scripts/simulate-all.ts` (`pnpm sim:all`)
   - dry-run 전용(항상 DB 미기록)이며 fixture의 초기 상태로 모든 시나리오를 실행합니다.
   - `--mode fast`는 `baseline`, `turn-limit`, `no-drop`만 실행해 빠르게 회귀를 확인합니다.
@@ -179,11 +226,11 @@ pnpm dev
 - 단일 실행(로컬/CI):
   ```bash
   # trap 사망
-  pnpm ts-node scripts/simulate.ts --user user-trap-death --seed trap-death --max-actions 1 --fixture trap-death
+  pnpm sim -- --user user-trap-death --seed trap-death --max-actions 1 --fixture trap-death
   # no-drop 패배
-  pnpm ts-node scripts/simulate.ts --user user-no-drop --seed no-drop --max-actions 1 --fixture no-drop
+  pnpm sim -- --user user-no-drop --seed no-drop --max-actions 1 --fixture no-drop
   # turn limit 패배 (battle.turnLimit이 낮게 설정된 상태 기준)
-  pnpm ts-node scripts/simulate.ts --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --fixture turn-limit
+  pnpm sim -- --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --fixture turn-limit
   ```
   - turn-limit 재현이 어려우면 `config/dungeon/event-config.json`의 `battle.turnLimit`을 임시로 낮춰 재현하고, 완료 후 원복하세요.
 - 배치 기반(스테이징 권장):

@@ -25,6 +25,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "sim:fixtures:gen": "pnpm ts-node scripts/generate-fixtures.ts",
+    "sim:commit-flow": "pnpm ts-node scripts/simulate-commit-flow.ts",
     "sdk:generate": "npx nestia sdk",
     "swagger:generate": "npx nestia swagger",
     "swagger:generate:prod": "PUBLIC_BASE_URL=https://api.gitdungeon.com npx nestia swagger",
@@ -34,6 +35,7 @@
     "pretest": "pnpm db:generate",
     "config:bump": "pnpm exec ts-node --compiler ts-patch/compiler scripts/bump-config-version.ts",
     "validate:config": "pnpm exec ts-node --compiler ts-patch/compiler scripts/validate-config.ts",
+    "sim": "ts-node scripts/simulate.ts",
     "sim:all": "pnpm ts-node scripts/simulate-all.ts",
     "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user user-baseline --seed baseline --max-actions 3 --dry-run",
     "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --dry-run"

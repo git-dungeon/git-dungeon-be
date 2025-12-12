@@ -163,6 +163,7 @@ export class DungeonEventService {
     const shouldApplyDrops =
       !!processorResult.drops?.length &&
       !!this.dropInventoryService &&
+      !context.skipInventoryApply &&
       !this.shouldSkipInventoryApply();
 
     if (shouldApplyDrops) {
