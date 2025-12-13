@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 set -eu
 
-pnpm sim:all --mode full --compare reports/baseline.full.json --tolerance 0.1 --strict
+pnpm test
