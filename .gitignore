@@ -14,4 +14,3 @@ yarn.lock
 /vitest.config.js.map
 /vitest.config.d.ts
 AGENTS.md
-config/config.hashes.json
