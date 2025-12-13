@@ -91,8 +91,6 @@ const printHelp = () => {
 `);
 };
 
-const runner = new SimulationRunner(false); // dry-run only
-
 type Aggregate = {
   fixtures: number;
   passed: number;
@@ -296,67 +294,72 @@ const aggregateResults = (
 
 async function main() {
   const args = parseArgs(process.argv);
+  const runner = new SimulationRunner(false); // dry-run only
   const names = listFixtureNames();
   const targetNames =
     args.mode === 'fast'
       ? names.filter((n) => ['baseline', 'turn-limit', 'no-drop'].includes(n))
       : names;
 
-  const results: Array<{
-    name: string;
-    result: SimulationResult;
-    metrics: FixtureMetrics;
-  }> = [];
+  try {
+    const results: Array<{
+      name: string;
+      result: SimulationResult;
+      metrics: FixtureMetrics;
+    }> = [];
 
-  for (const name of targetNames) {
-    const fixture = getFixture(name);
-    if (!fixture) continue;
-    const result = await runner.run(
-      {
-        userId: fixture.initialState.userId,
-        seed: fixture.seed,
-        maxActions: fixture.results.length,
-        dryRun: true,
-        initialState: fixture.initialState,
-        fixtureName: name,
-      },
-      { name, snapshot: fixture },
-    );
+    for (const name of targetNames) {
+      const fixture = getFixture(name);
+      if (!fixture) continue;
+      const result = await runner.run(
+        {
+          userId: fixture.initialState.userId,
+          seed: fixture.seed,
+          maxActions: fixture.results.length,
+          dryRun: true,
+          initialState: fixture.initialState,
+          fixtureName: name,
+        },
+        { name, snapshot: fixture },
+      );
 
-    const metrics = computeMetrics(result, fixture);
-    results.push({ name, result, metrics });
+      const metrics = computeMetrics(result, fixture);
+      results.push({ name, result, metrics });
 
-    if (args.report === 'pretty') {
-      printFixturePretty(name, result, metrics);
+      if (args.report === 'pretty') {
+        printFixturePretty(name, result, metrics);
+      }
     }
-  }
 
-  const summary = aggregateResults(results);
-  const compareResult = compareWithBaseline(
-    summary,
-    args.compare,
-    args.tolerance,
-  );
-
-  if (args.report === 'json') {
-    const payload = JSON.stringify(
-      { summary, compare: compareResult },
-      null,
-      2,
+    const summary = aggregateResults(results);
+    const compareResult = compareWithBaseline(
+      summary,
+      args.compare,
+      args.tolerance,
     );
-    if (args.out) {
-      const target = path.resolve(args.out);
-      fs.writeFileSync(target, payload, 'utf-8');
-      console.log(`JSON 리포트를 저장했습니다: ${target}`);
+
+    if (args.report === 'json') {
+      const payload = JSON.stringify(
+        { summary, compare: compareResult },
+        null,
+        2,
+      );
+      if (args.out) {
+        const target = path.resolve(args.out);
+        fs.writeFileSync(target, payload, 'utf-8');
+        console.log(`JSON 리포트를 저장했습니다: ${target}`);
+      } else {
+        console.log(payload);
+      }
     } else {
-      console.log(payload);
+      printSummaryPretty(summary, compareResult);
     }
-  } else {
-    printSummaryPretty(summary, compareResult);
-  }
 
-  if (compareResult.exceeded && args.strict) {
-    process.exit(1);
+    if (compareResult.exceeded && args.strict) {
+      process.exit(1);
+    }
+  } finally {
+    await runner.close();
   }
 }
 
@@ -415,7 +418,7 @@ const printSummaryPretty = (summary: Aggregate, compare?: CompareResult) => {
   console.log(`avg ms/AP      : ${summary.avgMsPerAp.toFixed(2)}`);
   console.log(`avg ap/action  : ${summary.avgApPerAction.toFixed(3)}`);
 
-  if (compare?.found) {
+  if (compare && compare.messages.length > 0) {
     console.log('baseline cmp  :');
     compare.messages.forEach((m) => console.log(`  - ${m}`));
   }
