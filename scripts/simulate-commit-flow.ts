@@ -60,6 +60,15 @@ const ensureDockerDbExists = async (dbName: string) => {
   ]);
 };
 
+const assertSafeDbName = (dbName: string): void => {
+  // docker exec createdb/dropdb 및 psql 변수 치환에 사용되므로 안전한 식별자만 허용한다.
+  if (!/^[A-Za-z0-9_]+$/.test(dbName)) {
+    throw new Error(
+      `SIM_DATABASE_URL/ SIM_DB_NAME의 DB 이름이 안전하지 않습니다: "${dbName}". 영문/숫자/언더스코어만 허용됩니다.`,
+    );
+  }
+};
+
 async function main() {
   const rl = readline.createInterface({ input, output });
   const noWait =
@@ -76,6 +85,7 @@ async function main() {
     parsed.pathname.replace(/^\/+/, '') ||
     process.env.SIM_DB_NAME ||
     'git_dungeon_sim';
+  assertSafeDbName(dbName);
 
   if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes(dbName)) {
     console.log(
@@ -108,7 +118,7 @@ async function main() {
     // 1) 다른 세션 terminate (best-effort)
     const terminateSql = `SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
-WHERE datname = '${dbName}' AND pid <> pg_backend_pid();`;
+WHERE datname = :'dbName' AND pid <> pg_backend_pid();`;
     await runIgnoreError('docker', [
       'exec',
       containerName,
@@ -117,6 +127,8 @@ WHERE datname = '${dbName}' AND pid <> pg_backend_pid();`;
       pgUser,
       '-d',
       'postgres',
+      '-v',
+      `dbName=${dbName}`,
       '-c',
       terminateSql,
     ]);

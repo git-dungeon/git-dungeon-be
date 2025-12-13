@@ -25,6 +25,24 @@ export type EventConfig = {
   effects: Partial<Record<string, EffectDelta>>;
 };
 
+export const loadEventConfigStrict = (): EventConfig => {
+  const candidates = [
+    resolve(process.cwd(), 'config/dungeon/event-config.json'),
+    join(__dirname, 'event-config.json'),
+  ];
+
+  const filePath = candidates.find((p) => existsSync(p));
+  if (!filePath) {
+    throw new Error(
+      `Event config file not found. Tried: ${candidates.join(', ')}`,
+    );
+  }
+
+  const json = readFileSync(filePath, 'utf-8');
+  const parsed: unknown = JSON.parse(json);
+  return validateEventConfig(parsed);
+};
+
 export const loadEventConfig = (): EventConfig => {
   const candidates = [
     resolve(process.cwd(), 'config/dungeon/event-config.json'),
@@ -38,7 +56,16 @@ export const loadEventConfig = (): EventConfig => {
       const json = readFileSync(filePath, 'utf-8');
       const parsed: unknown = JSON.parse(json);
       return validateEventConfig(parsed);
-    } catch (_error) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error(
+        `[event-config] Failed to load/validate config. path=${filePath}, error=${message}`,
+      );
+      if (stack) console.error(stack);
+      if ((process.env.NODE_ENV ?? '').toLowerCase() === 'production') {
+        throw error;
+      }
       // 아래에서 기본값으로 대체
     }
   }

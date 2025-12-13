@@ -148,6 +148,12 @@ const computeMetrics = (
         | undefined;
       const details = extra?.details;
 
+      const delta = (log as { delta?: unknown }).delta as
+        | { detail?: { stats?: { exp?: unknown } } }
+        | undefined;
+      const deltaExp = delta?.detail?.stats?.exp;
+
+      let detailsExp: number | undefined;
       if (log.action === 'BATTLE' && details) {
         battleCount += 1;
         const resultStr = (details.result as string | undefined) ?? '';
@@ -159,7 +165,7 @@ const computeMetrics = (
         }
         const exp = details.expGained as number | undefined;
         if (typeof exp === 'number' && Number.isFinite(exp)) {
-          expGained += exp;
+          detailsExp = exp;
         }
       }
 
@@ -174,12 +180,12 @@ const computeMetrics = (
         }
       }
 
-      const delta = (log as { delta?: unknown }).delta as
-        | { detail?: { stats?: { exp?: unknown } } }
-        | undefined;
-      const deltaExp = delta?.detail?.stats?.exp;
-      if (typeof deltaExp === 'number' && Number.isFinite(deltaExp)) {
-        expGained += deltaExp;
+      const resolvedExp =
+        typeof deltaExp === 'number' && Number.isFinite(deltaExp)
+          ? deltaExp
+          : detailsExp;
+      if (typeof resolvedExp === 'number' && Number.isFinite(resolvedExp)) {
+        expGained += resolvedExp;
       }
     });
   });
@@ -244,8 +250,12 @@ const aggregateResults = (
 
   const passed = passes.filter(Boolean).length;
   const failed = passes.length - passed;
-  const avgDurationMs = durations.reduce((a, b) => a + b, 0) / durations.length;
-  const avgActions = actions.reduce((a, b) => a + b, 0) / actions.length;
+  const avgDurationMs = durations.length
+    ? durations.reduce((a, b) => a + b, 0) / durations.length
+    : 0;
+  const avgActions = actions.length
+    ? actions.reduce((a, b) => a + b, 0) / actions.length
+    : 0;
 
   const avgMetric = <K extends keyof FixtureMetrics>(key: K) =>
     metricsList.reduce((acc, m) => acc + m[key], 0) / (metricsList.length || 1);

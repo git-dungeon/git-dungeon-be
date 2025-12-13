@@ -220,13 +220,66 @@ export const loadEnvironment = (): Environment => {
   return assertEnvironment(raw);
 };
 
+const assertEnvironmentWithoutTypia = (value: unknown): Environment => {
+  if (!value || typeof value !== 'object') {
+    throw new Error(
+      'Environment validation failed: expected an object (typia transform missing)',
+    );
+  }
+
+  const obj = value as Record<string, unknown>;
+  const missingOrInvalid: string[] = [];
+
+  const requireNonEmptyString = (key: string) => {
+    const v = obj[key];
+    if (typeof v !== 'string' || v.trim().length === 0) {
+      missingOrInvalid.push(key);
+    }
+  };
+
+  [
+    'publicBaseUrl',
+    'databaseUrl',
+    'databaseShadowUrl',
+    'authGithubClientId',
+    'authGithubClientSecret',
+    'authGithubRedirectUri',
+    'authGithubScope',
+    'githubSyncEndpoint',
+    'githubSyncUserAgent',
+    'githubSyncCron',
+    'redisUrl',
+  ].forEach(requireNonEmptyString);
+
+  const corsAllowedOrigins = obj.corsAllowedOrigins;
+  if (
+    !Array.isArray(corsAllowedOrigins) ||
+    corsAllowedOrigins.length === 0 ||
+    corsAllowedOrigins.some(
+      (v) => typeof v !== 'string' || v.trim().length === 0,
+    )
+  ) {
+    missingOrInvalid.push('corsAllowedOrigins');
+  }
+
+  if (missingOrInvalid.length > 0) {
+    throw new Error(
+      `Environment validation failed (typia transform missing): ${missingOrInvalid.join(
+        ', ',
+      )}`,
+    );
+  }
+
+  return value as Environment;
+};
+
 const assertEnvironment = (value: unknown): Environment => {
   try {
     return typia.assert<Environment>(value);
   } catch (error) {
     const message = error instanceof Error ? error.message : '';
     if (message.includes('no transform has been configured')) {
-      return value as Environment;
+      return assertEnvironmentWithoutTypia(value);
     }
     throw error;
   }

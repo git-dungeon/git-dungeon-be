@@ -53,9 +53,9 @@ export const trapDeathSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: 10 },
             progress: {
-              previousProgress: 10,
+              previousProgress: 0,
               floorProgress: 0,
-              delta: -10,
+              delta: 0,
             },
           },
         },

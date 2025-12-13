@@ -28,7 +28,10 @@ import {
   levelUpSnapshot,
 } from '../src/test-support/dungeon/fixtures';
 
-const TEST_TURN_LIMIT = Number(process.env.SIM_TEST_TURN_LIMIT ?? '30');
+const TEST_TURN_LIMIT = (() => {
+  const v = Number(process.env.SIM_TEST_TURN_LIMIT);
+  return Number.isFinite(v) ? v : 30;
+})();
 
 const eventConfig = loadEventConfig();
 type MonstersFile = { monsters: CatalogMonster[] };

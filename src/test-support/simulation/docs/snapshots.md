@@ -6,9 +6,9 @@
 
 ## 실행/업데이트
 ```bash
-pnpm test -- --runInBand --testNamePattern "simulation fixtures"
+pnpm test -- --no-threads --testNamePattern "simulation fixtures"
 # 결과가 바뀌어 스냅샷이 실패하면 업데이트
-pnpm test -- --runInBand --testNamePattern "simulation fixtures" --update
+pnpm test -- --no-threads --testNamePattern "simulation fixtures" --update
 ```
 
 ## 마스킹/정규화
