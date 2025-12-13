@@ -10,6 +10,7 @@ import { DungeonEventService } from './dungeon-event.service';
 import { DungeonModule } from '../dungeon.module';
 import { DungeonEventType } from './event.types';
 import type { DungeonLogPayload } from './event.types';
+import type { InventoryDelta } from '../../common/logs/dungeon-log-delta';
 import { DropService } from '../drops/drop.service';
 import { DropInventoryService } from '../drops/drop-inventory.service';
 
@@ -339,123 +340,193 @@ describe('DungeonEventService', () => {
     }
   });
 
-  it('드랍 시 STATUS 카테고리 ACQUIRE_ITEM 로그를 추가한다', async () => {
-    const originalNodeEnv = process.env.NODE_ENV;
-    const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
-    process.env.NODE_ENV = 'development';
-    process.env.DATABASE_SKIP_CONNECTION = 'false';
+  it.sequential(
+    '드랍 시 STATUS 카테고리 ACQUIRE_ITEM 로그를 추가한다',
+    async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+      process.env.NODE_ENV = 'development';
+      process.env.DATABASE_SKIP_CONNECTION = 'false';
 
-    const dropService: Pick<DropService, 'roll'> = {
-      roll: vi
-        .fn()
-        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
-    };
-    const inventoryAdds = [
-      {
-        itemId: 'inv-1',
-        code: 'weapon-wooden-sword',
-        slot: 'weapon',
-        rarity: 'common',
-        quantity: 1,
-      },
-    ];
-    const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
-      applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
-    };
-
-    try {
-      const module = await Test.createTestingModule({
-        imports: [DungeonModule],
-      })
-        .overrideProvider(DropService)
-        .useValue(dropService)
-        .overrideProvider(DropInventoryService)
-        .useValue(dropInventoryService)
-        .compile();
-
-      const serviceWithDrops = module.get(DungeonEventService);
-      const state: DungeonState = createState({ ap: 5 });
-
-      const result = await serviceWithDrops.execute({
-        state,
-        seed: 'acquire-log',
-        weights: {
-          [DungeonEventType.BATTLE]: 0,
-          [DungeonEventType.TREASURE]: 1,
-          [DungeonEventType.REST]: 0,
-          [DungeonEventType.TRAP]: 0,
+      const dropService: Pick<DropService, 'roll'> = {
+        roll: vi
+          .fn()
+          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+      };
+      const inventoryAdds = [
+        {
+          itemId: 'inv-1',
+          code: 'weapon-wooden-sword',
+          slot: 'weapon',
+          rarity: 'common',
+          quantity: 1,
         },
-      });
+      ];
+      const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+        applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+      };
 
-      const acquireLog = result.logs.find(
-        (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
-      );
-      expect(acquireLog?.category).toBe(DungeonLogCategory.STATUS);
-      expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
-      if (acquireLog?.delta?.type === 'ACQUIRE_ITEM') {
-        expect(acquireLog.delta.detail.inventory?.added?.[0]?.code).toBe(
-          'weapon-wooden-sword',
+      try {
+        const module = await Test.createTestingModule({
+          imports: [DungeonModule],
+        })
+          .overrideProvider(DropService)
+          .useValue(dropService)
+          .overrideProvider(DropInventoryService)
+          .useValue(dropInventoryService)
+          .compile();
+
+        const serviceWithDrops = module.get(DungeonEventService);
+        const state: DungeonState = createState({ ap: 5 });
+
+        const result = await serviceWithDrops.execute({
+          state,
+          seed: 'acquire-log',
+          weights: {
+            [DungeonEventType.BATTLE]: 0,
+            [DungeonEventType.TREASURE]: 1,
+            [DungeonEventType.REST]: 0,
+            [DungeonEventType.TRAP]: 0,
+          },
+        });
+
+        const acquireLog = result.logs.find(
+          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
         );
+        expect(acquireLog?.category).toBe(DungeonLogCategory.STATUS);
+        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+        if (acquireLog?.delta?.type === 'ACQUIRE_ITEM') {
+          expect(acquireLog.delta.detail.inventory?.added?.[0]?.code).toBe(
+            'weapon-wooden-sword',
+          );
+        }
+        if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
+          expect(
+            acquireLog.extra.details.reward.drop?.items?.[0]?.itemCode,
+          ).toBe('weapon-wooden-sword');
+        }
+        expect(result.inventoryAdds?.length).toBeGreaterThan(0);
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+        process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
       }
-      if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
-        expect(acquireLog.extra.details.reward.drop?.items?.[0]?.itemCode).toBe(
-          'weapon-wooden-sword',
+    },
+  );
+
+  it.sequential(
+    'DB 연결을 건너뛰는 환경에서도 드랍 로그를 남긴다',
+    async () => {
+      const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+      process.env.DATABASE_SKIP_CONNECTION = 'true';
+
+      const dropService: Pick<DropService, 'roll'> = {
+        roll: vi
+          .fn()
+          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+      };
+      const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+        applyDrops: vi.fn(),
+      };
+
+      try {
+        const module = await Test.createTestingModule({
+          imports: [DungeonModule],
+        })
+          .overrideProvider(DropService)
+          .useValue(dropService)
+          .overrideProvider(DropInventoryService)
+          .useValue(dropInventoryService)
+          .compile();
+
+        const serviceWithSkip = module.get(DungeonEventService);
+        const state: DungeonState = createState({ ap: 5 });
+
+        const result = await serviceWithSkip.execute({
+          state,
+          seed: 'acquire-log-skip',
+          weights: {
+            [DungeonEventType.BATTLE]: 0,
+            [DungeonEventType.TREASURE]: 1,
+            [DungeonEventType.REST]: 0,
+            [DungeonEventType.TRAP]: 0,
+          },
+        });
+
+        expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
+        const acquireLog = result.logs.find(
+          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
         );
+        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+        expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+      } finally {
+        process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
       }
-      expect(result.inventoryAdds?.length).toBeGreaterThan(0);
-    } finally {
-      process.env.NODE_ENV = originalNodeEnv;
-      process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
-    }
-  });
+    },
+  );
 
-  it('DB 연결을 건너뛰는 환경에서도 드랍 로그를 남긴다', async () => {
-    const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
-    process.env.DATABASE_SKIP_CONNECTION = 'true';
+  it.sequential(
+    'skipInventoryApply 옵션이면 드랍 인벤토리 적용을 스킵한다',
+    async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+      process.env.NODE_ENV = 'development';
+      delete process.env.DATABASE_SKIP_CONNECTION;
 
-    const dropService: Pick<DropService, 'roll'> = {
-      roll: vi
-        .fn()
-        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
-    };
-    const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
-      applyDrops: vi.fn(),
-    };
-
-    try {
-      const module = await Test.createTestingModule({
-        imports: [DungeonModule],
-      })
-        .overrideProvider(DropService)
-        .useValue(dropService)
-        .overrideProvider(DropInventoryService)
-        .useValue(dropInventoryService)
-        .compile();
-
-      const serviceWithSkip = module.get(DungeonEventService);
-      const state: DungeonState = createState({ ap: 5 });
-
-      const result = await serviceWithSkip.execute({
-        state,
-        seed: 'acquire-log-skip',
-        weights: {
-          [DungeonEventType.BATTLE]: 0,
-          [DungeonEventType.TREASURE]: 1,
-          [DungeonEventType.REST]: 0,
-          [DungeonEventType.TRAP]: 0,
+      const inventoryAdds: InventoryDelta['added'] = [
+        {
+          itemId: 'item-1',
+          code: 'weapon-wooden-sword',
+          slot: 'weapon',
+          rarity: 'common',
+          quantity: 1,
         },
-      });
+      ];
+      const dropService: Pick<DropService, 'roll'> = {
+        roll: vi
+          .fn()
+          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+      };
+      const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+        applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+      };
 
-      expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
-      const acquireLog = result.logs.find(
-        (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
-      );
-      expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
-      expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
-    } finally {
-      process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
-    }
-  });
+      try {
+        const module = await Test.createTestingModule({
+          imports: [DungeonModule],
+        })
+          .overrideProvider(DropService)
+          .useValue(dropService)
+          .overrideProvider(DropInventoryService)
+          .useValue(dropInventoryService)
+          .compile();
+
+        const serviceWithSkip = module.get(DungeonEventService);
+        const state: DungeonState = createState({ ap: 5 });
+
+        const result = await serviceWithSkip.execute({
+          state,
+          seed: 'acquire-log-skip-inventory',
+          skipInventoryApply: true,
+          weights: {
+            [DungeonEventType.BATTLE]: 0,
+            [DungeonEventType.TREASURE]: 1,
+            [DungeonEventType.REST]: 0,
+            [DungeonEventType.TRAP]: 0,
+          },
+        });
+
+        expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
+        const acquireLog = result.logs.find(
+          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        );
+        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
+        expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+        process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
+      }
+    },
+  );
 });
 
 function createState(overrides: Partial<DungeonState> = {}): DungeonState {

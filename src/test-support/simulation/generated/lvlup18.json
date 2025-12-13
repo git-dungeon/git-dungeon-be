@@ -1,0 +1,155 @@
+[
+  {
+    "actionCounter": 0,
+    "selectedEvent": "BATTLE",
+    "stateAfter": {
+      "hp": 45,
+      "ap": 0,
+      "floor": 80,
+      "floorProgress": 20,
+      "level": 3,
+      "exp": 9,
+      "version": 2
+    },
+    "logs": [
+      {
+        "action": "BATTLE",
+        "status": "STARTED"
+      },
+      {
+        "action": "LEVEL_UP",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "LEVEL_UP",
+          "detail": {
+            "stats": {
+              "level": 1,
+              "luck": 1,
+              "maxHp": 2,
+              "hp": 2
+            }
+          }
+        },
+        "extra": {
+          "type": "LEVEL_UP",
+          "details": {
+            "previousLevel": 1,
+            "currentLevel": 2,
+            "threshold": 10,
+            "statsGained": {
+              "luck": 1,
+              "maxHp": 2,
+              "hp": 2
+            }
+          }
+        }
+      },
+      {
+        "action": "LEVEL_UP",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "LEVEL_UP",
+          "detail": {
+            "stats": {
+              "level": 1,
+              "atk": 1,
+              "maxHp": 2,
+              "hp": 2
+            }
+          }
+        },
+        "extra": {
+          "type": "LEVEL_UP",
+          "details": {
+            "previousLevel": 2,
+            "currentLevel": 3,
+            "threshold": 20,
+            "statsGained": {
+              "atk": 1,
+              "maxHp": 2,
+              "hp": 2
+            }
+          }
+        }
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -15,
+              "maxHp": 4,
+              "atk": 1,
+              "luck": 1,
+              "level": 2,
+              "exp": 39
+            },
+            "progress": {
+              "previousProgress": 0,
+              "floorProgress": 20,
+              "delta": 20
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "id": "monster-ancient-dragon",
+              "name": "Ancient Dragon",
+              "hp": 90,
+              "atk": 18,
+              "def": 9,
+              "spriteId": "sprite/monster-ancient-dragon"
+            },
+            "result": "VICTORY",
+            "expGained": 39,
+            "turns": 4,
+            "damageDealt": 101,
+            "damageTaken": 19
+          }
+        }
+      },
+      {
+        "action": "ACQUIRE_ITEM",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "ACQUIRE_ITEM",
+          "detail": {
+            "inventory": {
+              "added": [
+                {
+                  "itemId": "angel-ring",
+                  "code": "angel-ring",
+                  "slot": "ring",
+                  "rarity": "legendary",
+                  "quantity": 1
+                }
+              ]
+            }
+          }
+        },
+        "extra": {
+          "type": "ACQUIRE_ITEM",
+          "details": {
+            "reward": {
+              "source": "BATTLE",
+              "drop": {
+                "tableId": "drops-ancient-dragon",
+                "isElite": false,
+                "items": [
+                  {
+                    "itemCode": "angel-ring",
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

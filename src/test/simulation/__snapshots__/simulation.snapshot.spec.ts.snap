@@ -1,0 +1,630 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "baseline",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "TREASURE",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "TREASURE",
+          "delta": {
+            "detail": {
+              "gold": 5,
+              "progress": {
+                "delta": 10,
+                "floorProgress": 10,
+                "previousProgress": 0,
+              },
+              "rewards": {
+                "buffs": [],
+                "gold": 5,
+                "items": [
+                  {
+                    "code": "ring-topaz",
+                    "itemId": "ring-topaz",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "ring",
+                  },
+                ],
+                "unlocks": [],
+              },
+            },
+            "type": "TREASURE",
+          },
+          "extra": undefined,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-topaz",
+                    "itemId": "ring-topaz",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "itemCode": "ring-topaz",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "TREASURE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "TREASURE",
+      "stateAfter": {
+        "ap": 4,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 10,
+        "hp": 6,
+        "level": 1,
+        "version": 2,
+      },
+    },
+    {
+      "actionCounter": 1,
+      "logs": [
+        {
+          "action": "REST",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "REST",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 20,
+                "previousProgress": 10,
+              },
+              "stats": {
+                "hp": 4,
+              },
+            },
+            "type": "REST",
+          },
+          "extra": undefined,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "REST",
+      "stateAfter": {
+        "ap": 3,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 20,
+        "hp": 10,
+        "level": 1,
+        "version": 3,
+      },
+    },
+    {
+      "actionCounter": 2,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 40,
+                "previousProgress": 20,
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "CRITICAL_HIT",
+              "damageDealt": 9,
+              "damageTaken": 1,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "def": 0,
+                "hp": 8,
+                "id": "monster-giant-rat",
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "result": "VICTORY",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-topaz",
+                    "itemId": "ring-topaz",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "itemCode": "ring-topaz",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 2,
+        "exp": 3,
+        "floor": 1,
+        "floorProgress": 40,
+        "hp": 9,
+        "level": 1,
+        "version": 4,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 3,
+    "actionsCompleted": 3,
+    "apConsumed": 3,
+    "durationMs": 0,
+    "finalAp": 2,
+    "finalFloor": 1,
+    "finalProgress": 40,
+    "finalVersion": 4,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "long-battle",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 40,
+                "previousProgress": 20,
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -5,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 8,
+              "damageTaken": 5,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "def": 0,
+                "hp": 8,
+                "id": "monster-giant-rat",
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "result": "VICTORY",
+              "turns": 6,
+            },
+            "type": "BATTLE",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-silver-band",
+                    "itemId": "ring-silver-band",
+                    "quantity": 1,
+                    "rarity": "common",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "itemCode": "ring-silver-band",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 3,
+        "floor": 1,
+        "floorProgress": 40,
+        "hp": 5,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 1,
+    "finalProgress": 40,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "no-drop",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -20,
+                "floorProgress": 0,
+                "previousProgress": 20,
+              },
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+            },
+            "type": "DEATH",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -0,
+                "floorProgress": 0,
+                "previousProgress": 0,
+              },
+              "stats": {
+                "hp": -3,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+              "damageDealt": 2,
+              "damageTaken": 4,
+              "expGained": 0,
+              "monster": {
+                "atk": 2,
+                "def": 0,
+                "hp": 8,
+                "id": "monster-giant-rat",
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "result": "DEFEAT",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 0,
+        "hp": 10,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 1,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "trap-death",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "TRAP",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -10,
+                "floorProgress": 0,
+                "previousProgress": 10,
+              },
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "TRAP_DAMAGE",
+            },
+            "type": "DEATH",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "TRAP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": -3,
+              },
+            },
+            "type": "TRAP",
+          },
+          "extra": undefined,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "TRAP",
+      "stateAfter": {
+        "ap": 1,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 0,
+        "hp": 10,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 1,
+    "finalFloor": 1,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "turn-limit",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": undefined,
+          "extra": undefined,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 20,
+                "previousProgress": 0,
+              },
+              "stats": {
+                "hp": -34,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "TURN_LIMIT",
+              "damageDealt": 33,
+              "damageTaken": 34,
+              "expGained": 0,
+              "monster": {
+                "atk": 22,
+                "def": 11,
+                "hp": 110,
+                "id": "monster-ancient-dragon",
+                "name": "Ancient Dragon",
+                "spriteId": "sprite/monster-ancient-dragon",
+              },
+              "result": "DEFEAT",
+              "turns": 30,
+            },
+            "type": "BATTLE",
+          },
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 0,
+        "floor": 120,
+        "floorProgress": 20,
+        "hp": 116,
+        "level": 30,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 120,
+    "finalProgress": 20,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;

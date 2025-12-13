@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { join, resolve } from 'path';
 import { DEFAULT_EVENT_WEIGHTS, type EffectDelta } from '../event.types';
 
 export type EventWeightsConfig = {
@@ -25,23 +25,57 @@ export type EventConfig = {
   effects: Partial<Record<string, EffectDelta>>;
 };
 
-export const loadEventConfig = (): EventConfig => {
-  const filePath = join(__dirname, 'event-config.json');
-  let parsed: unknown = {};
+export const loadEventConfigStrict = (): EventConfig => {
+  const candidates = [
+    resolve(process.cwd(), 'config/dungeon/event-config.json'),
+    join(__dirname, 'event-config.json'),
+  ];
 
-  try {
-    const json = readFileSync(filePath, 'utf-8');
-    parsed = JSON.parse(json);
-  } catch (_error) {
-    // fallback to defaults if config file is missing or invalid JSON
-    parsed = {
-      weights: DEFAULT_EVENT_WEIGHTS,
-      battle: defaultBattleConfig(),
-      effects: {},
-    };
+  const filePath = candidates.find((p) => existsSync(p));
+  if (!filePath) {
+    throw new Error(
+      `Event config file not found. Tried: ${candidates.join(', ')}`,
+    );
   }
 
+  const json = readFileSync(filePath, 'utf-8');
+  const parsed: unknown = JSON.parse(json);
   return validateEventConfig(parsed);
+};
+
+export const loadEventConfig = (): EventConfig => {
+  const candidates = [
+    resolve(process.cwd(), 'config/dungeon/event-config.json'),
+    join(__dirname, 'event-config.json'),
+  ];
+
+  const filePath = candidates.find((p) => existsSync(p));
+
+  if (filePath) {
+    try {
+      const json = readFileSync(filePath, 'utf-8');
+      const parsed: unknown = JSON.parse(json);
+      return validateEventConfig(parsed);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error(
+        `[event-config] Failed to load/validate config. path=${filePath}, error=${message}`,
+      );
+      if (stack) console.error(stack);
+      if ((process.env.NODE_ENV ?? '').toLowerCase() === 'production') {
+        throw error;
+      }
+      // 아래에서 기본값으로 대체
+    }
+  }
+
+  // fallback to defaults if config file is missing or invalid JSON
+  return validateEventConfig({
+    weights: DEFAULT_EVENT_WEIGHTS,
+    battle: defaultBattleConfig(),
+    effects: {},
+  });
 };
 
 const isNumber = (value: unknown): value is number =>

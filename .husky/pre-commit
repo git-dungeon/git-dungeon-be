@@ -1,11 +1,5 @@
-#!/bin/sh
-set -euo pipefail
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env sh
+set -eu
 
-pnpm catalog:bump
-pnpm validate:catalog
-git add config/catalog/items.json \
-  config/catalog/buffs.json \
-  config/catalog/monsters.json \
-  config/catalog/drops.json \
-  config/catalog/catalog.hashes.json
+# staged 파일 중 config/** 변경이 있을 때만 config:bump/validate:config 를 실행한다.
+pnpm lint-staged

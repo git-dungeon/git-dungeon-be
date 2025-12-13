@@ -79,6 +79,15 @@ pnpm start:prod
 
 ---
 
+## config 운영
+
+- 관리 대상: `config/catalog` 내 items/buffs/monsters/drops + i18n, `config/dungeon/event-config.json`
+- 해시/버전: `config/config.hashes.json` 자동 관리 (catalog는 version/updatedAt 증가, event-config/i18n은 해시 추적)
+- 변경 워크플로: `pnpm config:bump` → `pnpm validate:config` (pre-commit 훅에서 자동 실행)
+- API 제공: `/api/catalog?locale=ko` (locale별 i18n 적용)
+
+---
+
 ## 운영 / 모니터링 개요
 
 - 배치/큐 실패 로그 필터: `queue="dungeon-batch" AND outcome!="success"`

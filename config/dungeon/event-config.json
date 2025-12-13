@@ -1,0 +1,42 @@
+{
+  "weights": {
+    "BATTLE": 50,
+    "TREASURE": 5,
+    "REST": 40,
+    "TRAP": 5
+  },
+  "battle": {
+    "eliteRate": 0.05,
+    "critBase": 0.05,
+    "critLuckFactor": 0.01,
+    "turnLimit": 30,
+    "exp": {
+      "eliteBonus": 1.5
+    }
+  },
+  "effects": {
+    "REST": {
+      "stats": {
+        "hp": 2
+      },
+      "scaling": {
+        "hpRatio": 0.3
+      }
+    },
+    "TRAP": {
+      "stats": {
+        "hp": -3
+      },
+      "scaling": {
+        "hpRatio": -0.05
+      }
+    },
+    "TREASURE": {
+      "rewards": {
+        "gold": 5,
+        "items": [],
+        "buffs": []
+      }
+    }
+  }
+}

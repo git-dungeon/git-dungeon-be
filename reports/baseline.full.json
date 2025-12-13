@@ -1,0 +1,161 @@
+{
+  "summary": {
+    "fixtures": 9,
+    "passed": 9,
+    "failed": 0,
+    "passRate": 1,
+    "avgDurationMs": 0.3333333333333333,
+    "p95DurationMs": 2,
+    "avgActionsCompleted": 1.2222222222222223,
+    "avgVictoryRate": 0.5555555555555556,
+    "avgTurns": 5.333333333333333,
+    "avgExpGained": 12.88888888888889,
+    "avgLevelUps": 0.2222222222222222,
+    "avgEliteDropRate": 0.1111111111111111,
+    "avgMsPerAp": 0.18518518518518517,
+    "avgApPerAction": 1,
+    "details": {
+      "baseline": {
+        "passed": true,
+        "durationMs": 2,
+        "actionsCompleted": 3,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 1,
+          "avgTurns": 2,
+          "expGained": 6,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0.6666666666666666,
+          "apPerAction": 1
+        }
+      },
+      "elite-battle": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 1,
+          "avgTurns": 2,
+          "expGained": 20,
+          "levelUps": 0,
+          "eliteDropRate": 1,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "forced-move": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 1,
+          "avgTurns": 2,
+          "expGained": 6,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "level-up": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 1,
+          "avgTurns": 4,
+          "expGained": 78,
+          "levelUps": 2,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "long-battle": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 1,
+          "avgTurns": 6,
+          "expGained": 6,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "no-drop": {
+        "passed": true,
+        "durationMs": 1,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 0,
+          "avgTurns": 2,
+          "expGained": 0,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 1,
+          "apPerAction": 1
+        }
+      },
+      "rest-clamp": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 0,
+          "avgTurns": 0,
+          "expGained": 0,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "trap-death": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 0,
+          "avgTurns": 0,
+          "expGained": 0,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      },
+      "turn-limit": {
+        "passed": true,
+        "durationMs": 0,
+        "actionsCompleted": 1,
+        "mismatches": [],
+        "metrics": {
+          "victoryRate": 0,
+          "avgTurns": 30,
+          "expGained": 0,
+          "levelUps": 0,
+          "eliteDropRate": 0,
+          "msPerAp": 0,
+          "apPerAction": 1
+        }
+      }
+    }
+  },
+  "compare": {
+    "found": false,
+    "tolerance": 0.1,
+    "exceeded": false,
+    "messages": []
+  }
+}
