@@ -11,6 +11,7 @@
     "build": "nest build -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "ts-patch install && typia patch && husky",
+    "lint-staged": "lint-staged",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -39,6 +40,13 @@
     "sim:all": "pnpm ts-node scripts/simulate-all.ts",
     "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user user-baseline --seed baseline --max-actions 3 --dry-run",
     "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --dry-run"
+  },
+  "lint-staged": {
+    "config/**": [
+      "pnpm config:bump",
+      "pnpm validate:config",
+      "git add config/catalog/items.json config/catalog/buffs.json config/catalog/monsters.json config/catalog/drops.json config/dungeon/event-config.json config/catalog/i18n/en.json config/catalog/i18n/ko.json config/config.hashes.json"
+    ]
   },
   "dependencies": {
     "@nestia/core": "^8.1.0",
@@ -85,6 +93,7 @@
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "nestia": "^8.1.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
