@@ -44,7 +44,22 @@ const parseArgs = (argv: string[]): Args => {
         args.compare = argv[++i];
         break;
       case '--tolerance':
-        args.tolerance = Number(argv[++i]);
+        {
+          const next = argv[i + 1];
+          if (!next || next.startsWith('-')) {
+            throw new Error(
+              '--tolerance 옵션은 숫자 값을 필요로 합니다. 예: --tolerance 0.1',
+            );
+          }
+          const parsed = Number(next);
+          if (!Number.isFinite(parsed)) {
+            throw new Error(
+              `--tolerance 옵션 값이 올바른 숫자가 아닙니다: "${next}"`,
+            );
+          }
+          args.tolerance = parsed;
+          i += 1;
+        }
         break;
       case '--strict':
         args.strict = true;
@@ -434,9 +449,9 @@ const compareWithBaseline = (
     };
   }
 
-  let baseline: Aggregate;
+  let baselineRaw: unknown;
   try {
-    baseline = JSON.parse(fs.readFileSync(abs, 'utf-8')) as Aggregate;
+    baselineRaw = JSON.parse(fs.readFileSync(abs, 'utf-8')) as unknown;
   } catch (error) {
     const message =
       error instanceof Error
@@ -450,6 +465,35 @@ const compareWithBaseline = (
     };
   }
 
+  const baseline = (() => {
+    // reports/baseline.full.json 형태: { summary: Aggregate, compare: ... }
+    // 과거/간소 형태: Aggregate
+    if (!baselineRaw || typeof baselineRaw !== 'object') {
+      return null;
+    }
+    const obj = baselineRaw as Record<string, unknown>;
+    const candidate = obj.summary ?? baselineRaw;
+    if (!candidate || typeof candidate !== 'object') return null;
+
+    const c = candidate as Record<string, unknown>;
+    const keys = ['avgDurationMs', 'p95DurationMs', 'passRate'] as const;
+    const ok = keys.every(
+      (k) => typeof c[k] === 'number' && Number.isFinite(c[k]),
+    );
+    return ok ? (candidate as Aggregate) : null;
+  })();
+
+  if (!baseline) {
+    return {
+      found: true,
+      tolerance,
+      exceeded: true,
+      messages: [
+        `baseline format invalid: ${abs} (expected Aggregate or {summary: Aggregate}). regenerate: pnpm sim:all --mode full --report json --out reports/baseline.full.json`,
+      ],
+    };
+  }
+
   const msgs: string[] = [];
   let exceeded = false;
 
@@ -457,23 +501,30 @@ const compareWithBaseline = (
     label: string;
     current: number;
     base: number;
+    minDenom?: number;
   }> = [
     {
       label: 'avg duration',
       current: summary.avgDurationMs,
       base: baseline.avgDurationMs,
+      // durationMs는 수 ms 단위로 흔들릴 수 있어, baseline이 매우 작으면 상대 오차가 과도해진다.
+      minDenom: 10,
     },
     {
       label: 'p95 duration',
       current: summary.p95DurationMs,
       base: baseline.p95DurationMs,
+      minDenom: 10,
     },
     { label: 'pass rate', current: summary.passRate, base: baseline.passRate },
   ];
 
   for (const check of checks) {
-    const base = check.base || 0.0001; // avoid div0
-    const diff = (check.current - base) / base;
+    const denom =
+      check.minDenom !== undefined
+        ? Math.max(check.base, check.minDenom)
+        : check.base || 0.0001; // avoid div0
+    const diff = (check.current - check.base) / denom;
     if (Math.abs(diff) > tolerance) {
       exceeded = true;
       msgs.push(
