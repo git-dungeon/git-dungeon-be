@@ -1,6 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { Request } from 'express';
+import type { Auth } from 'better-auth';
+import type { ConfigService } from '@nestjs/config';
 import { AuthSessionService } from './auth-session.service';
+import type { PrismaService } from '../prisma/prisma.service';
 
 const createHeaders = (cookies: string[] = []) => {
   const headers = new Headers();
@@ -17,13 +20,13 @@ const createHeaders = (cookies: string[] = []) => {
 };
 
 const createRequest = (): Request =>
-  ({ get: vi.fn(), secure: false } as unknown as Request);
+  ({ get: vi.fn(), secure: false }) as unknown as Request;
 
 describe('AuthSessionService', () => {
   const betterAuthApiGetSession = vi.fn();
   const prismaFindUnique = vi.fn();
   const prismaCreate = vi.fn();
-  const prismaUpsert = vi.fn();
+  const prismaCreateMany = vi.fn();
   const configGet = vi.fn();
 
   const createService = () => {
@@ -37,28 +40,32 @@ describe('AuthSessionService', () => {
         advanced: {},
         session: { expiresIn: 60 * 60 },
       },
-    } as const;
+    };
 
     const prisma = {
       dungeonState: {
         findUnique: prismaFindUnique,
         create: prismaCreate,
-        upsert: prismaUpsert,
+        createMany: prismaCreateMany,
       },
-    } as any;
+    };
 
     const configService = {
       get: configGet,
-    } as any;
+    };
 
-    return new AuthSessionService(betterAuth as any, prisma, configService);
+    return new AuthSessionService(
+      betterAuth as unknown as Auth<any>,
+      prisma as unknown as PrismaService,
+      configService as unknown as ConfigService,
+    );
   };
 
   beforeEach(() => {
     betterAuthApiGetSession.mockReset();
     prismaFindUnique.mockReset();
     prismaCreate.mockReset();
-    prismaUpsert.mockReset();
+    prismaCreateMany.mockReset();
     configGet.mockReset();
   });
 
@@ -78,10 +85,10 @@ describe('AuthSessionService', () => {
     const result = await service.getSession(createRequest());
 
     expect(result?.view.session.userId).toBe('user-1');
-    expect(prismaUpsert).not.toHaveBeenCalled();
+    expect(prismaCreateMany).not.toHaveBeenCalled();
   });
 
-  it('세션 refreshed 시 upsert 로 DungeonState 를 보장해야 한다', async () => {
+  it('세션 refreshed 시 createMany(skipDuplicates) 로 DungeonState 를 보장해야 한다', async () => {
     configGet.mockImplementation((key: string, fallback?: unknown) => {
       if (key === 'database.skipConnection') return false;
       if (key === 'dungeon.initialAp') return 10;
@@ -96,11 +103,9 @@ describe('AuthSessionService', () => {
     const service = createService();
     await service.getSession(createRequest());
 
-    expect(prismaUpsert).toHaveBeenCalledWith({
-      where: { userId: 'user-1' },
-      update: { ap: { increment: 0 } },
-      create: { userId: 'user-1', ap: 10 },
-      select: { userId: true },
+    expect(prismaCreateMany).toHaveBeenCalledWith({
+      data: [{ userId: 'user-1', ap: 10 }],
+      skipDuplicates: true,
     });
   });
 
@@ -119,11 +124,9 @@ describe('AuthSessionService', () => {
     const service = createService();
     await service.getSession(createRequest());
 
-    expect(prismaUpsert).toHaveBeenCalledWith({
-      where: { userId: 'user-1' },
-      update: { ap: { increment: 0 } },
-      create: { userId: 'user-1', ap: 7 },
-      select: { userId: true },
+    expect(prismaCreateMany).toHaveBeenCalledWith({
+      data: [{ userId: 'user-1', ap: 7 }],
+      skipDuplicates: true,
     });
   });
 });

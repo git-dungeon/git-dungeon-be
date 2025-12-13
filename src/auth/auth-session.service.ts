@@ -241,11 +241,9 @@ export class AuthSessionService {
       return;
     }
 
-    await this.prisma.dungeonState.upsert({
-      where: { userId: normalizedUserId },
-      update: { ap: { increment: 0 } },
-      create: { userId: normalizedUserId, ap: this.initialAp },
-      select: { userId: true },
+    await this.prisma.dungeonState.createMany({
+      data: [{ userId: normalizedUserId, ap: this.initialAp }],
+      skipDuplicates: true,
     });
   }
 
