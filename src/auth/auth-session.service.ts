@@ -9,7 +9,6 @@ import type { Request } from 'express';
 import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { getCookies } from 'better-auth/cookies';
-import { Prisma } from '@prisma/client';
 import { BETTER_AUTH_TOKEN } from './auth.constants';
 import { loadEnvironment } from '../config/environment';
 import { buildForwardHeaders } from './utils/request-forward.util';
@@ -120,7 +119,9 @@ export class AuthSessionService {
     const refreshed = cookies.length > 0;
     const view = this.buildSessionView(payload, refreshed);
 
-    await this.ensureDungeonStateOnFirstLogin(view.session.userId);
+    if (refreshed) {
+      await this.ensureDungeonStateOnFirstLogin(view.session.userId);
+    }
 
     return {
       payload,
@@ -235,38 +236,17 @@ export class AuthSessionService {
       return;
     }
 
-    if (!this.prisma) {
-      throw new Error('[AuthSessionService] PrismaService is not available.');
-    }
-
     const normalizedUserId = userId.trim();
     if (!normalizedUserId) {
       return;
     }
 
-    const existing = await this.prisma.dungeonState.findUnique({
+    await this.prisma.dungeonState.upsert({
       where: { userId: normalizedUserId },
+      update: { ap: { increment: 0 } },
+      create: { userId: normalizedUserId, ap: this.initialAp },
       select: { userId: true },
     });
-
-    if (existing) {
-      return;
-    }
-
-    try {
-      await this.prisma.dungeonState.create({
-        data: { userId: normalizedUserId, ap: this.initialAp },
-      });
-    } catch (error) {
-      const isUnique =
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002';
-      if (isUnique) {
-        return;
-      }
-
-      throw error;
-    }
   }
 
   private readString(

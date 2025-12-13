@@ -23,6 +23,7 @@ describe('AuthSessionService', () => {
   const betterAuthApiGetSession = vi.fn();
   const prismaFindUnique = vi.fn();
   const prismaCreate = vi.fn();
+  const prismaUpsert = vi.fn();
   const configGet = vi.fn();
 
   const createService = () => {
@@ -42,6 +43,7 @@ describe('AuthSessionService', () => {
       dungeonState: {
         findUnique: prismaFindUnique,
         create: prismaCreate,
+        upsert: prismaUpsert,
       },
     } as any;
 
@@ -56,6 +58,7 @@ describe('AuthSessionService', () => {
     betterAuthApiGetSession.mockReset();
     prismaFindUnique.mockReset();
     prismaCreate.mockReset();
+    prismaUpsert.mockReset();
     configGet.mockReset();
   });
 
@@ -68,59 +71,59 @@ describe('AuthSessionService', () => {
 
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(),
+      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
     });
 
     const service = createService();
     const result = await service.getSession(createRequest());
 
     expect(result?.view.session.userId).toBe('user-1');
-    expect(prismaFindUnique).not.toHaveBeenCalled();
-    expect(prismaCreate).not.toHaveBeenCalled();
+    expect(prismaUpsert).not.toHaveBeenCalled();
   });
 
-  it('DungeonState 가 이미 있으면 생성하지 않아야 한다', async () => {
+  it('세션 refreshed 시 upsert 로 DungeonState 를 보장해야 한다', async () => {
     configGet.mockImplementation((key: string, fallback?: unknown) => {
       if (key === 'database.skipConnection') return false;
       if (key === 'dungeon.initialAp') return 10;
       return fallback;
     });
 
-    prismaFindUnique.mockResolvedValue({ userId: 'user-1' });
-
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(),
+      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
     });
 
     const service = createService();
     await service.getSession(createRequest());
 
-    expect(prismaFindUnique).toHaveBeenCalledTimes(1);
-    expect(prismaCreate).not.toHaveBeenCalled();
+    expect(prismaUpsert).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+      update: { ap: { increment: 0 } },
+      create: { userId: 'user-1', ap: 10 },
+      select: { userId: true },
+    });
   });
 
-  it('DungeonState 가 없으면 초기 AP 로 생성해야 한다', async () => {
+  it('초기 AP 설정값으로 create payload 를 구성해야 한다', async () => {
     configGet.mockImplementation((key: string, fallback?: unknown) => {
       if (key === 'database.skipConnection') return false;
       if (key === 'dungeon.initialAp') return 7;
       return fallback;
     });
 
-    prismaFindUnique.mockResolvedValue(null);
-    prismaCreate.mockResolvedValue({ userId: 'user-1' });
-
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(),
+      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
     });
 
     const service = createService();
     await service.getSession(createRequest());
 
-    expect(prismaFindUnique).toHaveBeenCalledTimes(1);
-    expect(prismaCreate).toHaveBeenCalledWith({
-      data: { userId: 'user-1', ap: 7 },
+    expect(prismaUpsert).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+      update: { ap: { increment: 0 } },
+      create: { userId: 'user-1', ap: 7 },
+      select: { userId: true },
     });
   });
 });
