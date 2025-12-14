@@ -116,14 +116,12 @@ export class DungeonEventService {
       progressedState.state,
       selectedEvent,
       processorResult.extra,
-      logs,
     );
 
     const expApplied = this.applyExpAndLevelUp(
       deathApplied.state,
       deathApplied.alive ? (processorResult.expGained ?? 0) : 0,
       rng,
-      logs,
     );
 
     const progressDetail =
@@ -141,6 +139,7 @@ export class DungeonEventService {
     if (!deathApplied.alive) {
       completedDelta = this.stripProgressDelta(completedDelta);
     }
+    completedDelta = this.mergeApDelta(completedDelta, apCost);
     completedDelta = this.mergeExpDelta(completedDelta, expApplied.expDelta);
 
     logs.push({
@@ -149,6 +148,14 @@ export class DungeonEventService {
       delta: completedDelta,
       extra: processorResult.extra,
     });
+
+    if (deathApplied.deathLog) {
+      logs.push(deathApplied.deathLog);
+    }
+
+    if (expApplied.levelUpLogs.length) {
+      logs.push(...expApplied.levelUpLogs);
+    }
 
     const needsForcedMove =
       selectedEvent !== DungeonEventType.MOVE &&
@@ -312,14 +319,14 @@ export class DungeonEventService {
     state: DungeonState,
     expGained: number,
     rng: SeededRandom,
-    logs: DungeonEventLogStub[],
   ): {
     state: DungeonState;
     expDelta?: StatsDelta;
     alive: boolean;
+    levelUpLogs: DungeonEventLogStub[];
   } {
     if (expGained <= 0) {
-      return { state, alive: state.hp > 0 };
+      return { state, alive: state.hp > 0, levelUpLogs: [] };
     }
 
     let nextState: DungeonState = { ...state, exp: state.exp + expGained };
@@ -378,19 +385,19 @@ export class DungeonEventService {
       });
     }
 
-    if (levelUps.length) {
-      logs.push(...levelUps);
-    }
-
-    return { state: nextState, expDelta, alive: nextState.hp > 0 };
+    return {
+      state: nextState,
+      expDelta,
+      alive: nextState.hp > 0,
+      levelUpLogs: levelUps,
+    };
   }
 
   private applyDeathIfNeeded(
     state: DungeonState,
     eventType: DungeonEventType,
     extra: DungeonEventProcessorOutput['extra'],
-    logs: DungeonEventLogStub[],
-  ): { state: DungeonState; alive: boolean } {
+  ): { state: DungeonState; alive: boolean; deathLog?: DungeonEventLogStub } {
     if (state.hp > 0) {
       return { state, alive: true };
     }
@@ -410,7 +417,7 @@ export class DungeonEventService {
           ? 'TRAP_DAMAGE'
           : 'HP_DEPLETED';
 
-    logs.push({
+    const deathLog: DungeonEventLogStub = {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'DEATH',
@@ -433,9 +440,9 @@ export class DungeonEventService {
           cause,
         },
       },
-    });
+    };
 
-    return { state: resetState, alive: false };
+    return { state: resetState, alive: false, deathLog };
   }
 
   private mergeExpDelta(
@@ -457,6 +464,38 @@ export class DungeonEventService {
         stats: mergedStats,
       },
     };
+  }
+
+  private mergeApDelta(
+    delta: DungeonLogDelta | undefined,
+    apCost: number,
+  ): DungeonLogDelta | undefined {
+    if (!delta) return delta;
+    if (!Number.isFinite(apCost) || apCost <= 0) return delta;
+
+    const ap = -apCost;
+
+    switch (delta.type) {
+      case 'BATTLE':
+      case 'REST':
+      case 'TRAP':
+      case 'TREASURE': {
+        const mergedStats: StatsDelta = {
+          ...(delta.detail.stats ?? {}),
+          ap: (delta.detail.stats?.ap ?? 0) + ap,
+        };
+
+        return {
+          ...delta,
+          detail: {
+            ...delta.detail,
+            stats: mergedStats,
+          },
+        } as DungeonLogDelta;
+      }
+      default:
+        return delta;
+    }
   }
 
   private stripProgressDelta(

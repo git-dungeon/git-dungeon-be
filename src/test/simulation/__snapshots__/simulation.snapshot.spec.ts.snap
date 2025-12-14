@@ -40,6 +40,9 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 ],
                 "unlocks": [],
               },
+              "stats": {
+                "ap": -1,
+              },
             },
             "type": "TREASURE",
           },
@@ -115,6 +118,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "previousProgress": 10,
               },
               "stats": {
+                "ap": -1,
                 "hp": 4,
               },
             },
@@ -154,6 +158,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "previousProgress": 20,
               },
               "stats": {
+                "ap": -1,
                 "exp": 3,
                 "hp": -1,
               },
@@ -273,6 +278,7 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
                 "previousProgress": 20,
               },
               "stats": {
+                "ap": -1,
                 "exp": 3,
                 "hp": -5,
               },
@@ -383,33 +389,11 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
           "status": "STARTED",
         },
         {
-          "action": "DEATH",
-          "delta": {
-            "detail": {
-              "progress": {
-                "delta": -20,
-                "floorProgress": 0,
-                "previousProgress": 20,
-              },
-              "stats": {
-                "hp": 10,
-              },
-            },
-            "type": "DEATH",
-          },
-          "extra": {
-            "details": {
-              "cause": "PLAYER_DEFEATED",
-            },
-            "type": "DEATH",
-          },
-          "status": "COMPLETED",
-        },
-        {
           "action": "BATTLE",
           "delta": {
             "detail": {
               "stats": {
+                "ap": -1,
                 "hp": -3,
               },
             },
@@ -433,6 +417,29 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
               "turns": 2,
             },
             "type": "BATTLE",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -20,
+                "floorProgress": 0,
+                "previousProgress": 20,
+              },
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+            },
+            "type": "DEATH",
           },
           "status": "COMPLETED",
         },
@@ -481,6 +488,20 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
           "status": "STARTED",
         },
         {
+          "action": "TRAP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+                "hp": -3,
+              },
+            },
+            "type": "TRAP",
+          },
+          "extra": undefined,
+          "status": "COMPLETED",
+        },
+        {
           "action": "DEATH",
           "delta": {
             "detail": {
@@ -501,19 +522,6 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             },
             "type": "DEATH",
           },
-          "status": "COMPLETED",
-        },
-        {
-          "action": "TRAP",
-          "delta": {
-            "detail": {
-              "stats": {
-                "hp": -3,
-              },
-            },
-            "type": "TRAP",
-          },
-          "extra": undefined,
           "status": "COMPLETED",
         },
       ],
@@ -570,6 +578,7 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
                 "previousProgress": 0,
               },
               "stats": {
+                "ap": -1,
                 "hp": -34,
               },
             },

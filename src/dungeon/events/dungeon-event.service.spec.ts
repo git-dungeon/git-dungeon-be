@@ -57,7 +57,10 @@ describe('DungeonEventService', () => {
 
     expect(completedLog?.stateVersionBefore).toBe(state.version);
     expect(completedLog?.stateVersionAfter).toBe(state.version + 1);
-    expect(completedLog?.delta && 'detail' in completedLog.delta).toBe(true);
+    expect(completedLog?.delta?.type).toBe('TRAP');
+    if (completedLog?.delta?.type === 'TRAP') {
+      expect(completedLog.delta.detail.stats.ap).toBe(-1);
+    }
   });
 
   it('진행도가 100 이상이면 강제로 MOVE를 실행한다', async () => {
@@ -271,6 +274,11 @@ describe('DungeonEventService', () => {
       status: DungeonLogStatus.COMPLETED,
       stateVersion: state.version + 1,
     });
+
+    expect(completedLog.delta?.type).toBe('TREASURE');
+    if (completedLog.delta?.type === 'TREASURE') {
+      expect(completedLog.delta.detail.stats?.ap).toBe(-1);
+    }
   });
 
   it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
@@ -312,7 +320,20 @@ describe('DungeonEventService', () => {
     expect(trapCompleted?.delta?.type).toBe('TRAP');
     if (trapCompleted?.delta?.type === 'TRAP') {
       expect(trapCompleted.delta.detail.progress).toBeUndefined();
+      expect(trapCompleted.delta.detail.stats.ap).toBe(-1);
     }
+
+    const trapCompletedIndex = result.logs.findIndex(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    const deathIndex = result.logs.findIndex(
+      (log) => log.action === DungeonLogAction.DEATH,
+    );
+    expect(trapCompletedIndex).toBeGreaterThanOrEqual(0);
+    expect(deathIndex).toBeGreaterThanOrEqual(0);
+    expect(trapCompletedIndex).toBeLessThan(deathIndex);
 
     expect(result.stateAfter.floor).toBe(1);
     expect(result.stateAfter.floorProgress).toBe(0);
@@ -361,9 +382,22 @@ describe('DungeonEventService', () => {
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
+      expect(battleCompleted.delta.detail.stats?.ap).toBe(-1);
       expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
     }
+
+    const battleCompletedIndex = result.logs.findIndex(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    const levelUpIndex = result.logs.findIndex(
+      (log) => log.action === DungeonLogAction.LEVEL_UP,
+    );
+    expect(battleCompletedIndex).toBeGreaterThanOrEqual(0);
+    expect(levelUpIndex).toBeGreaterThanOrEqual(0);
+    expect(battleCompletedIndex).toBeLessThan(levelUpIndex);
   });
 
   it.sequential(

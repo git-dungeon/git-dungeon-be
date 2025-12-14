@@ -98,6 +98,7 @@ export type TrapDelta = {
 export type TreasureDelta = {
   type: 'TREASURE';
   detail: {
+    stats?: StatsDelta;
     rewards?: RewardsDelta;
     progress?: ProgressDelta;
   };
