@@ -78,7 +78,7 @@ describe('AuthSessionService', () => {
 
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
+      headers: createHeaders(),
     });
 
     const service = createService();
@@ -88,7 +88,7 @@ describe('AuthSessionService', () => {
     expect(prismaCreateMany).not.toHaveBeenCalled();
   });
 
-  it('세션 refreshed 시 createMany(skipDuplicates) 로 DungeonState 를 보장해야 한다', async () => {
+  it('유효 세션이면 createMany(skipDuplicates) 로 DungeonState 를 보장해야 한다', async () => {
     configGet.mockImplementation((key: string, fallback?: unknown) => {
       if (key === 'database.skipConnection') return false;
       if (key === 'dungeon.initialAp') return 10;
@@ -97,7 +97,7 @@ describe('AuthSessionService', () => {
 
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
+      headers: createHeaders(),
     });
 
     const service = createService();
@@ -118,7 +118,7 @@ describe('AuthSessionService', () => {
 
     betterAuthApiGetSession.mockResolvedValue({
       response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
-      headers: createHeaders(['better-auth.session_token=renewed; Path=/']),
+      headers: createHeaders(),
     });
 
     const service = createService();
@@ -128,5 +128,24 @@ describe('AuthSessionService', () => {
       data: [{ userId: 'user-1', ap: 7 }],
       skipDuplicates: true,
     });
+  });
+
+  it('같은 유저는 중복으로 createMany를 호출하지 않아야 한다', async () => {
+    configGet.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'database.skipConnection') return false;
+      if (key === 'dungeon.initialAp') return 10;
+      return fallback;
+    });
+
+    betterAuthApiGetSession.mockResolvedValue({
+      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      headers: createHeaders(),
+    });
+
+    const service = createService();
+    await service.getSession(createRequest());
+    await service.getSession(createRequest());
+
+    expect(prismaCreateMany).toHaveBeenCalledTimes(1);
   });
 });

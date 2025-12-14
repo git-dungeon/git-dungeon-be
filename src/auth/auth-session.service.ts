@@ -69,6 +69,7 @@ export class AuthSessionService {
   };
   private readonly initialAp: number;
   private readonly skipDatabase: boolean;
+  private readonly ensuredDungeonStateUserIds = new Set<string>();
 
   constructor(
     @Inject(BETTER_AUTH_TOKEN) private readonly betterAuth: GitDungeonAuth,
@@ -119,9 +120,7 @@ export class AuthSessionService {
     const refreshed = cookies.length > 0;
     const view = this.buildSessionView(payload, refreshed);
 
-    if (refreshed) {
-      await this.ensureDungeonStateOnFirstLogin(view.session.userId);
-    }
+    await this.ensureDungeonStateOnFirstLogin(view.session.userId);
 
     return {
       payload,
@@ -241,10 +240,16 @@ export class AuthSessionService {
       return;
     }
 
+    if (this.ensuredDungeonStateUserIds.has(normalizedUserId)) {
+      return;
+    }
+
     await this.prisma.dungeonState.createMany({
       data: [{ userId: normalizedUserId, ap: this.initialAp }],
       skipDuplicates: true,
     });
+
+    this.ensuredDungeonStateUserIds.add(normalizedUserId);
   }
 
   private readString(
