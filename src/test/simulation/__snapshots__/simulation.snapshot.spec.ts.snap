@@ -21,7 +21,6 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
           "action": "TREASURE",
           "delta": {
             "detail": {
-              "gold": 5,
               "progress": {
                 "delta": 10,
                 "floorProgress": 10,

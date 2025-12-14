@@ -35,12 +35,12 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       this.createFallbackRng(input.rngValue);
 
     const baseGold = this.effect.rewards?.gold ?? 0;
-    const gold = baseGold;
+    const goldDelta = baseGold;
     const applied = applyEffectDelta(input.state, {
       ...this.effect,
       rewards: {
         ...(this.effect.rewards ?? {}),
-        gold,
+        gold: goldDelta,
       },
     });
 
@@ -64,9 +64,8 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       delta: {
         type: 'TREASURE',
         detail: {
-          gold: applied.rewardsDelta.gold ?? gold,
           rewards: {
-            gold,
+            gold: applied.rewardsDelta.gold ?? goldDelta,
             items: [...(baseAdds ?? []), ...(dropAdds ?? [])],
             buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],

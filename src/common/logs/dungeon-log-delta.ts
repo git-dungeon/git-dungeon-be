@@ -99,7 +99,6 @@ export type TreasureDelta = {
   type: 'TREASURE';
   detail: {
     rewards?: RewardsDelta;
-    gold?: number;
     progress?: ProgressDelta;
   };
 };
