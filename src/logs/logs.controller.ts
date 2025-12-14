@@ -35,7 +35,7 @@ export class LogsController {
     name: 'cursor',
     required: false,
     type: String,
-    description: '다음 페이지를 가리키는 base64 커서',
+    description: '다음 페이지를 가리키는 base64url 커서(sequence 기반)',
   })
   @ApiQuery({
     name: 'type',

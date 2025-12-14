@@ -13,7 +13,14 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
       "logs": [
         {
           "action": "TREASURE",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "TREASURE",
+          },
           "extra": undefined,
           "status": "STARTED",
         },
@@ -21,7 +28,6 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
           "action": "TREASURE",
           "delta": {
             "detail": {
-              "gold": 5,
               "progress": {
                 "delta": 10,
                 "floorProgress": 10,
@@ -32,11 +38,8 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "gold": 5,
                 "items": [
                   {
-                    "code": "ring-topaz",
-                    "itemId": "ring-topaz",
+                    "itemCode": "ring-topaz",
                     "quantity": 1,
-                    "rarity": "uncommon",
-                    "slot": "ring",
                   },
                 ],
                 "unlocks": [],
@@ -102,7 +105,14 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
       "logs": [
         {
           "action": "REST",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "REST",
+          },
           "extra": undefined,
           "status": "STARTED",
         },
@@ -141,7 +151,14 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
       "logs": [
         {
           "action": "BATTLE",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
           "extra": undefined,
           "status": "STARTED",
         },
@@ -153,6 +170,14 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "delta": 20,
                 "floorProgress": 40,
                 "previousProgress": 20,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "itemCode": "ring-topaz",
+                    "quantity": 1,
+                  },
+                ],
               },
               "stats": {
                 "exp": 3,
@@ -260,7 +285,14 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
       "logs": [
         {
           "action": "BATTLE",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
           "extra": undefined,
           "status": "STARTED",
         },
@@ -272,6 +304,14 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
                 "delta": 20,
                 "floorProgress": 40,
                 "previousProgress": 20,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "itemCode": "ring-silver-band",
+                    "quantity": 1,
+                  },
+                ],
               },
               "stats": {
                 "exp": 3,
@@ -379,41 +419,23 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
       "logs": [
         {
           "action": "BATTLE",
-          "delta": undefined,
-          "extra": undefined,
-          "status": "STARTED",
-        },
-        {
-          "action": "DEATH",
           "delta": {
             "detail": {
-              "progress": {
-                "delta": -20,
-                "floorProgress": 0,
-                "previousProgress": 20,
-              },
               "stats": {
-                "hp": 10,
+                "ap": -1,
               },
             },
-            "type": "DEATH",
+            "type": "BATTLE",
           },
-          "extra": {
-            "details": {
-              "cause": "PLAYER_DEFEATED",
-            },
-            "type": "DEATH",
-          },
-          "status": "COMPLETED",
+          "extra": undefined,
+          "status": "STARTED",
         },
         {
           "action": "BATTLE",
           "delta": {
             "detail": {
-              "progress": {
-                "delta": -0,
-                "floorProgress": 0,
-                "previousProgress": 0,
+              "rewards": {
+                "items": [],
               },
               "stats": {
                 "hp": -3,
@@ -440,6 +462,40 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             },
             "type": "BATTLE",
           },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -20,
+                "floorProgress": 0,
+                "previousProgress": 20,
+              },
+              "stats": {},
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+            },
+            "type": "DEATH",
+          },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "REVIVE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "REVIVE",
+          },
+          "extra": undefined,
           "status": "COMPLETED",
         },
       ],
@@ -482,9 +538,29 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
       "logs": [
         {
           "action": "TRAP",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "TRAP",
+          },
           "extra": undefined,
           "status": "STARTED",
+        },
+        {
+          "action": "TRAP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": -3,
+              },
+            },
+            "type": "TRAP",
+          },
+          "extra": undefined,
+          "status": "COMPLETED",
         },
         {
           "action": "DEATH",
@@ -495,9 +571,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
                 "floorProgress": 0,
                 "previousProgress": 10,
               },
-              "stats": {
-                "hp": 10,
-              },
+              "stats": {},
             },
             "type": "DEATH",
           },
@@ -510,14 +584,14 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
           "status": "COMPLETED",
         },
         {
-          "action": "TRAP",
+          "action": "REVIVE",
           "delta": {
             "detail": {
               "stats": {
-                "hp": -3,
+                "hp": 10,
               },
             },
-            "type": "TRAP",
+            "type": "REVIVE",
           },
           "extra": undefined,
           "status": "COMPLETED",
@@ -562,7 +636,14 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
       "logs": [
         {
           "action": "BATTLE",
-          "delta": undefined,
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
           "extra": undefined,
           "status": "STARTED",
         },
@@ -574,6 +655,9 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
                 "delta": 20,
                 "floorProgress": 20,
                 "previousProgress": 0,
+              },
+              "rewards": {
+                "items": [],
               },
               "stats": {
                 "hp": -34,

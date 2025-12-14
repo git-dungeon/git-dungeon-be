@@ -6,8 +6,7 @@ import { decodeLogsCursor, encodeLogsCursor } from './logs-cursor.util';
 describe('logs-cursor.util', () => {
   it('커서를 인코딩/디코딩할 수 있어야 한다', () => {
     const payload = {
-      createdAt: new Date('2025-01-01T00:00:00.000Z'),
-      id: 'log-123',
+      sequence: 123n,
     };
 
     const cursor = encodeLogsCursor(payload);
@@ -29,18 +28,17 @@ describe('logs-cursor.util', () => {
   });
 
   it('잘못된 포맷의 커서는 예외를 던진다', () => {
-    const invalid = Buffer.from('2025-01-01T00:00:00.000Z', 'utf8').toString(
-      'base64url',
-    );
+    const invalid = Buffer.from('not-a-number', 'utf8').toString('base64url');
 
     expect(() => decodeLogsCursor(invalid)).toThrow(BadRequestException);
   });
 
-  it('날짜가 깨진 커서도 예외를 던진다', () => {
-    const invalidDate = Buffer.from('invalid-date|log-1', 'utf8').toString(
-      'base64url',
-    );
+  it('기존 createdAt|id 포맷 커서는 예외를 던진다', () => {
+    const legacy = Buffer.from(
+      '2025-01-01T00:00:00.000Z|log-1',
+      'utf8',
+    ).toString('base64url');
 
-    expect(() => decodeLogsCursor(invalidDate)).toThrow(BadRequestException);
+    expect(() => decodeLogsCursor(legacy)).toThrow(BadRequestException);
   });
 });

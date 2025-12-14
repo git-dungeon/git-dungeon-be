@@ -116,10 +116,7 @@ describe('LogsController (E2E)', () => {
       createActiveSession(),
     );
 
-    const cursorPayload = {
-      createdAt: new Date('2025-10-17T02:00:00.000Z'),
-      id: 'log-010',
-    };
+    const cursorPayload = { sequence: 10n };
     const cursor = encodeLogsCursor(cursorPayload);
 
     const server = app.getHttpServer() as Parameters<typeof request>[0];
@@ -147,10 +144,7 @@ describe('LogsController (E2E)', () => {
 
   it('nextCursor를 사용해 다음 페이지를 이어서 조회해야 한다', async () => {
     const { app, logsServiceMock, authSessionServiceMock } = await setupApp();
-    const firstCursorPayload = {
-      createdAt: new Date('2025-10-17T02:00:00.000Z'),
-      id: 'log-010',
-    };
+    const firstCursorPayload = { sequence: 10n };
     const nextCursor = encodeLogsCursor(firstCursorPayload);
 
     const firstPage = {
@@ -229,11 +223,11 @@ describe('LogsController (E2E)', () => {
       expect(cursorPayload && typeof cursorPayload === 'object').toBe(true);
       if (cursorPayload && typeof cursorPayload === 'object') {
         expect(cursorPayload).toMatchObject({
-          id: firstCursorPayload.id,
+          sequence: firstCursorPayload.sequence,
         });
-        expect(
-          (cursorPayload as { createdAt?: unknown }).createdAt,
-        ).toBeInstanceOf(Date);
+        expect(typeof (cursorPayload as { sequence?: unknown }).sequence).toBe(
+          'bigint',
+        );
       }
     } finally {
       await app.close();

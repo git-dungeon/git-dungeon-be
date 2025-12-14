@@ -2,6 +2,7 @@ export const LOG_CATEGORY_VALUES = ['EXPLORATION', 'STATUS'] as const;
 export const LOG_ACTION_VALUES = [
   'BATTLE',
   'DEATH',
+  'REVIVE',
   'MOVE',
   'REST',
   'TRAP',
@@ -29,6 +30,7 @@ export type LogTypeFilter = (typeof LOG_TYPE_VALUES)[number];
 export enum LogTypeEnum {
   BATTLE = 'BATTLE',
   DEATH = 'DEATH',
+  REVIVE = 'REVIVE',
   MOVE = 'MOVE',
   REST = 'REST',
   TRAP = 'TRAP',

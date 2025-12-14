@@ -54,10 +54,22 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.TRAP &&
         log.status === DungeonLogStatus.COMPLETED,
     );
+    const startedLog = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.STARTED,
+    );
 
+    expect(startedLog?.delta?.type).toBe('TRAP');
+    if (startedLog?.delta?.type === 'TRAP') {
+      expect(startedLog.delta.detail.stats.ap).toBe(-1);
+    }
     expect(completedLog?.stateVersionBefore).toBe(state.version);
     expect(completedLog?.stateVersionAfter).toBe(state.version + 1);
-    expect(completedLog?.delta && 'detail' in completedLog.delta).toBe(true);
+    expect(completedLog?.delta?.type).toBe('TRAP');
+    if (completedLog?.delta?.type === 'TRAP') {
+      expect(completedLog.delta.detail.stats.ap).toBeUndefined();
+    }
   });
 
   it('진행도가 100 이상이면 강제로 MOVE를 실행한다', async () => {
@@ -271,9 +283,19 @@ describe('DungeonEventService', () => {
       status: DungeonLogStatus.COMPLETED,
       stateVersion: state.version + 1,
     });
+
+    expect(startedLog.delta?.type).toBe('TREASURE');
+    if (startedLog.delta?.type === 'TREASURE') {
+      expect(startedLog.delta.detail.stats?.ap).toBe(-1);
+    }
+
+    expect(completedLog.delta?.type).toBe('TREASURE');
+    if (completedLog.delta?.type === 'TREASURE') {
+      expect(completedLog.delta.detail.stats?.ap).toBeUndefined();
+    }
   });
 
-  it('HP<=0이면 DEATH 로그가 생성되고 진행도가 리셋된다', async () => {
+  it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
     const state: DungeonState = createState({
       hp: 1,
       floor: 3,
@@ -295,12 +317,53 @@ describe('DungeonEventService', () => {
       (log) => log.action === DungeonLogAction.DEATH,
     );
     expect(deathLog).toBeDefined();
+    expect(deathLog?.delta?.type).toBe('DEATH');
+    if (deathLog?.delta?.type === 'DEATH') {
+      expect(deathLog.delta.detail.progress.floorProgress).toBe(0);
+      expect(deathLog.delta.detail.progress.previousProgress).toBeTypeOf(
+        'number',
+      );
+    }
+
+    const trapCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    const trapStarted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+    expect(trapStarted?.delta?.type).toBe('TRAP');
+    if (trapStarted?.delta?.type === 'TRAP') {
+      expect(trapStarted.delta.detail.stats.ap).toBe(-1);
+    }
+    expect(trapCompleted).toBeDefined();
+    expect(trapCompleted?.delta?.type).toBe('TRAP');
+    if (trapCompleted?.delta?.type === 'TRAP') {
+      expect(trapCompleted.delta.detail.progress).toBeUndefined();
+      expect(trapCompleted.delta.detail.stats.ap).toBeUndefined();
+    }
+
+    const trapCompletedIndex = result.logs.findIndex(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    const deathIndex = result.logs.findIndex(
+      (log) => log.action === DungeonLogAction.DEATH,
+    );
+    expect(trapCompletedIndex).toBeGreaterThanOrEqual(0);
+    expect(deathIndex).toBeGreaterThanOrEqual(0);
+    expect(trapCompletedIndex).toBeLessThan(deathIndex);
+
     expect(result.stateAfter.floor).toBe(1);
     expect(result.stateAfter.floorProgress).toBe(0);
     expect(result.stateAfter.hp).toBe(result.stateAfter.maxHp);
   });
 
-  it('승리 시 레벨업과 LEVEL_UP 로그를 생성하고 delta에 stats를 병합한다', async () => {
+  it('승리 시 전투 EXP는 BATTLE에 기록하고, 레벨업 스탯은 LEVEL_UP에만 기록한다', async () => {
     const state: DungeonState = createState({
       atk: 20,
       def: 1,
@@ -325,19 +388,48 @@ describe('DungeonEventService', () => {
       (log) => log.action === DungeonLogAction.LEVEL_UP,
     );
     expect(levelUpLog).toBeDefined();
+    expect(levelUpLog?.delta?.type).toBe('LEVEL_UP');
+    if (levelUpLog?.delta?.type === 'LEVEL_UP') {
+      expect(levelUpLog.delta.detail.stats.level).toBeDefined();
+      expect(levelUpLog.delta.detail.stats.exp).toBeUndefined();
+    }
 
     const battleCompleted = result.logs.find(
       (log) =>
         log.action === DungeonLogAction.BATTLE &&
         log.status === DungeonLogStatus.COMPLETED,
     );
+    const battleStarted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+    expect(battleStarted?.delta?.type).toBe('BATTLE');
+    if (battleStarted?.delta?.type === 'BATTLE') {
+      expect(battleStarted.delta.detail.stats?.ap).toBe(-1);
+    }
 
     expect(result.stateAfter.level).toBeGreaterThan(state.level);
     expect(result.stateAfter.maxHp).toBeGreaterThan(state.maxHp);
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
+      expect(battleCompleted.delta.detail.stats?.ap).toBeUndefined();
+      expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
+      expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
     }
+
+    const battleCompletedIndex = result.logs.findIndex(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    const levelUpIndex = result.logs.findIndex(
+      (log) => log.action === DungeonLogAction.LEVEL_UP,
+    );
+    expect(battleCompletedIndex).toBeGreaterThanOrEqual(0);
+    expect(levelUpIndex).toBeGreaterThanOrEqual(0);
+    expect(battleCompletedIndex).toBeLessThan(levelUpIndex);
   });
 
   it.sequential(

@@ -10,25 +10,25 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(uuid())
-  email         String     @unique
-  emailVerified Boolean    @default(false)
+  id            String   @id @default(uuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   name          String?
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  state         DungeonState?
-  logs          DungeonLog[]
+  accounts       Account[]
+  sessions       Session[]
+  state          DungeonState?
+  logs           DungeonLog[]
   stateSnapshots DungeonStateSnapshot[]
   inventoryItems InventoryItem[]
-  apSyncLogs    ApSyncLog[]
+  apSyncLogs     ApSyncLog[]
 }
 
 model Account {
-  id                    String   @id @default(uuid())
+  id                    String    @id @default(uuid())
   providerId            String
   accountId             String
   userId                String
@@ -39,8 +39,8 @@ model Account {
   refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
@@ -121,26 +121,26 @@ enum ApSyncTokenType {
 }
 
 model DungeonState {
-  userId                  String         @id
-  level                   Int            @default(1)
-  exp                     Int            @default(0)
-  hp                      Int            @default(10)
-  maxHp                   Int            @default(10)
-  atk                     Int            @default(1)
-  def                     Int            @default(1)
-  luck                    Int            @default(1)
-  floor                   Int            @default(1)
-  maxFloor                Int            @default(1)
-  floorProgress           Int            @default(0)
-  gold                    Int            @default(0)
-  ap                      Int            @default(0)
-  currentAction           DungeonAction  @default(IDLE)
-  currentActionStartedAt  DateTime?
-  createdAt               DateTime       @default(now())
-  version                 Int            @default(1)
-  updatedAt               DateTime       @updatedAt
+  userId                 String        @id
+  level                  Int           @default(1)
+  exp                    Int           @default(0)
+  hp                     Int           @default(10)
+  maxHp                  Int           @default(10)
+  atk                    Int           @default(1)
+  def                    Int           @default(1)
+  luck                   Int           @default(1)
+  floor                  Int           @default(1)
+  maxFloor               Int           @default(1)
+  floorProgress          Int           @default(0)
+  gold                   Int           @default(0)
+  ap                     Int           @default(0)
+  currentAction          DungeonAction @default(IDLE)
+  currentActionStartedAt DateTime?
+  createdAt              DateTime      @default(now())
+  version                Int           @default(1)
+  updatedAt              DateTime      @updatedAt
 
-  user                    User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([updatedAt])
   @@index([version])
@@ -154,6 +154,7 @@ enum DungeonLogCategory {
 enum DungeonLogAction {
   BATTLE
   DEATH
+  REVIVE
   MOVE
   REST
   TRAP
@@ -173,22 +174,23 @@ enum DungeonLogStatus {
 }
 
 model DungeonLog {
-  id                  String              @id @default(uuid())
-  userId              String
-  category            DungeonLogCategory
-  action              DungeonLogAction
-  status              DungeonLogStatus    @default(STARTED)
-  floor               Int?
-  turnNumber          Int?
-  stateVersionBefore  Int?
-  stateVersionAfter   Int?
-  delta               Json?
-  extra               Json?
-  createdAt           DateTime            @default(now())
+  id                 String             @id @default(uuid())
+  sequence           BigInt             @default(autoincrement())
+  userId             String
+  category           DungeonLogCategory
+  action             DungeonLogAction
+  status             DungeonLogStatus   @default(STARTED)
+  floor              Int?
+  turnNumber         Int?
+  stateVersionBefore Int?
+  stateVersionAfter  Int?
+  delta              Json?
+  extra              Json?
+  createdAt          DateTime           @default(now())
 
-  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([userId, createdAt, id])
+  @@index([userId, sequence])
   @@index([category, action])
   @@index([createdAt])
 }
@@ -202,7 +204,7 @@ model DungeonStateSnapshot {
   statePayload Json
   reason       String?
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([userId, version])
   @@index([userId, turnNumber])
@@ -210,41 +212,41 @@ model DungeonStateSnapshot {
 }
 
 model InventoryItem {
-  id         String           @id @default(uuid())
+  id         String          @id @default(uuid())
   userId     String
   code       String
   slot       InventorySlot
   rarity     InventoryRarity
   modifiers  Json
-  isEquipped Boolean          @default(false)
-  obtainedAt DateTime         @default(now())
-  version    Int              @default(1)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  isEquipped Boolean         @default(false)
+  obtainedAt DateTime        @default(now())
+  version    Int             @default(1)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // Partial unique index for equipped slot enforced via raw SQL migration.
 
   @@index([userId, slot])
   @@index([userId, code])
   @@index([userId, isEquipped])
-  // Partial unique index for equipped slot enforced via raw SQL migration.
 }
 
 model ApSyncLog {
-  id                   String          @id @default(uuid())
-  userId               String
-  windowStart          DateTime
-  windowEnd            DateTime
-  contributions        Int
-  apDelta              Int
-  tokenType            ApSyncTokenType
-  rateLimitRemaining   Int?
-  cursor               String?
-  meta                 Json?
-  status               ApSyncStatus    @default(SUCCESS)
-  errorCode            String?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
+  id                 String          @id @default(uuid())
+  userId             String
+  windowStart        DateTime
+  windowEnd          DateTime
+  contributions      Int
+  apDelta            Int
+  tokenType          ApSyncTokenType
+  rateLimitRemaining Int?
+  cursor             String?
+  meta               Json?
+  status             ApSyncStatus    @default(SUCCESS)
+  errorCode          String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 

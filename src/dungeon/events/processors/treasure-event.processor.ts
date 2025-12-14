@@ -17,7 +17,6 @@ import {
   SeededRandomFactory,
 } from '../seeded-rng.provider';
 import { Inject } from '@nestjs/common';
-import { mapDropsToInventoryAdds } from '../../drops/drop.utils';
 
 export class TreasureEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.TREASURE;
@@ -35,12 +34,12 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
       this.createFallbackRng(input.rngValue);
 
     const baseGold = this.effect.rewards?.gold ?? 0;
-    const gold = baseGold;
+    const goldDelta = baseGold;
     const applied = applyEffectDelta(input.state, {
       ...this.effect,
       rewards: {
         ...(this.effect.rewards ?? {}),
-        gold,
+        gold: goldDelta,
       },
     });
 
@@ -56,18 +55,23 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
             })),
           }
         : undefined;
-    const dropAdds = mapDropsToInventoryAdds(drops);
     const baseAdds = this.toInventoryAdds(this.effect.rewards?.items);
+    const rewardItems = [
+      ...this.toRewardItems(baseAdds),
+      ...drops.map((drop) => ({
+        itemCode: drop.itemCode,
+        quantity: drop.quantity,
+      })),
+    ];
 
     return {
       state: applied.state,
       delta: {
         type: 'TREASURE',
         detail: {
-          gold: applied.rewardsDelta.gold ?? gold,
           rewards: {
-            gold,
-            items: [...(baseAdds ?? []), ...(dropAdds ?? [])],
+            gold: applied.rewardsDelta.gold ?? goldDelta,
+            items: rewardItems,
             buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],
           },
@@ -99,6 +103,16 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         );
       },
     );
+  }
+
+  private toRewardItems(
+    adds: InventoryDelta['added'] | undefined,
+  ): Array<{ itemCode: string; quantity?: number }> {
+    if (!adds?.length) return [];
+    return adds.map((it) => ({
+      itemCode: it.code,
+      quantity: it.quantity ?? 1,
+    }));
   }
 
   private toAppliedBuffs(

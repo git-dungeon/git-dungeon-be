@@ -56,7 +56,10 @@ export type ProgressDelta = Partial<{
 
 export type RewardsDelta = {
   gold?: number;
-  items?: InventoryDelta['added']; // 전투/보물 공통 드랍 규칙
+  items?: Array<{
+    itemCode: string;
+    quantity?: number;
+  }>; // 이벤트(BATTLE/TREASURE) 보상: 카탈로그 기준 (인벤토리 SSOT는 ACQUIRE_ITEM)
   buffs?: BuffAppliedDelta['detail']['applied'];
   unlocks?: string[];
 };
@@ -65,7 +68,7 @@ export type BattleDelta = {
   type: 'BATTLE';
   detail: {
     stats?: StatsDelta;
-    gold?: number;
+    rewards?: RewardsDelta;
     progress?: ProgressDelta;
   };
 };
@@ -76,6 +79,13 @@ export type DeathDelta = {
     stats: StatsDelta;
     progress: ProgressDelta;
     buffs?: BuffExpiredDelta['detail']['expired'];
+  };
+};
+
+export type ReviveDelta = {
+  type: 'REVIVE';
+  detail: {
+    stats: StatsDelta;
   };
 };
 
@@ -98,8 +108,8 @@ export type TrapDelta = {
 export type TreasureDelta = {
   type: 'TREASURE';
   detail: {
+    stats?: StatsDelta;
     rewards?: RewardsDelta;
-    gold?: number;
     progress?: ProgressDelta;
   };
 };
@@ -150,6 +160,7 @@ export type BuffDelta =
 export type DungeonLogDelta =
   | BattleDelta
   | DeathDelta
+  | ReviveDelta
   | AcquireItemDelta
   | EquipItemDelta
   | LevelUpDelta
