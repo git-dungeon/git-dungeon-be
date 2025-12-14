@@ -54,12 +54,21 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.TRAP &&
         log.status === DungeonLogStatus.COMPLETED,
     );
+    const startedLog = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.STARTED,
+    );
 
+    expect(startedLog?.delta?.type).toBe('TRAP');
+    if (startedLog?.delta?.type === 'TRAP') {
+      expect(startedLog.delta.detail.stats.ap).toBe(-1);
+    }
     expect(completedLog?.stateVersionBefore).toBe(state.version);
     expect(completedLog?.stateVersionAfter).toBe(state.version + 1);
     expect(completedLog?.delta?.type).toBe('TRAP');
     if (completedLog?.delta?.type === 'TRAP') {
-      expect(completedLog.delta.detail.stats.ap).toBe(-1);
+      expect(completedLog.delta.detail.stats.ap).toBeUndefined();
     }
   });
 
@@ -275,9 +284,14 @@ describe('DungeonEventService', () => {
       stateVersion: state.version + 1,
     });
 
+    expect(startedLog.delta?.type).toBe('TREASURE');
+    if (startedLog.delta?.type === 'TREASURE') {
+      expect(startedLog.delta.detail.stats?.ap).toBe(-1);
+    }
+
     expect(completedLog.delta?.type).toBe('TREASURE');
     if (completedLog.delta?.type === 'TREASURE') {
-      expect(completedLog.delta.detail.stats?.ap).toBe(-1);
+      expect(completedLog.delta.detail.stats?.ap).toBeUndefined();
     }
   });
 
@@ -316,11 +330,20 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.TRAP &&
         log.status === DungeonLogStatus.COMPLETED,
     );
+    const trapStarted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+    expect(trapStarted?.delta?.type).toBe('TRAP');
+    if (trapStarted?.delta?.type === 'TRAP') {
+      expect(trapStarted.delta.detail.stats.ap).toBe(-1);
+    }
     expect(trapCompleted).toBeDefined();
     expect(trapCompleted?.delta?.type).toBe('TRAP');
     if (trapCompleted?.delta?.type === 'TRAP') {
       expect(trapCompleted.delta.detail.progress).toBeUndefined();
-      expect(trapCompleted.delta.detail.stats.ap).toBe(-1);
+      expect(trapCompleted.delta.detail.stats.ap).toBeUndefined();
     }
 
     const trapCompletedIndex = result.logs.findIndex(
@@ -376,13 +399,22 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.BATTLE &&
         log.status === DungeonLogStatus.COMPLETED,
     );
+    const battleStarted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+    expect(battleStarted?.delta?.type).toBe('BATTLE');
+    if (battleStarted?.delta?.type === 'BATTLE') {
+      expect(battleStarted.delta.detail.stats?.ap).toBe(-1);
+    }
 
     expect(result.stateAfter.level).toBeGreaterThan(state.level);
     expect(result.stateAfter.maxHp).toBeGreaterThan(state.maxHp);
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
-      expect(battleCompleted.delta.detail.stats?.ap).toBe(-1);
+      expect(battleCompleted.delta.detail.stats?.ap).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
     }

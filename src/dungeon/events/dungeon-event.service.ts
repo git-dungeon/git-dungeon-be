@@ -105,6 +105,7 @@ export class DungeonEventService {
       startedState,
       rngValue,
       logs,
+      apCost,
     );
 
     const progressedState =
@@ -139,7 +140,6 @@ export class DungeonEventService {
     if (!deathApplied.alive) {
       completedDelta = this.stripProgressDelta(completedDelta);
     }
-    completedDelta = this.mergeApDelta(completedDelta, apCost);
     completedDelta = this.mergeExpDelta(completedDelta, expApplied.expDelta);
 
     logs.push({
@@ -260,6 +260,7 @@ export class DungeonEventService {
         moveStarted,
         rngValue,
         logs,
+        undefined,
       );
 
       logs.push({
@@ -288,6 +289,7 @@ export class DungeonEventService {
     state: DungeonState,
     rngValue: number,
     logs: DungeonEventLogStub[],
+    apCost?: number,
   ): DungeonEventProcessorOutput {
     const processor = this.processors[type];
 
@@ -301,6 +303,7 @@ export class DungeonEventService {
     logs.push({
       type,
       status: 'STARTED',
+      delta: this.buildStartedApDelta(type, apCost),
     });
 
     const result = processor.process({
@@ -466,35 +469,27 @@ export class DungeonEventService {
     };
   }
 
-  private mergeApDelta(
-    delta: DungeonLogDelta | undefined,
-    apCost: number,
+  private buildStartedApDelta(
+    type: DungeonEventType,
+    apCost?: number,
   ): DungeonLogDelta | undefined {
-    if (!delta) return delta;
-    if (!Number.isFinite(apCost) || apCost <= 0) return delta;
+    if (!Number.isFinite(apCost) || !apCost || apCost <= 0) {
+      return undefined;
+    }
 
-    const ap = -apCost;
+    const stats: StatsDelta = { ap: -apCost };
 
-    switch (delta.type) {
-      case 'BATTLE':
-      case 'REST':
-      case 'TRAP':
-      case 'TREASURE': {
-        const mergedStats: StatsDelta = {
-          ...(delta.detail.stats ?? {}),
-          ap: (delta.detail.stats?.ap ?? 0) + ap,
-        };
-
-        return {
-          ...delta,
-          detail: {
-            ...delta.detail,
-            stats: mergedStats,
-          },
-        } as DungeonLogDelta;
-      }
+    switch (type) {
+      case DungeonEventType.BATTLE:
+        return { type: 'BATTLE', detail: { stats } };
+      case DungeonEventType.REST:
+        return { type: 'REST', detail: { stats } };
+      case DungeonEventType.TRAP:
+        return { type: 'TRAP', detail: { stats } };
+      case DungeonEventType.TREASURE:
+        return { type: 'TREASURE', detail: { stats } };
       default:
-        return delta;
+        return undefined;
     }
   }
 
