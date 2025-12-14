@@ -62,7 +62,9 @@ export const baselineSteps: SnapshotStep[] = [
         delta: {
           type: 'TREASURE',
           detail: {
-            gold: 5,
+            stats: {
+              ap: -1,
+            },
             rewards: {
               gold: 5,
               items: [
