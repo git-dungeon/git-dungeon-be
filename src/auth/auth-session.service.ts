@@ -2,18 +2,22 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Optional,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { APIError } from 'better-auth';
 import type { Auth } from 'better-auth';
 import { getCookies } from 'better-auth/cookies';
 import { BETTER_AUTH_TOKEN } from './auth.constants';
+import { loadEnvironment } from '../config/environment';
 import { buildForwardHeaders } from './utils/request-forward.util';
 import { collectSetCookies } from './utils/set-cookie.util';
 import {
   AuthSessionExpiredException,
   AuthSessionInvalidException,
 } from './errors/auth-session.exception';
+import { PrismaService } from '../prisma/prisma.service';
 
 type GitDungeonAuth = Auth<any>;
 
@@ -63,9 +67,14 @@ export class AuthSessionService {
     sessionData: string;
     dontRememberToken: string;
   };
+  private readonly initialAp: number;
+  private readonly skipDatabase: boolean;
+  private readonly ensuredDungeonStateUserIds = new Set<string>();
 
   constructor(
     @Inject(BETTER_AUTH_TOKEN) private readonly betterAuth: GitDungeonAuth,
+    private readonly prisma: PrismaService,
+    @Optional() private readonly configService?: ConfigService,
   ) {
     const cookies = this.getBetterAuthCookies();
     this.cookieNames = {
@@ -73,6 +82,18 @@ export class AuthSessionService {
       sessionData: cookies.sessionData.name,
       dontRememberToken: cookies.dontRememberToken.name,
     };
+
+    const fallbackEnv = this.configService ? undefined : loadEnvironment();
+
+    this.initialAp = this.configService
+      ? (this.configService.get<number>('dungeon.initialAp', 10) ?? 10)
+      : (fallbackEnv?.dungeonInitialAp ?? 10);
+
+    this.skipDatabase = this.configService
+      ? (this.configService.get<boolean>('database.skipConnection', false) ??
+        false)
+      : (fallbackEnv?.databaseSkipConnection ??
+        (fallbackEnv?.nodeEnv ?? '').toLowerCase() === 'test');
   }
 
   async getSession(
@@ -97,12 +118,15 @@ export class AuthSessionService {
     const cookies = collectSetCookies(responseHeaders);
     const payload = response as SessionPayload;
     const refreshed = cookies.length > 0;
+    const view = this.buildSessionView(payload, refreshed);
+
+    await this.ensureDungeonStateOnFirstLogin(view.session.userId);
 
     return {
       payload,
       cookies,
       refreshed,
-      view: this.buildSessionView(payload, refreshed),
+      view,
     };
   }
 
@@ -204,6 +228,28 @@ export class AuthSessionService {
       },
       refreshed,
     };
+  }
+
+  private async ensureDungeonStateOnFirstLogin(userId: string): Promise<void> {
+    if (this.skipDatabase) {
+      return;
+    }
+
+    const normalizedUserId = userId.trim();
+    if (!normalizedUserId) {
+      return;
+    }
+
+    if (this.ensuredDungeonStateUserIds.has(normalizedUserId)) {
+      return;
+    }
+
+    await this.prisma.dungeonState.createMany({
+      data: [{ userId: normalizedUserId, ap: this.initialAp }],
+      skipDuplicates: true,
+    });
+
+    this.ensuredDungeonStateUserIds.add(normalizedUserId);
   }
 
   private readString(

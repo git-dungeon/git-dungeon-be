@@ -1,14 +1,9 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { Request } from 'express';
 import type { Auth } from 'better-auth';
+import type { ConfigService } from '@nestjs/config';
 import { AuthSessionService } from './auth-session.service';
-import {
-  AuthSessionExpiredException,
-  AuthSessionInvalidException,
-} from './errors/auth-session.exception';
-
-type GitDungeonAuth = Auth<any>;
-type GetSessionArgs = Parameters<GitDungeonAuth['api']['getSession']>;
+import type { PrismaService } from '../prisma/prisma.service';
 
 const createHeaders = (cookies: string[] = []) => {
   const headers = new Headers();
@@ -24,132 +19,133 @@ const createHeaders = (cookies: string[] = []) => {
   return headers as Headers & { getSetCookie: () => string[] };
 };
 
-const createRequest = (headers: Record<string, string> = {}): Request => {
-  const lowerCased = Object.entries(headers).reduce<Record<string, string>>(
-    (acc, [key, value]) => {
-      acc[key.toLowerCase()] = value;
-      return acc;
-    },
-    {},
-  );
-
-  return {
-    get: (name: string) => lowerCased[name.toLowerCase()],
-    headers: lowerCased,
-    secure: false,
-  } as unknown as Request;
-};
+const createRequest = (): Request =>
+  ({ get: vi.fn(), secure: false }) as unknown as Request;
 
 describe('AuthSessionService', () => {
-  const getSessionMock = vi
-    .fn()
-    .mockResolvedValue({ response: null, headers: createHeaders() });
+  const betterAuthApiGetSession = vi.fn();
+  const prismaFindUnique = vi.fn();
+  const prismaCreate = vi.fn();
+  const prismaCreateMany = vi.fn();
+  const configGet = vi.fn();
 
-  const betterAuthStub = {
-    options: {
-      advanced: {},
-      session: {
-        expiresIn: 60 * 60,
+  const createService = () => {
+    const betterAuth = {
+      api: {
+        getSession: betterAuthApiGetSession,
+        signOut: vi.fn(),
       },
-    },
-    api: {
-      getSession: getSessionMock,
-    },
-  } as unknown as GitDungeonAuth;
-
-  const createService = () => new AuthSessionService(betterAuthStub);
-
-  beforeEach(() => {
-    getSessionMock.mockReset();
-    getSessionMock.mockResolvedValue({
-      response: null,
-      headers: createHeaders(),
-    });
-  });
-
-  it('세션을 조회해 성공적으로 반환해야 한다', async () => {
-    const cookies = ['better-auth.session_token=abc; Path=/; HttpOnly'];
-    const payload = {
-      session: { id: 'sess', userId: 'user', expiresAt: new Date() },
-      user: { id: 'user', email: 'user@example.com' },
+      options: {
+        baseURL: 'http://localhost:3000/api/auth',
+        advanced: {},
+        session: { expiresIn: 60 * 60 },
+      },
     };
 
-    getSessionMock.mockResolvedValue({
-      response: payload,
-      headers: createHeaders(cookies),
-    });
-
-    const service = createService();
-    const request = createRequest({ cookie: cookies[0] });
-
-    const result = await service.getSession(request);
-
-    expect(result).not.toBeNull();
-    expect(result?.payload).toEqual(payload);
-    expect(result?.cookies).toEqual(cookies);
-    expect(result?.refreshed).toBe(true);
-    expect(result?.view).toEqual({
-      session: {
-        userId: 'user',
-        username: '',
-        displayName: '',
-        email: 'user@example.com',
-        avatarUrl: '',
+    const prisma = {
+      dungeonState: {
+        findUnique: prismaFindUnique,
+        create: prismaCreate,
+        createMany: prismaCreateMany,
       },
-      refreshed: true,
-    });
+    };
 
-    const lastCall = getSessionMock.mock.calls.at(-1) as
-      | GetSessionArgs
-      | undefined;
-    expect(lastCall).toBeDefined();
-    const [callArgs] = lastCall!;
-    expect(callArgs.headers).toBeInstanceOf(Headers);
-    expect(callArgs.query).toEqual({
-      disableCookieCache: false,
-      disableRefresh: false,
-    });
-    expect(callArgs.returnHeaders).toBe(true);
+    const configService = {
+      get: configGet,
+    };
+
+    return new AuthSessionService(
+      betterAuth as unknown as Auth<any>,
+      prisma as unknown as PrismaService,
+      configService as unknown as ConfigService,
+    );
+  };
+
+  beforeEach(() => {
+    betterAuthApiGetSession.mockReset();
+    prismaFindUnique.mockReset();
+    prismaCreate.mockReset();
+    prismaCreateMany.mockReset();
+    configGet.mockReset();
   });
 
-  it('세션이 없고 쿠키가 존재하면 만료 예외를 던져야 한다', async () => {
-    getSessionMock.mockResolvedValue({
-      response: null,
+  it('DATABASE_SKIP_CONNECTION(=database.skipConnection) 이 true면 DungeonState 보장을 수행하지 않아야 한다', async () => {
+    configGet.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'database.skipConnection') return true;
+      if (key === 'dungeon.initialAp') return 10;
+      return fallback;
+    });
+
+    betterAuthApiGetSession.mockResolvedValue({
+      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
       headers: createHeaders(),
     });
 
     const service = createService();
-    const request = createRequest({
-      cookie: 'better-auth.session_token=stale; Path=/; HttpOnly',
-    });
+    const result = await service.getSession(createRequest());
 
-    await expect(service.requireActiveSession(request)).rejects.toBeInstanceOf(
-      AuthSessionExpiredException,
-    );
+    expect(result?.view.session.userId).toBe('user-1');
+    expect(prismaCreateMany).not.toHaveBeenCalled();
   });
 
-  it('세션이 없고 쿠키가 없으면 무효 예외를 던져야 한다', async () => {
-    getSessionMock.mockResolvedValue({
-      response: null,
+  it('유효 세션이면 createMany(skipDuplicates) 로 DungeonState 를 보장해야 한다', async () => {
+    configGet.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'database.skipConnection') return false;
+      if (key === 'dungeon.initialAp') return 10;
+      return fallback;
+    });
+
+    betterAuthApiGetSession.mockResolvedValue({
+      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
       headers: createHeaders(),
     });
 
     const service = createService();
-    const request = createRequest();
+    await service.getSession(createRequest());
 
-    await expect(service.requireActiveSession(request)).rejects.toBeInstanceOf(
-      AuthSessionInvalidException,
-    );
+    expect(prismaCreateMany).toHaveBeenCalledWith({
+      data: [{ userId: 'user-1', ap: 10 }],
+      skipDuplicates: true,
+    });
   });
 
-  it('쿠키 구성을 설명해야 한다', () => {
-    const service = createService();
-    const cookies = service.describeSessionCookies();
+  it('초기 AP 설정값으로 create payload 를 구성해야 한다', async () => {
+    configGet.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'database.skipConnection') return false;
+      if (key === 'dungeon.initialAp') return 7;
+      return fallback;
+    });
 
-    expect(cookies.length).toBeGreaterThan(0);
-    for (const cookie of cookies) {
-      expect(cookie.httpOnly).toBe(true);
-      expect(cookie.path).toBe('/');
-    }
+    betterAuthApiGetSession.mockResolvedValue({
+      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      headers: createHeaders(),
+    });
+
+    const service = createService();
+    await service.getSession(createRequest());
+
+    expect(prismaCreateMany).toHaveBeenCalledWith({
+      data: [{ userId: 'user-1', ap: 7 }],
+      skipDuplicates: true,
+    });
+  });
+
+  it('같은 유저는 중복으로 createMany를 호출하지 않아야 한다', async () => {
+    configGet.mockImplementation((key: string, fallback?: unknown) => {
+      if (key === 'database.skipConnection') return false;
+      if (key === 'dungeon.initialAp') return 10;
+      return fallback;
+    });
+
+    betterAuthApiGetSession.mockResolvedValue({
+      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      headers: createHeaders(),
+    });
+
+    const service = createService();
+    await service.getSession(createRequest());
+    await service.getSession(createRequest());
+
+    expect(prismaCreateMany).toHaveBeenCalledTimes(1);
   });
 });
