@@ -113,6 +113,7 @@ export type DungeonEventProcessorOutput = {
     isElite?: boolean;
     rolls?: number;
     items?: Array<{ itemCode: string; quantity?: number }>;
+    gold?: number;
   };
 };
 

@@ -87,9 +87,9 @@ export const noDropSteps: SnapshotStep[] = [
           detail: {
             stats: {},
             progress: {
-              previousProgress: 20,
+              previousProgress: 0,
               floorProgress: 0,
-              delta: -20,
+              delta: 0,
             },
           },
         },

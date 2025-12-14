@@ -243,7 +243,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       statsDelta.hp = nextState.hp - input.state.hp;
     }
 
-    const dropMeta =
+    const dropMeta: DungeonEventProcessorOutput['dropMeta'] =
       params.drops && params.drops.length > 0
         ? {
             tableId:
@@ -270,6 +270,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
                 itemCode: item.itemCode,
                 quantity: item.quantity,
               })) ?? [],
+            ...(dropMeta?.gold !== undefined ? { gold: dropMeta.gold } : {}),
           },
           progress:
             outcome === 'DEFEAT'
