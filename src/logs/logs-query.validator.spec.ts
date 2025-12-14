@@ -10,6 +10,7 @@ import {
   LOG_CATEGORY_VALUES,
   LogTypeEnum,
 } from './logs.types';
+import { encodeLogsCursor } from './logs-cursor.util';
 
 describe('validateLogsQuery', () => {
   it('limit 기본값을 적용한다', () => {
@@ -43,5 +44,19 @@ describe('validateLogsQuery', () => {
     expect(() =>
       validateLogsQuery({ type: 'UNKNOWN' as unknown as LogTypeEnum }),
     ).toThrow();
+  });
+
+  it('cursor가 유효하면 파싱한다', () => {
+    const cursor = encodeLogsCursor({ sequence: 123n });
+    const result = validateLogsQuery({ cursor });
+    expect(result.cursorPayload).toEqual({ sequence: 123n });
+  });
+
+  it('기존 createdAt|id 포맷 cursor는 예외를 던진다', () => {
+    const legacy = Buffer.from(
+      '2025-01-01T00:00:00.000Z|log-1',
+      'utf8',
+    ).toString('base64url');
+    expect(() => validateLogsQuery({ cursor: legacy })).toThrow();
   });
 });

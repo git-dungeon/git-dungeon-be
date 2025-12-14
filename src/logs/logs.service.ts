@@ -29,21 +29,12 @@ export class LogsService {
     }
 
     if (params.cursorPayload) {
-      where.OR = [
-        { createdAt: { lt: params.cursorPayload.createdAt } },
-        {
-          createdAt: params.cursorPayload.createdAt,
-          id: { lt: params.cursorPayload.id },
-        },
-      ];
+      where.sequence = { lt: params.cursorPayload.sequence };
     }
 
     const logs = await this.prisma.dungeonLog.findMany({
       where,
-      orderBy: [
-        { createdAt: Prisma.SortOrder.desc },
-        { id: Prisma.SortOrder.desc },
-      ],
+      orderBy: [{ sequence: Prisma.SortOrder.desc }],
       take: params.limit + 1,
     });
 
@@ -52,8 +43,7 @@ export class LogsService {
     const nextCursor =
       hasNext && visibleLogs.length > 0
         ? encodeLogsCursor({
-            createdAt: visibleLogs[visibleLogs.length - 1].createdAt,
-            id: visibleLogs[visibleLogs.length - 1].id,
+            sequence: visibleLogs[visibleLogs.length - 1].sequence,
           })
         : null;
 
