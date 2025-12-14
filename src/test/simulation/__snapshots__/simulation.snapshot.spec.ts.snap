@@ -473,9 +473,7 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
                 "floorProgress": 0,
                 "previousProgress": 20,
               },
-              "stats": {
-                "hp": 10,
-              },
+              "stats": {},
             },
             "type": "DEATH",
           },
@@ -485,6 +483,19 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             },
             "type": "DEATH",
           },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "REVIVE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "REVIVE",
+          },
+          "extra": undefined,
           "status": "COMPLETED",
         },
       ],
@@ -560,9 +571,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
                 "floorProgress": 0,
                 "previousProgress": 10,
               },
-              "stats": {
-                "hp": 10,
-              },
+              "stats": {},
             },
             "type": "DEATH",
           },
@@ -572,6 +581,19 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             },
             "type": "DEATH",
           },
+          "status": "COMPLETED",
+        },
+        {
+          "action": "REVIVE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "REVIVE",
+          },
+          "extra": undefined,
           "status": "COMPLETED",
         },
       ],

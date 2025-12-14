@@ -5,7 +5,7 @@ import type { SnapshotStep } from './baseline';
  * 패배(no-drop) 시나리오
  * seed: nodrop
  * 초기: hp3/10, atk1, def0, floor1, ap1
- * 결과: BATTLE 패배 → DEATH, progress 0, 드랍/ACQUIRE_ITEM 없음
+ * 결과: BATTLE 패배 → DEATH + REVIVE, progress 0, 드랍/ACQUIRE_ITEM 없음
  */
 export const noDropSeed = 'nodrop';
 
@@ -46,27 +46,6 @@ export const noDropSteps: SnapshotStep[] = [
     extra: [
       { action: 'BATTLE', status: 'STARTED' },
       {
-        action: 'DEATH',
-        status: 'COMPLETED',
-        delta: {
-          type: 'DEATH',
-          detail: {
-            stats: { hp: 10 },
-            progress: {
-              previousProgress: 20,
-              floorProgress: 0,
-              delta: -20,
-            },
-          },
-        },
-        extra: {
-          type: 'DEATH',
-          details: {
-            cause: 'PLAYER_DEFEATED',
-          },
-        },
-      },
-      {
         action: 'BATTLE',
         status: 'COMPLETED',
         delta: {
@@ -97,6 +76,37 @@ export const noDropSteps: SnapshotStep[] = [
             turns: 2,
             damageDealt: 2,
             damageTaken: 4,
+          },
+        },
+      },
+      {
+        action: 'DEATH',
+        status: 'COMPLETED',
+        delta: {
+          type: 'DEATH',
+          detail: {
+            stats: {},
+            progress: {
+              previousProgress: 20,
+              floorProgress: 0,
+              delta: -20,
+            },
+          },
+        },
+        extra: {
+          type: 'DEATH',
+          details: {
+            cause: 'PLAYER_DEFEATED',
+          },
+        },
+      },
+      {
+        action: 'REVIVE',
+        status: 'COMPLETED',
+        delta: {
+          type: 'REVIVE',
+          detail: {
+            stats: { hp: 10 },
           },
         },
       },

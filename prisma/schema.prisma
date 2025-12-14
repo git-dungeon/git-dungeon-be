@@ -154,6 +154,7 @@ enum DungeonLogCategory {
 enum DungeonLogAction {
   BATTLE
   DEATH
+  REVIVE
   MOVE
   REST
   TRAP

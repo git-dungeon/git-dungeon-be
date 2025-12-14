@@ -82,6 +82,13 @@ export type DeathDelta = {
   };
 };
 
+export type ReviveDelta = {
+  type: 'REVIVE';
+  detail: {
+    stats: StatsDelta;
+  };
+};
+
 export type RestDelta = {
   type: 'REST';
   detail: {
@@ -153,6 +160,7 @@ export type BuffDelta =
 export type DungeonLogDelta =
   | BattleDelta
   | DeathDelta
+  | ReviveDelta
   | AcquireItemDelta
   | EquipItemDelta
   | LevelUpDelta

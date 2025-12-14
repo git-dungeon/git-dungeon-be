@@ -152,6 +152,9 @@ export class DungeonEventService {
     if (deathApplied.deathLog) {
       logs.push(deathApplied.deathLog);
     }
+    if (deathApplied.reviveLog) {
+      logs.push(deathApplied.reviveLog);
+    }
 
     if (expApplied.levelUpLogs.length) {
       logs.push(...expApplied.levelUpLogs);
@@ -400,17 +403,26 @@ export class DungeonEventService {
     state: DungeonState,
     eventType: DungeonEventType,
     extra: DungeonEventProcessorOutput['extra'],
-  ): { state: DungeonState; alive: boolean; deathLog?: DungeonEventLogStub } {
+  ): {
+    state: DungeonState;
+    alive: boolean;
+    deathLog?: DungeonEventLogStub;
+    reviveLog?: DungeonEventLogStub;
+  } {
     if (state.hp > 0) {
       return { state, alive: true };
     }
 
     const preState = { ...state };
-    const resetState: DungeonState = {
+    const deadState: DungeonState = {
       ...state,
-      hp: state.maxHp,
+      hp: 0,
       floor: 1,
       floorProgress: 0,
+    };
+    const revivedState: DungeonState = {
+      ...deadState,
+      hp: deadState.maxHp,
     };
 
     const cause =
@@ -427,9 +439,7 @@ export class DungeonEventService {
       delta: {
         type: 'DEATH',
         detail: {
-          stats: {
-            hp: resetState.hp - preState.hp,
-          },
+          stats: {},
           progress: {
             previousProgress: preState.floorProgress,
             floorProgress: 0,
@@ -445,7 +455,21 @@ export class DungeonEventService {
       },
     };
 
-    return { state: resetState, alive: false, deathLog };
+    const reviveLog: DungeonEventLogStub = {
+      type: eventType,
+      status: 'COMPLETED',
+      actionOverride: 'REVIVE',
+      delta: {
+        type: 'REVIVE',
+        detail: {
+          stats: {
+            hp: revivedState.hp - deadState.hp,
+          },
+        },
+      },
+    };
+
+    return { state: revivedState, alive: false, deathLog, reviveLog };
   }
 
   private mergeExpDelta(
