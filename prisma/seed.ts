@@ -230,8 +230,8 @@ async function main() {
       delta: toJsonDelta({
         type: 'BATTLE',
         detail: {
-          stats: { hp: -5, ap: -1 },
-          gold: 35,
+          stats: { hp: -5 },
+          rewards: { gold: 35, items: [] },
         },
       }) as Prisma.InputJsonValue,
       extra: toJsonDetails({

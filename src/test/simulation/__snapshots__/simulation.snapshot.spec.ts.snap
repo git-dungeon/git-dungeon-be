@@ -38,11 +38,8 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "gold": 5,
                 "items": [
                   {
-                    "code": "ring-topaz",
-                    "itemId": "ring-topaz",
+                    "itemCode": "ring-topaz",
                     "quantity": 1,
-                    "rarity": "uncommon",
-                    "slot": "ring",
                   },
                 ],
                 "unlocks": [],
@@ -174,6 +171,14 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "floorProgress": 40,
                 "previousProgress": 20,
               },
+              "rewards": {
+                "items": [
+                  {
+                    "itemCode": "ring-topaz",
+                    "quantity": 1,
+                  },
+                ],
+              },
               "stats": {
                 "exp": 3,
                 "hp": -1,
@@ -300,6 +305,14 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
                 "floorProgress": 40,
                 "previousProgress": 20,
               },
+              "rewards": {
+                "items": [
+                  {
+                    "itemCode": "ring-silver-band",
+                    "quantity": 1,
+                  },
+                ],
+              },
               "stats": {
                 "exp": 3,
                 "hp": -5,
@@ -421,6 +434,9 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
           "action": "BATTLE",
           "delta": {
             "detail": {
+              "rewards": {
+                "items": [],
+              },
               "stats": {
                 "hp": -3,
               },
@@ -617,6 +633,9 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
                 "delta": 20,
                 "floorProgress": 20,
                 "previousProgress": 0,
+              },
+              "rewards": {
+                "items": [],
               },
               "stats": {
                 "hp": -34,

@@ -264,6 +264,13 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         type: 'BATTLE',
         detail: {
           stats: Object.keys(statsDelta).length ? statsDelta : undefined,
+          rewards: {
+            items:
+              dropMeta?.items?.map((item) => ({
+                itemCode: item.itemCode,
+                quantity: item.quantity,
+              })) ?? [],
+          },
           progress:
             outcome === 'DEFEAT'
               ? {

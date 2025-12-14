@@ -55,25 +55,23 @@ export const baselineSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'TREASURE', status: 'STARTED' },
+      {
+        action: 'TREASURE',
+        status: 'STARTED',
+        delta: { type: 'TREASURE', detail: { stats: { ap: -1 } } },
+      },
       {
         action: 'TREASURE',
         status: 'COMPLETED',
         delta: {
           type: 'TREASURE',
           detail: {
-            stats: {
-              ap: -1,
-            },
             rewards: {
               gold: 5,
               items: [
                 {
-                  itemId: 'ring-topaz',
-                  code: 'ring-topaz',
-                  slot: 'ring',
-                  rarity: 'uncommon',
                   quantity: 1,
+                  itemCode: 'ring-topaz',
                 },
               ],
               buffs: [],
@@ -140,7 +138,11 @@ export const baselineSteps: SnapshotStep[] = [
       version: 3,
     },
     extra: [
-      { action: 'REST', status: 'STARTED' },
+      {
+        action: 'REST',
+        status: 'STARTED',
+        delta: { type: 'REST', detail: { stats: { ap: -1 } } },
+      },
       {
         action: 'REST',
         status: 'COMPLETED',
@@ -171,7 +173,11 @@ export const baselineSteps: SnapshotStep[] = [
       version: 4,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
+      },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
@@ -179,6 +185,9 @@ export const baselineSteps: SnapshotStep[] = [
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 3 },
+            rewards: {
+              items: [{ itemCode: 'ring-topaz', quantity: 1 }],
+            },
             progress: {
               previousProgress: 20,
               floorProgress: 40,

@@ -17,7 +17,6 @@ import {
   SeededRandomFactory,
 } from '../seeded-rng.provider';
 import { Inject } from '@nestjs/common';
-import { mapDropsToInventoryAdds } from '../../drops/drop.utils';
 
 export class TreasureEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.TREASURE;
@@ -56,8 +55,14 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
             })),
           }
         : undefined;
-    const dropAdds = mapDropsToInventoryAdds(drops);
     const baseAdds = this.toInventoryAdds(this.effect.rewards?.items);
+    const rewardItems = [
+      ...this.toRewardItems(baseAdds),
+      ...drops.map((drop) => ({
+        itemCode: drop.itemCode,
+        quantity: drop.quantity,
+      })),
+    ];
 
     return {
       state: applied.state,
@@ -66,7 +71,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         detail: {
           rewards: {
             gold: applied.rewardsDelta.gold ?? goldDelta,
-            items: [...(baseAdds ?? []), ...(dropAdds ?? [])],
+            items: rewardItems,
             buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],
           },
@@ -98,6 +103,16 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
         );
       },
     );
+  }
+
+  private toRewardItems(
+    adds: InventoryDelta['added'] | undefined,
+  ): Array<{ itemCode: string; quantity?: number }> {
+    if (!adds?.length) return [];
+    return adds.map((it) => ({
+      itemCode: it.code,
+      quantity: it.quantity ?? 1,
+    }));
   }
 
   private toAppliedBuffs(

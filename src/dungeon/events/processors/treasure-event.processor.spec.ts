@@ -63,13 +63,7 @@ describe('TreasureEventProcessor', () => {
     expect(result.delta?.type).toBe('TREASURE');
     if (result.delta?.type === 'TREASURE') {
       expect(result.delta.detail.rewards?.items).toEqual([
-        {
-          itemId: 'weapon-wooden-sword',
-          code: 'weapon-wooden-sword',
-          slot: 'weapon',
-          rarity: 'common',
-          quantity: 1,
-        },
+        { itemCode: 'weapon-wooden-sword', quantity: 1 },
       ]);
     }
   });
