@@ -410,11 +410,6 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
           "action": "BATTLE",
           "delta": {
             "detail": {
-              "progress": {
-                "delta": -0,
-                "floorProgress": 0,
-                "previousProgress": 0,
-              },
               "stats": {
                 "hp": -3,
               },

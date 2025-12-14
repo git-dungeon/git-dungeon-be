@@ -273,7 +273,7 @@ describe('DungeonEventService', () => {
     });
   });
 
-  it('HP<=0이면 DEATH 로그가 생성되고 진행도가 리셋된다', async () => {
+  it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
     const state: DungeonState = createState({
       hp: 1,
       floor: 3,
@@ -295,12 +295,31 @@ describe('DungeonEventService', () => {
       (log) => log.action === DungeonLogAction.DEATH,
     );
     expect(deathLog).toBeDefined();
+    expect(deathLog?.delta?.type).toBe('DEATH');
+    if (deathLog?.delta?.type === 'DEATH') {
+      expect(deathLog.delta.detail.progress.floorProgress).toBe(0);
+      expect(deathLog.delta.detail.progress.previousProgress).toBeTypeOf(
+        'number',
+      );
+    }
+
+    const trapCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.TRAP &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+    expect(trapCompleted).toBeDefined();
+    expect(trapCompleted?.delta?.type).toBe('TRAP');
+    if (trapCompleted?.delta?.type === 'TRAP') {
+      expect(trapCompleted.delta.detail.progress).toBeUndefined();
+    }
+
     expect(result.stateAfter.floor).toBe(1);
     expect(result.stateAfter.floorProgress).toBe(0);
     expect(result.stateAfter.hp).toBe(result.stateAfter.maxHp);
   });
 
-  it('승리 시 레벨업과 LEVEL_UP 로그를 생성하고 delta에 stats를 병합한다', async () => {
+  it('승리 시 전투 EXP는 BATTLE에 기록하고, 레벨업 스탯은 LEVEL_UP에만 기록한다', async () => {
     const state: DungeonState = createState({
       atk: 20,
       def: 1,
@@ -325,6 +344,11 @@ describe('DungeonEventService', () => {
       (log) => log.action === DungeonLogAction.LEVEL_UP,
     );
     expect(levelUpLog).toBeDefined();
+    expect(levelUpLog?.delta?.type).toBe('LEVEL_UP');
+    if (levelUpLog?.delta?.type === 'LEVEL_UP') {
+      expect(levelUpLog.delta.detail.stats.level).toBeDefined();
+      expect(levelUpLog.delta.detail.stats.exp).toBeUndefined();
+    }
 
     const battleCompleted = result.logs.find(
       (log) =>
@@ -337,6 +361,8 @@ describe('DungeonEventService', () => {
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
+      expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
+      expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
     }
   });
 

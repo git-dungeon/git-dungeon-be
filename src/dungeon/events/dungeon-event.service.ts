@@ -127,17 +127,21 @@ export class DungeonEventService {
     );
 
     const progressDetail =
-      selectedEvent === DungeonEventType.MOVE
+      selectedEvent === DungeonEventType.MOVE || !deathApplied.alive
         ? undefined
         : this.buildProgressDetail(
             startedState.floorProgress,
             expApplied.state.floorProgress,
           );
 
-    const completedDelta = this.mergeStatsDelta(
-      this.appendProgressDelta(processorResult.delta, progressDetail),
-      expApplied.statsDelta,
+    let completedDelta = this.appendProgressDelta(
+      processorResult.delta,
+      progressDetail,
     );
+    if (!deathApplied.alive) {
+      completedDelta = this.stripProgressDelta(completedDelta);
+    }
+    completedDelta = this.mergeExpDelta(completedDelta, expApplied.expDelta);
 
     logs.push({
       type: selectedEvent,
@@ -311,7 +315,7 @@ export class DungeonEventService {
     logs: DungeonEventLogStub[],
   ): {
     state: DungeonState;
-    statsDelta?: StatsDelta;
+    expDelta?: StatsDelta;
     alive: boolean;
   } {
     if (expGained <= 0) {
@@ -319,7 +323,7 @@ export class DungeonEventService {
     }
 
     let nextState: DungeonState = { ...state, exp: state.exp + expGained };
-    const statsDelta: StatsDelta = { exp: expGained };
+    const expDelta: StatsDelta = { exp: expGained };
 
     const levelUps: DungeonEventLogStub[] = [];
     let currentLevel = state.level;
@@ -329,13 +333,11 @@ export class DungeonEventService {
       nextState.exp -= threshold;
       currentLevel += 1;
       nextState = { ...nextState, level: currentLevel };
-      statsDelta.level = (statsDelta.level ?? 0) + 1;
 
       // 랜덤 스탯 증가
       const stats = ['atk', 'def', 'luck'] as const;
       const statKey = stats[Math.floor(rng.next() * stats.length)];
       nextState = { ...nextState, [statKey]: nextState[statKey] + 1 };
-      statsDelta[statKey] = (statsDelta[statKey] ?? 0) + 1;
 
       // HP/MaxHP 보너스
       const newMaxHp = nextState.maxHp + 2;
@@ -344,8 +346,6 @@ export class DungeonEventService {
         maxHp: newMaxHp,
         hp: Math.min(newMaxHp, nextState.hp + 2),
       };
-      statsDelta.maxHp = (statsDelta.maxHp ?? 0) + 2;
-      statsDelta.hp = (statsDelta.hp ?? 0) + 2;
 
       levelUps.push({
         type: DungeonEventType.BATTLE,
@@ -382,7 +382,7 @@ export class DungeonEventService {
       logs.push(...levelUps);
     }
 
-    return { state: nextState, statsDelta, alive: nextState.hp > 0 };
+    return { state: nextState, expDelta, alive: nextState.hp > 0 };
   }
 
   private applyDeathIfNeeded(
@@ -438,38 +438,46 @@ export class DungeonEventService {
     return { state: resetState, alive: false };
   }
 
-  private mergeStatsDelta(
+  private mergeExpDelta(
     delta: DungeonLogDelta | undefined,
-    statsDelta?: StatsDelta,
+    expDelta?: StatsDelta,
   ): DungeonLogDelta | undefined {
-    if (!delta || !statsDelta) return delta;
+    if (!delta || !expDelta?.exp) return delta;
+    if (delta.type !== 'BATTLE') return delta;
 
     const mergedStats: StatsDelta = {
-      ...(delta.type === 'BATTLE' && delta.detail.stats
-        ? delta.detail.stats
-        : {}),
+      ...(delta.detail.stats ?? {}),
+      exp: (delta.detail.stats?.exp ?? 0) + expDelta.exp,
     };
 
-    (
-      ['hp', 'maxHp', 'atk', 'def', 'luck', 'ap', 'level', 'exp'] as const
-    ).forEach((key) => {
-      const add = statsDelta[key];
-      if (add !== undefined && add !== 0) {
-        mergedStats[key] = (mergedStats[key] ?? 0) + add;
+    return {
+      ...delta,
+      detail: {
+        ...delta.detail,
+        stats: mergedStats,
+      },
+    };
+  }
+
+  private stripProgressDelta(
+    delta: DungeonLogDelta | undefined,
+  ): DungeonLogDelta | undefined {
+    if (!delta) return delta;
+
+    switch (delta.type) {
+      case 'REST':
+      case 'TRAP':
+      case 'TREASURE':
+      case 'BATTLE': {
+        // undefined로 덮어쓰면 snapshot/serialization에서 `progress: undefined`가 남을 수 있어 키 자체를 제거한다.
+        const { progress: removedProgress, ...detailWithoutProgress } =
+          delta.detail;
+        void removedProgress;
+        return { ...delta, detail: detailWithoutProgress } as DungeonLogDelta;
       }
-    });
-
-    if (delta.type === 'BATTLE') {
-      return {
-        ...delta,
-        detail: {
-          ...delta.detail,
-          stats: Object.keys(mergedStats).length ? mergedStats : undefined,
-        },
-      };
+      default:
+        return delta;
     }
-
-    return delta;
   }
 
   private applyProgress(
