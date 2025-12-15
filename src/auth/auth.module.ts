@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { betterAuth } from 'better-auth';
+import { betterAuth, generateId as betterAuthGenerateId } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,6 +11,7 @@ import { AuthController } from './auth.controller';
 import { AuthSessionController } from './auth-session.controller';
 import { AuthSessionService } from './auth-session.service';
 import { AuthGuard } from './guards/auth.guard';
+import { randomUUID } from 'crypto';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
@@ -104,6 +105,17 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
           database: prismaAdapter(prismaService, {
             provider: 'postgresql',
           }),
+          advanced: {
+            database: {
+              generateId: ({ size }) => {
+                if (typeof size === 'number') {
+                  return betterAuthGenerateId(size);
+                }
+
+                return randomUUID();
+              },
+            },
+          },
           socialProviders: {
             github: {
               clientId: authConfig.github.clientId,
