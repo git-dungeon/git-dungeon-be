@@ -4,6 +4,7 @@ import type { InventoryDelta } from '../../common/logs/dungeon-log-delta';
 import type { DropResult } from './drop-table';
 import type { DropService } from './drop.service';
 import { DEFAULT_DROP_TABLE_ID } from './drop.service';
+import { deterministicUuidV5 } from '../../common/ids/deterministic-uuid';
 
 type ItemSlot = string;
 
@@ -40,7 +41,7 @@ export const mapDropsToInventoryAdds = (
   if (!Array.isArray(drops)) return [];
   const catalog = loadCatalogItemMap();
   return drops.map((drop) => ({
-    itemId: drop.itemCode,
+    itemId: deterministicUuidV5(`inventory:${drop.itemCode}`),
     code: drop.itemCode,
     slot: catalog.get(drop.itemCode)?.slot ?? 'unknown',
     rarity: catalog.get(drop.itemCode)?.rarity ?? undefined,

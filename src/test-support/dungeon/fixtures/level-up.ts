@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { SnapshotStep } from './baseline';
+import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 연속 레벨업(2회) + 레전더리 드랍 시나리오
@@ -10,7 +11,7 @@ import type { SnapshotStep } from './baseline';
 export const levelUpSeed = 'lvlup18';
 
 export const levelUpInitialState: DungeonState = {
-  userId: 'user-levelup',
+  userId: '00000000-0000-4000-8000-000000000109',
   level: 1,
   exp: 0,
   hp: 60,
@@ -150,7 +151,7 @@ export const levelUpSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'angel-ring',
+                  itemId: deterministicUuidV5('inventory:angel-ring'),
                   code: 'angel-ring',
                   slot: 'ring',
                   rarity: 'legendary',

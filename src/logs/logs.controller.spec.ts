@@ -27,6 +27,10 @@ vi.mock('@nestia/core', async () => {
 });
 
 describe('LogsController (E2E)', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const LOG_ID_1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const LOG_ID_2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
   const setupApp = async (options?: { guards?: CanActivate[] }) => {
     const logsServiceMock = {
       getLogs: vi.fn(),
@@ -53,7 +57,7 @@ describe('LogsController (E2E)', () => {
   const createSamplePayload = () => ({
     logs: [
       {
-        id: 'log-001',
+        id: LOG_ID_1,
         category: DungeonLogCategory.EXPLORATION,
         action: DungeonLogAction.BATTLE,
         status: DungeonLogStatus.STARTED,
@@ -97,7 +101,7 @@ describe('LogsController (E2E)', () => {
       expect(response.headers.pragma).toBe('no-cache');
 
       expect(logsServiceMock.getLogs).toHaveBeenCalledWith({
-        userId: 'user-1',
+        userId: USER_ID_1,
         limit: 10,
         cursor: undefined,
         cursorPayload: undefined,
@@ -130,7 +134,7 @@ describe('LogsController (E2E)', () => {
       expect(response.status).toBe(200);
       expect(logsServiceMock.getLogs).toHaveBeenCalledWith(
         expect.objectContaining({
-          userId: 'user-1',
+          userId: USER_ID_1,
           limit: 5,
           cursor,
           cursorPayload,
@@ -154,7 +158,7 @@ describe('LogsController (E2E)', () => {
     const secondPage = {
       logs: [
         {
-          id: 'log-011',
+          id: LOG_ID_2,
           category: DungeonLogCategory.STATUS,
           action: DungeonLogAction.REST,
           status: DungeonLogStatus.COMPLETED,

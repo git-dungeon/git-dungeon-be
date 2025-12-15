@@ -6,7 +6,9 @@ export interface SettingsProfileResponse {
 import { tags } from 'typia';
 
 export interface SettingsProfile {
-  userId: string & tags.Example<'user-123'>;
+  userId: string &
+    tags.Format<'uuid'> &
+    tags.Example<'00000000-0000-4000-8000-000000000001'>;
   username: string & tags.Example<'mock-user'>;
   displayName: string & tags.Example<'Mock User'>;
   avatarUrl: string &

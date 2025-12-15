@@ -447,7 +447,7 @@ describe('DungeonEventService', () => {
       };
       const inventoryAdds = [
         {
-          itemId: 'inv-1',
+          itemId: '00000000-0000-4000-8000-000000000401',
           code: 'weapon-wooden-sword',
           slot: 'weapon',
           rarity: 'common',
@@ -566,7 +566,7 @@ describe('DungeonEventService', () => {
 
       const inventoryAdds: InventoryDelta['added'] = [
         {
-          itemId: 'item-1',
+          itemId: '00000000-0000-4000-8000-000000000402',
           code: 'weapon-wooden-sword',
           slot: 'weapon',
           rarity: 'common',
@@ -623,7 +623,7 @@ describe('DungeonEventService', () => {
 
 function createState(overrides: Partial<DungeonState> = {}): DungeonState {
   const base: DungeonState = {
-    userId: 'user-id',
+    userId: '00000000-0000-4000-8000-000000000301',
     level: 1,
     exp: 0,
     hp: 10,

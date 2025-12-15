@@ -10,7 +10,7 @@ import type { SnapshotStep } from './baseline';
 export const turnLimitSeed = 'tlprod1';
 
 export const turnLimitInitialState: DungeonState = {
-  userId: 'user-turn-limit-prod',
+  userId: '00000000-0000-4000-8000-000000000104',
   level: 30,
   exp: 0,
   hp: 150,

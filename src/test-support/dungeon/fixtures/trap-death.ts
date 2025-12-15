@@ -10,7 +10,7 @@ import type { SnapshotStep } from './baseline';
 export const trapDeathSeed = 's15';
 
 export const trapDeathInitialState: DungeonState = {
-  userId: 'user-death',
+  userId: '00000000-0000-4000-8000-000000000103',
   level: 1,
   exp: 0,
   hp: 3,

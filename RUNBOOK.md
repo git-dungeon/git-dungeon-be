@@ -151,8 +151,8 @@ pnpm dev
   - 종료 코드: `0` 성공, `1` 기타 오류, `2` 락 미획득, `3` 상태 버전 충돌(동시 업데이트)
   - 예제
     ```bash
-    pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline
-    pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline --report json --out reports/baseline.single.json
+    pnpm sim -- --user 00000000-0000-4000-8000-000000000101 --seed baseline --max-actions 3 --fixture baseline
+    pnpm sim -- --user 00000000-0000-4000-8000-000000000101 --seed baseline --max-actions 3 --fixture baseline --report json --out reports/baseline.single.json
     ```
 
 #### 환경 변수(시뮬레이션/commit-flow)
@@ -181,7 +181,7 @@ pnpm dev
    - 주의: `pnpm db:reset`은 **DATABASE_URL이 가리키는 DB를 리셋**합니다. 위처럼 항상 임시 DB URL로 명시해서 실행하세요.
 2. **dry-run으로 결과 확인(데이터 미기록)**
    ```bash
-   pnpm sim -- --user user-baseline --seed baseline --max-actions 3 --fixture baseline --dry-run
+   pnpm sim -- --user 00000000-0000-4000-8000-000000000101 --seed baseline --max-actions 3 --fixture baseline --dry-run
    ```
 3. **commit으로 실제 적재 확인(임시 DB에만 저장)**
    ```bash
@@ -226,11 +226,11 @@ pnpm dev
 - 단일 실행(로컬/CI):
   ```bash
   # trap 사망
-  pnpm sim -- --user user-trap-death --seed trap-death --max-actions 1 --fixture trap-death
+  pnpm sim -- --user 00000000-0000-4000-8000-000000000103 --seed trap-death --max-actions 1 --fixture trap-death
   # no-drop 패배
-  pnpm sim -- --user user-no-drop --seed no-drop --max-actions 1 --fixture no-drop
+  pnpm sim -- --user 00000000-0000-4000-8000-000000000102 --seed no-drop --max-actions 1 --fixture no-drop
   # turn limit 패배 (battle.turnLimit이 낮게 설정된 상태 기준)
-  pnpm sim -- --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --fixture turn-limit
+  pnpm sim -- --user 00000000-0000-4000-8000-000000000104 --seed tlprod1 --max-actions 1 --fixture turn-limit
   ```
   - turn-limit 재현이 어려우면 `config/dungeon/event-config.json`의 `battle.turnLimit`을 임시로 낮춰 재현하고, 완료 후 원복하세요.
 - 배치 기반(스테이징 권장):

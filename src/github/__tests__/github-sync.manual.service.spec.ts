@@ -5,6 +5,18 @@ import { GithubGraphqlError } from '../github.interfaces';
 import { createManualSyncTestbed } from './helpers';
 
 describe('GithubManualSyncService', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
+  const USER_ID_3 = '00000000-0000-4000-8000-000000000003';
+  const USER_ID_LOCK = '00000000-0000-4000-8000-000000000101';
+  const USER_ID_RETRY = '00000000-0000-4000-8000-000000000102';
+  const USER_ID_META = '00000000-0000-4000-8000-000000000103';
+
+  const LOG_ID_1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const LOG_ID_2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const LOG_ID_3 = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  const LOG_ID_META = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+
   beforeEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -15,7 +27,7 @@ describe('GithubManualSyncService', () => {
     prisma.account.findFirst.mockResolvedValue(null);
     prisma.apSyncLog.findFirst.mockResolvedValue(null);
 
-    await expect(service.syncNow('user-1')).rejects.toBeInstanceOf(
+    await expect(service.syncNow(USER_ID_1)).rejects.toBeInstanceOf(
       BadRequestException,
     );
     expect(prisma.apSyncLog.upsert).not.toHaveBeenCalled();
@@ -31,7 +43,7 @@ describe('GithubManualSyncService', () => {
     prisma.apSyncLog.findFirst.mockResolvedValue(null);
     graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
 
-    await expect(service.syncNow('user-1')).rejects.toMatchObject({
+    await expect(service.syncNow(USER_ID_1)).rejects.toMatchObject({
       response: {
         error: { code: 'GITHUB_SYNC_TOO_FREQUENT' },
       },
@@ -51,7 +63,7 @@ describe('GithubManualSyncService', () => {
     graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
     lockService.acquire.mockResolvedValue(false);
 
-    await expect(service.syncNow('user-lock')).rejects.toMatchObject({
+    await expect(service.syncNow(USER_ID_LOCK)).rejects.toMatchObject({
       status: 409,
       response: { error: { code: 'GITHUB_SYNC_IN_PROGRESS' } },
     });
@@ -77,13 +89,13 @@ describe('GithubManualSyncService', () => {
       }),
     );
 
-    await expect(service.syncNow('user-retry')).rejects.toMatchObject({
+    await expect(service.syncNow(USER_ID_RETRY)).rejects.toMatchObject({
       response: { error: { code: 'GITHUB_SYNC_RATE_LIMITED' } },
     });
 
     expect(retryQueue.enqueue).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-retry',
+        userId: USER_ID_RETRY,
         reason: 'RATE_LIMITED',
       }),
     );
@@ -122,10 +134,10 @@ describe('GithubManualSyncService', () => {
 
     syncService.applyContributionSync.mockResolvedValue({
       apDelta: 3,
-      log: { id: 'log-1' },
+      log: { id: LOG_ID_1 },
     });
 
-    const result = await service.syncNow('user-1');
+    const result = await service.syncNow(USER_ID_1);
 
     expect(result.apDelta).toBe(3);
     expect(result.contributions).toBe(3);
@@ -174,10 +186,10 @@ describe('GithubManualSyncService', () => {
 
     syncService.applyContributionSync.mockResolvedValue({
       apDelta: 2,
-      log: { id: 'log-2' },
+      log: { id: LOG_ID_2 },
     });
 
-    const result = await service.syncNow('user-2');
+    const result = await service.syncNow(USER_ID_2);
 
     expect(result.contributions).toBe(2);
     const callArg = syncService.applyContributionSync.mock.calls[0]?.[0] as {
@@ -225,10 +237,10 @@ describe('GithubManualSyncService', () => {
 
     syncService.applyContributionSync.mockResolvedValue({
       apDelta: 1,
-      log: { id: 'log-3' },
+      log: { id: LOG_ID_3 },
     });
 
-    const result = await service.syncNow('user-3');
+    const result = await service.syncNow(USER_ID_3);
 
     expect(result.contributions).toBe(1); // 5 - prevTotal 4
     const callArg = syncService.applyContributionSync.mock.calls[0]?.[0] as {
@@ -277,10 +289,10 @@ describe('GithubManualSyncService', () => {
 
     syncService.applyContributionSync.mockResolvedValue({
       apDelta: 2,
-      log: { id: 'log-meta' },
+      log: { id: LOG_ID_META },
     });
 
-    await service.syncNow('user-meta');
+    await service.syncNow(USER_ID_META);
 
     const callArg = syncService.applyContributionSync.mock.calls[0]?.[0] as {
       meta?: Record<string, unknown>;
@@ -309,7 +321,7 @@ describe('GithubManualSyncService', () => {
       }),
     );
 
-    await expect(service.syncNow('user-1')).rejects.toMatchObject({
+    await expect(service.syncNow(USER_ID_1)).rejects.toMatchObject({
       response: {
         error: { code: 'GITHUB_SYNC_RATE_LIMITED' },
       },

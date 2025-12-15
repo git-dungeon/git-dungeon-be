@@ -58,7 +58,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "added": [
                   {
                     "code": "ring-topaz",
-                    "itemId": "ring-topaz",
+                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
                     "quantity": 1,
                     "rarity": "uncommon",
                     "slot": "ring",
@@ -215,7 +215,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
                 "added": [
                   {
                     "code": "ring-topaz",
-                    "itemId": "ring-topaz",
+                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
                     "quantity": 1,
                     "rarity": "uncommon",
                     "slot": "ring",
@@ -349,7 +349,7 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
                 "added": [
                   {
                     "code": "ring-silver-band",
-                    "itemId": "ring-silver-band",
+                    "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
                     "quantity": 1,
                     "rarity": "common",
                     "slot": "ring",

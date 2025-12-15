@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { SnapshotStep } from './baseline';
+import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 강제 MOVE 시나리오
@@ -10,7 +11,7 @@ import type { SnapshotStep } from './baseline';
 export const forcedMoveSeed = 'force';
 
 export const forcedMoveInitialState: DungeonState = {
-  userId: 'user-move',
+  userId: '00000000-0000-4000-8000-000000000107',
   level: 1,
   exp: 0,
   hp: 10,
@@ -105,7 +106,7 @@ export const forcedMoveSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'weapon-battle-axe',
+                  itemId: deterministicUuidV5('inventory:weapon-battle-axe'),
                   code: 'weapon-battle-axe',
                   slot: 'weapon',
                   rarity: 'rare',

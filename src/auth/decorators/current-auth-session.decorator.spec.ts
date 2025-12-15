@@ -6,6 +6,8 @@ import type { ActiveSessionResult } from '../auth-session.service';
 import type { AuthenticatedRequest } from '../auth-session.request';
 import { resolveCurrentAuthSession } from './current-auth-session.decorator';
 
+const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+
 const createHttpContext = (
   request: Partial<AuthenticatedRequest>,
 ): ExecutionContext => {
@@ -37,7 +39,7 @@ describe('resolveCurrentAuthSession', () => {
         avatarUrl: '',
         displayName: '',
         email: '',
-        userId: 'user-1',
+        userId: USER_ID_1,
         username: '',
       },
     },

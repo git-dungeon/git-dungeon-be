@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { SnapshotStep } from './baseline';
+import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 엘리트 전투 + 멀티 드랍 시나리오
@@ -10,7 +11,7 @@ import type { SnapshotStep } from './baseline';
 export const eliteBattleSeed = 'elite15';
 
 export const eliteBattleInitialState: DungeonState = {
-  userId: 'user-elite',
+  userId: '00000000-0000-4000-8000-000000000106',
   level: 5,
   exp: 0,
   hp: 20,
@@ -87,14 +88,14 @@ export const eliteBattleSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'weapon-battle-axe',
+                  itemId: deterministicUuidV5('inventory:weapon-battle-axe'),
                   code: 'weapon-battle-axe',
                   slot: 'weapon',
                   rarity: 'rare',
                   quantity: 1,
                 },
                 {
-                  itemId: 'helmet-bronze-helm',
+                  itemId: deterministicUuidV5('inventory:helmet-bronze-helm'),
                   code: 'helmet-bronze-helm',
                   slot: 'helmet',
                   rarity: 'uncommon',

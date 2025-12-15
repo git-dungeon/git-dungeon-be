@@ -14,6 +14,12 @@ import {
 } from '../test-support/mocks/typia';
 import { MockTypeGuardError } from '../test-support/mocks/typia';
 
+const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
+const ITEM_ID_WEAPON = '11111111-1111-4111-8111-111111111111';
+const ITEM_ID_BACKPACK = '22222222-2222-4222-8222-222222222222';
+const ITEM_ID_GENERIC = '33333333-3333-4333-8333-333333333333';
+
 vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
   return typiaModuleMock;
@@ -39,7 +45,7 @@ describe('InventoryService', () => {
 
   it('인벤토리를 조회해 summary/버전이 계산되어야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       hp: 10,
       atk: 5,
       def: 3,
@@ -48,8 +54,8 @@ describe('InventoryService', () => {
 
     prismaMock.inventoryItem.findMany.mockResolvedValue([
       {
-        id: 'item-weapon',
-        userId: 'user-1',
+        id: ITEM_ID_WEAPON,
+        userId: USER_ID_1,
         code: 'weapon-longsword',
         slot: 'weapon',
         rarity: 'RARE',
@@ -62,8 +68,8 @@ describe('InventoryService', () => {
         version: 3,
       },
       {
-        id: 'item-backpack',
-        userId: 'user-1',
+        id: ITEM_ID_BACKPACK,
+        userId: USER_ID_1,
         code: 'consumable-slot',
         slot: 'CONSUMABLE',
         rarity: 'COMMON',
@@ -74,11 +80,11 @@ describe('InventoryService', () => {
       },
     ]);
 
-    const response = await service.getInventory('user-1');
+    const response = await service.getInventory(USER_ID_1);
 
     expect(response.items).toHaveLength(2);
     expect(response.version).toBe(3);
-    expect(response.equipped.weapon?.id).toBe('item-weapon');
+    expect(response.equipped.weapon?.id).toBe(ITEM_ID_WEAPON);
     expect(response.summary.equipmentBonus).toEqual({
       hp: 0,
       atk: 5,
@@ -96,7 +102,7 @@ describe('InventoryService', () => {
 
   it('인벤토리가 없으면 버전 0과 빈 슬롯을 반환해야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       hp: 8,
       atk: 3,
       def: 2,
@@ -104,7 +110,7 @@ describe('InventoryService', () => {
     });
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
 
-    const response = await service.getInventory('user-1');
+    const response = await service.getInventory(USER_ID_1);
 
     expect(response.version).toBe(0);
     expect(response.items).toEqual([]);
@@ -122,7 +128,7 @@ describe('InventoryService', () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue(null);
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
 
-    await expect(service.getInventory('user-1')).rejects.toMatchObject({
+    await expect(service.getInventory(USER_ID_1)).rejects.toMatchObject({
       constructor: UnauthorizedException,
       response: { code: 'INVENTORY_UNAUTHORIZED' },
     });
@@ -130,7 +136,7 @@ describe('InventoryService', () => {
 
   it('typia 검증 실패 시 로깅 후 INVENTORY_INVALID_RESPONSE 예외를 던져야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       hp: 10,
       atk: 5,
       def: 3,
@@ -151,7 +157,7 @@ describe('InventoryService', () => {
       throw new MockTypeGuardError('items', 'InventoryResponse', null);
     });
 
-    await expect(service.getInventory('user-1')).rejects.toMatchObject({
+    await expect(service.getInventory(USER_ID_1)).rejects.toMatchObject({
       constructor: InternalServerErrorException,
       response: { code: 'INVENTORY_INVALID_RESPONSE' },
     });
@@ -162,6 +168,11 @@ describe('InventoryService', () => {
 });
 
 describe('InventoryService mutations', () => {
+  const SWORD_ID = '44444444-4444-4444-8444-444444444444';
+  const DAGGER_ID = '55555555-5555-4555-8555-555555555555';
+  const RING_ID = '66666666-6666-4666-8666-666666666666';
+  const POTION_ID = '77777777-7777-4777-8777-777777777777';
+
   const createItem = (
     overrides: Partial<{
       id: string;
@@ -175,8 +186,8 @@ describe('InventoryService mutations', () => {
       version: number;
     }>,
   ) => ({
-    id: 'item-id',
-    userId: 'user-1',
+    id: ITEM_ID_GENERIC,
+    userId: USER_ID_1,
     code: 'weapon-longsword',
     slot: 'WEAPON' as const,
     rarity: 'RARE',
@@ -319,7 +330,7 @@ describe('InventoryService mutations', () => {
   };
 
   const baseDungeonState = {
-    userId: 'user-1',
+    userId: USER_ID_1,
     hp: 8,
     atk: 3,
     def: 2,
@@ -330,9 +341,9 @@ describe('InventoryService mutations', () => {
     const { service, getItems } = createPrismaMock({
       dungeonState: baseDungeonState,
       items: [
-        createItem({ id: 'sword', version: 1 }),
+        createItem({ id: SWORD_ID, version: 1 }),
         createItem({
-          id: 'dagger',
+          id: DAGGER_ID,
           code: 'weapon-dagger',
           rarity: 'COMMON',
           isEquipped: true,
@@ -342,18 +353,18 @@ describe('InventoryService mutations', () => {
       ],
     });
 
-    const response = await service.equipItem('user-1', {
-      itemId: 'sword',
+    const response = await service.equipItem(USER_ID_1, {
+      itemId: SWORD_ID,
       expectedVersion: 1,
       inventoryVersion: 2,
     });
 
-    expect(response.equipped.weapon?.id).toBe('sword');
+    expect(response.equipped.weapon?.id).toBe(SWORD_ID);
     expect(response.version).toBe(3);
 
     const items = getItems();
-    const sword = items.find((item) => item.id === 'sword');
-    const dagger = items.find((item) => item.id === 'dagger');
+    const sword = items.find((item) => item.id === SWORD_ID);
+    const dagger = items.find((item) => item.id === DAGGER_ID);
 
     expect(sword?.isEquipped).toBe(true);
     expect(sword?.version).toBe(2);
@@ -364,12 +375,12 @@ describe('InventoryService mutations', () => {
   it('equip: 버전 불일치 시 412를 던져야 한다', async () => {
     const { service } = createPrismaMock({
       dungeonState: baseDungeonState,
-      items: [createItem({ id: 'sword', version: 2 })],
+      items: [createItem({ id: SWORD_ID, version: 2 })],
     });
 
     await expect(
-      service.equipItem('user-1', {
-        itemId: 'sword',
+      service.equipItem(USER_ID_1, {
+        itemId: SWORD_ID,
         expectedVersion: 1,
         inventoryVersion: 2,
       }),
@@ -384,7 +395,7 @@ describe('InventoryService mutations', () => {
       dungeonState: baseDungeonState,
       items: [
         createItem({
-          id: 'ring',
+          id: RING_ID,
           code: 'ring-topaz',
           slot: 'RING',
           rarity: 'UNCOMMON',
@@ -395,8 +406,8 @@ describe('InventoryService mutations', () => {
     });
 
     await expect(
-      service.unequipItem('user-1', {
-        itemId: 'ring',
+      service.unequipItem(USER_ID_1, {
+        itemId: RING_ID,
         expectedVersion: 1,
         inventoryVersion: 1,
       }),
@@ -411,7 +422,7 @@ describe('InventoryService mutations', () => {
       dungeonState: baseDungeonState,
       items: [
         createItem({
-          id: 'ring',
+          id: RING_ID,
           code: 'ring-topaz',
           slot: 'RING',
           rarity: 'UNCOMMON',
@@ -419,7 +430,7 @@ describe('InventoryService mutations', () => {
           version: 4,
         }),
         createItem({
-          id: 'potion',
+          id: POTION_ID,
           code: 'potion-healing',
           slot: 'CONSUMABLE',
           rarity: 'COMMON',
@@ -428,16 +439,16 @@ describe('InventoryService mutations', () => {
       ],
     });
 
-    const response = await service.discardItem('user-1', {
-      itemId: 'ring',
+    const response = await service.discardItem(USER_ID_1, {
+      itemId: RING_ID,
       expectedVersion: 4,
       inventoryVersion: 4,
     });
 
-    expect(response.items.find((item) => item.id === 'ring')).toBeUndefined();
+    expect(response.items.find((item) => item.id === RING_ID)).toBeUndefined();
     expect(response.version).toBeGreaterThanOrEqual(5);
 
-    expect(getItems().some((item) => item.id === 'ring')).toBe(false);
+    expect(getItems().some((item) => item.id === RING_ID)).toBe(false);
   });
 
   it('inventoryVersion 불일치 시 412를 던져야 한다', async () => {
@@ -445,7 +456,7 @@ describe('InventoryService mutations', () => {
       dungeonState: baseDungeonState,
       items: [
         createItem({
-          id: 'ring',
+          id: RING_ID,
           code: 'ring-topaz',
           slot: 'RING',
           rarity: 'UNCOMMON',
@@ -456,8 +467,8 @@ describe('InventoryService mutations', () => {
     });
 
     await expect(
-      service.discardItem('user-1', {
-        itemId: 'ring',
+      service.discardItem(USER_ID_1, {
+        itemId: RING_ID,
         expectedVersion: 5,
         inventoryVersion: 4,
       }),
@@ -472,8 +483,8 @@ describe('InventoryService mutations', () => {
       dungeonState: baseDungeonState,
       items: [
         createItem({
-          id: 'ring',
-          userId: 'user-2',
+          id: RING_ID,
+          userId: USER_ID_2,
           code: 'ring-topaz',
           slot: 'RING',
           rarity: 'UNCOMMON',
@@ -484,8 +495,8 @@ describe('InventoryService mutations', () => {
     });
 
     await expect(
-      service.equipItem('user-1', {
-        itemId: 'ring',
+      service.equipItem(USER_ID_1, {
+        itemId: RING_ID,
         expectedVersion: 1,
         inventoryVersion: 1,
       }),

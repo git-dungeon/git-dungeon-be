@@ -3,7 +3,7 @@ import type { DungeonState } from '@prisma/client';
 export const createState = (
   overrides: Partial<DungeonState> = {},
 ): DungeonState => ({
-  userId: 'user-id',
+  userId: '00000000-0000-4000-8000-000000000201',
   level: 1,
   exp: 0,
   hp: 10,
