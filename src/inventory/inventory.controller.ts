@@ -1,4 +1,11 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { TypedBody, TypedRoute } from '@nestia/core';
 import type { Request, Response } from 'express';
 import {
@@ -42,6 +49,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/equip')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async equipInventoryItem(
@@ -64,6 +72,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/unequip')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async unequipInventoryItem(
@@ -86,6 +95,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/discard')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async discardInventoryItem(

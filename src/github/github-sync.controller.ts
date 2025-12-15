@@ -1,4 +1,11 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { TypedRoute, TypedException } from '@nestia/core';
 import type { Request, Response } from 'express';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
@@ -23,6 +30,7 @@ export class GithubSyncController {
   constructor(private readonly manualSyncService: GithubManualSyncService) {}
 
   @TypedRoute.Post<ApiSuccessResponse<GithubSyncResponse>>('sync')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @TypedException<ApiErrorResponse>({
     status: 400,
