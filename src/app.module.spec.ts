@@ -40,6 +40,9 @@ vi.mock('@nestia/core', async () => {
 
 import { Logger } from 'nestjs-pino';
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 describe('AppModule 테스트', () => {
   it('헬스 체크 응답을 반환해야 한다', async () => {
     const { AppModule } = await import('./app.module');
@@ -76,8 +79,10 @@ describe('AppModule 테스트', () => {
     const meta = payload.meta;
     expect(meta).toBeDefined();
     expect(typeof meta?.requestId).toBe('string');
+    expect(meta?.requestId).toMatch(UUID_REGEX);
     expect(typeof meta?.generatedAt).toBe('string');
     expect('x-request-id' in response.headers).toBe(true);
+    expect(response.headers['x-request-id']).toMatch(UUID_REGEX);
 
     await app.close();
     await testingModule.close();
