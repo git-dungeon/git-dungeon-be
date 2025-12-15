@@ -5,6 +5,10 @@ import { LoggerModule } from 'nestjs-pino';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import configuration from './config/configuration';
+import {
+  DEFAULT_THROTTLE_LIMIT,
+  DEFAULT_THROTTLE_TTL_MS,
+} from './config/rate-limit.constant';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { AppController } from './app.controller';
@@ -58,8 +62,8 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          ttl: 60_000,
-          limit: 60,
+          ttl: DEFAULT_THROTTLE_TTL_MS,
+          limit: DEFAULT_THROTTLE_LIMIT,
         },
       ],
     }),

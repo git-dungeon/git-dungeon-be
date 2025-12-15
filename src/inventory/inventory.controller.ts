@@ -1,4 +1,12 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { TypedBody, TypedRoute } from '@nestia/core';
 import type { Request, Response } from 'express';
 import {
@@ -19,6 +27,9 @@ import type { InventoryItemMutationRequest } from './dto/inventory.request';
 
 @Controller('api')
 export class InventoryController {
+  private static readonly UUID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   constructor(private readonly inventoryService: InventoryService) {}
 
   @TypedRoute.Get<ApiSuccessResponse<InventoryResponse>>('inventory')
@@ -42,6 +53,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/equip')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async equipInventoryItem(
@@ -52,6 +64,7 @@ export class InventoryController {
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
     applyNoCacheHeaders(response);
     appendCookies(response, session.cookies);
+    this.assertInventoryMutationRequest(body);
 
     const inventory = await this.inventoryService.equipItem(
       session.view.session.userId,
@@ -64,6 +77,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/unequip')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async unequipInventoryItem(
@@ -74,6 +88,7 @@ export class InventoryController {
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
     applyNoCacheHeaders(response);
     appendCookies(response, session.cookies);
+    this.assertInventoryMutationRequest(body);
 
     const inventory = await this.inventoryService.unequipItem(
       session.view.session.userId,
@@ -86,6 +101,7 @@ export class InventoryController {
   }
 
   @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/discard')
+  @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async discardInventoryItem(
@@ -96,6 +112,7 @@ export class InventoryController {
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
     applyNoCacheHeaders(response);
     appendCookies(response, session.cookies);
+    this.assertInventoryMutationRequest(body);
 
     const inventory = await this.inventoryService.discardItem(
       session.view.session.userId,
@@ -105,5 +122,43 @@ export class InventoryController {
     return successResponseWithGeneratedAt(inventory, {
       requestId: request.id,
     });
+  }
+
+  private assertInventoryMutationRequest(
+    body: InventoryItemMutationRequest,
+  ): void {
+    if (!InventoryController.UUID_PATTERN.test(body.itemId)) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'itemId 형식이 잘못되었습니다.',
+        details: {
+          field: 'itemId',
+        },
+      });
+    }
+
+    if (!this.isNonNegativeInteger(body.expectedVersion)) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'expectedVersion 형식이 잘못되었습니다.',
+        details: {
+          field: 'expectedVersion',
+        },
+      });
+    }
+
+    if (!this.isNonNegativeInteger(body.inventoryVersion)) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'inventoryVersion 형식이 잘못되었습니다.',
+        details: {
+          field: 'inventoryVersion',
+        },
+      });
+    }
+  }
+
+  private isNonNegativeInteger(value: unknown): value is number {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0;
   }
 }

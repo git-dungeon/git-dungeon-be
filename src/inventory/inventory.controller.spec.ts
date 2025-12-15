@@ -27,6 +27,9 @@ describe('InventoryController (E2E)', () => {
   const setupApp = async (options?: { guards?: CanActivate[] }) => {
     const inventoryServiceMock = {
       getInventory: vi.fn(),
+      equipItem: vi.fn(),
+      unequipItem: vi.fn(),
+      discardItem: vi.fn(),
     };
     const authSessionServiceMock = {
       requireActiveSession: vi.fn(),
@@ -145,6 +148,116 @@ describe('InventoryController (E2E)', () => {
       };
       expect(body.success).toBe(false);
       expect(body.error.code).toBe('INVENTORY_RATE_LIMITED');
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('/api/inventory/equip는 200을 반환해야 한다', async () => {
+    const { app, inventoryServiceMock, authSessionServiceMock } =
+      await setupApp();
+    const inventoryResponse = createInventoryResponse();
+    inventoryServiceMock.equipItem.mockResolvedValue(inventoryResponse);
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.post('/api/inventory/equip').send({
+        itemId: '11111111-1111-4111-8111-111111111111',
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(response.status).toBe(200);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('/api/inventory/equip 요청의 itemId가 uuid가 아니면 400을 반환해야 한다', async () => {
+    const { app, inventoryServiceMock, authSessionServiceMock } =
+      await setupApp();
+    inventoryServiceMock.equipItem.mockResolvedValue(createInventoryResponse());
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.post('/api/inventory/equip').send({
+        itemId: 'weapon-longsword',
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(response.status).toBe(400);
+      expect(inventoryServiceMock.equipItem).not.toHaveBeenCalled();
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('/api/inventory/unequip는 200을 반환해야 한다', async () => {
+    const { app, inventoryServiceMock, authSessionServiceMock } =
+      await setupApp();
+    const inventoryResponse = createInventoryResponse();
+    inventoryServiceMock.unequipItem.mockResolvedValue(inventoryResponse);
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.post('/api/inventory/unequip').send({
+        itemId: '11111111-1111-4111-8111-111111111111',
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(response.status).toBe(200);
+    } finally {
+      await app.close();
+    }
+  });
+
+  it('/api/inventory/discard는 200을 반환해야 한다', async () => {
+    const { app, inventoryServiceMock, authSessionServiceMock } =
+      await setupApp();
+    const inventoryResponse = createInventoryResponse();
+    inventoryServiceMock.discardItem.mockResolvedValue(inventoryResponse);
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.post('/api/inventory/discard').send({
+        itemId: '11111111-1111-4111-8111-111111111111',
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(response.status).toBe(200);
     } finally {
       await app.close();
     }

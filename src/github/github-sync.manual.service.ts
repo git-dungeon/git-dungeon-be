@@ -12,7 +12,11 @@ import { ApSyncStatus, ApSyncTokenType, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD } from './github.constants';
 import { GithubGraphqlClient } from './github-graphql.client';
-import { GithubGraphqlError, GithubSyncResponse } from './github.interfaces';
+import {
+  GithubGraphqlError,
+  GithubSyncResponse,
+  type GithubSyncStatus,
+} from './github.interfaces';
 import { GithubSyncRetryQueue } from './github-sync.retry-queue';
 import { GithubSyncLockService } from './github-sync.lock.service';
 import { GithubSyncService } from './github-sync.service';
@@ -54,6 +58,43 @@ export class GithubManualSyncService {
       this.configService?.get<number>(
         'github.sync.rateLimitFallbackRemaining',
       ) ?? DEFAULT_GITHUB_GRAPHQL_RATE_LIMIT_THRESHOLD;
+  }
+
+  async getSyncStatus(userId: string): Promise<GithubSyncStatus> {
+    const account = await this.prisma.account.findFirst({
+      where: { userId, providerId: 'github' },
+      select: { updatedAt: true },
+    });
+
+    if (!account) {
+      return {
+        connected: false,
+        allowed: false,
+        cooldownMs: this.cooldownMs,
+        lastSyncAt: null,
+        nextAvailableAt: null,
+        retryAfterMs: null,
+      };
+    }
+
+    const now = new Date();
+    const lastSuccess = await this.prisma.apSyncLog.findFirst({
+      where: { userId, status: ApSyncStatus.SUCCESS },
+      orderBy: { windowEnd: 'desc' },
+      select: { windowEnd: true },
+    });
+
+    const lastSyncAt = account.updatedAt ?? lastSuccess?.windowEnd ?? null;
+    const cooldown = this.computeCooldownStatus(lastSyncAt, now);
+
+    return {
+      connected: true,
+      allowed: cooldown.allowed,
+      cooldownMs: this.cooldownMs,
+      lastSyncAt: cooldown.lastEffective?.toISOString() ?? null,
+      nextAvailableAt: cooldown.nextAvailableAt?.toISOString() ?? null,
+      retryAfterMs: cooldown.retryAfterMs,
+    };
   }
 
   async syncNow(userId: string): Promise<GithubSyncResponse> {
@@ -275,14 +316,8 @@ export class GithubManualSyncService {
     lastSyncAt: Date | null | undefined,
     now: Date,
   ): void {
-    if (!lastSyncAt) return;
-
-    // windowEnd가 현재보다 미래일 수 있으므로 now로 클램프
-    const lastEffective =
-      lastSyncAt.getTime() > now.getTime() ? now : lastSyncAt;
-
-    const elapsed = now.getTime() - lastEffective.getTime();
-    if (elapsed < this.cooldownMs) {
+    const cooldown = this.computeCooldownStatus(lastSyncAt, now);
+    if (!cooldown.allowed) {
       throw new HttpException(
         {
           error: {
@@ -290,14 +325,55 @@ export class GithubManualSyncService {
             message:
               '최근 동기화가 실행되어 수동 동기화를 잠시 후에만 수행할 수 있습니다.',
             details: {
-              lastSyncedAt: lastEffective.toISOString(),
-              retryAfterMs: Math.max(this.cooldownMs - elapsed, 0),
+              lastSyncedAt: cooldown.lastEffective?.toISOString() ?? null,
+              retryAfterMs: cooldown.retryAfterMs ?? 0,
             },
           },
         },
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
+  }
+
+  private computeCooldownStatus(
+    lastSyncAt: Date | null | undefined,
+    now: Date,
+  ): {
+    allowed: boolean;
+    lastEffective: Date | null;
+    retryAfterMs: number | null;
+    nextAvailableAt: Date | null;
+  } {
+    if (!lastSyncAt) {
+      return {
+        allowed: true,
+        lastEffective: null,
+        retryAfterMs: null,
+        nextAvailableAt: null,
+      };
+    }
+
+    // windowEnd가 현재보다 미래일 수 있으므로 now로 클램프
+    const lastEffective =
+      lastSyncAt.getTime() > now.getTime() ? now : lastSyncAt;
+    const elapsed = now.getTime() - lastEffective.getTime();
+
+    if (elapsed >= this.cooldownMs) {
+      return {
+        allowed: true,
+        lastEffective,
+        retryAfterMs: 0,
+        nextAvailableAt: now,
+      };
+    }
+
+    const retryAfterMs = Math.max(this.cooldownMs - elapsed, 0);
+    return {
+      allowed: false,
+      lastEffective,
+      retryAfterMs,
+      nextAvailableAt: new Date(now.getTime() + retryAfterMs),
+    };
   }
 
   private startOfDayUtc(date: Date): Date {
