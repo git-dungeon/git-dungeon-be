@@ -20,9 +20,58 @@ vi.mock('@nestia/core', async () => {
 });
 
 describe('GithubSyncController (E2E)', () => {
+  it('/api/github/sync/status는 200을 반환해야 한다', async () => {
+    const manualSyncServiceMock = {
+      syncNow: vi.fn(),
+      getSyncStatus: vi.fn(),
+    };
+    const authSessionServiceMock = {
+      requireActiveSession: vi.fn(),
+    };
+
+    manualSyncServiceMock.getSyncStatus.mockResolvedValue({
+      connected: true,
+      allowed: false,
+      cooldownMs: 6 * 60 * 60 * 1000,
+      lastSyncAt: '2025-12-15T00:00:00.000Z',
+      nextAvailableAt: '2025-12-15T06:00:00.000Z',
+      retryAfterMs: 1234,
+    });
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+
+    const app = await createTestingApp({
+      overrideProviders: [
+        { provide: GithubManualSyncService, useValue: manualSyncServiceMock },
+        { provide: AuthSessionService, useValue: authSessionServiceMock },
+      ],
+    });
+
+    const controller = app.get(GithubSyncController);
+    (
+      controller as unknown as { manualSyncService: GithubManualSyncService }
+    ).manualSyncService =
+      manualSyncServiceMock as unknown as GithubManualSyncService;
+
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.get('/api/github/sync/status');
+
+      expect(response.status).toBe(200);
+    } finally {
+      await app.close();
+    }
+  });
+
   it('/api/github/sync는 200을 반환해야 한다', async () => {
     const manualSyncServiceMock = {
       syncNow: vi.fn(),
+      getSyncStatus: vi.fn(),
     };
     const authSessionServiceMock = {
       requireActiveSession: vi.fn(),

@@ -33,6 +33,44 @@ describe('GithubManualSyncService', () => {
     expect(prisma.apSyncLog.upsert).not.toHaveBeenCalled();
   });
 
+  it('getSyncStatus는 GitHub 계정이 없으면 connected=false를 반환한다', async () => {
+    const { service, prisma } = createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue(null);
+
+    const status = await service.getSyncStatus(USER_ID_1);
+
+    expect(status).toEqual({
+      connected: false,
+      allowed: false,
+      cooldownMs: 6 * 60 * 60 * 1000,
+      lastSyncAt: null,
+      nextAvailableAt: null,
+      retryAfterMs: null,
+    });
+  });
+
+  it('getSyncStatus는 쿨다운 중이면 allowed=false 및 retryAfterMs를 반환한다', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2025-12-15T06:00:00.000Z'));
+
+    const { service, prisma } = createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue({
+      accountId: 'octocat',
+      accessToken: 'token',
+      updatedAt: new Date('2025-12-15T05:00:00.000Z'),
+    });
+    prisma.apSyncLog.findFirst.mockResolvedValue(null);
+
+    const status = await service.getSyncStatus(USER_ID_1);
+
+    expect(status.connected).toBe(true);
+    expect(status.allowed).toBe(false);
+    expect(status.cooldownMs).toBe(6 * 60 * 60 * 1000);
+    expect(status.lastSyncAt).toBe('2025-12-15T05:00:00.000Z');
+    expect(status.retryAfterMs).toBe(5 * 60 * 60 * 1000);
+    expect(status.nextAvailableAt).toBe('2025-12-15T11:00:00.000Z');
+  });
+
   it('최근 6시간 내 실행 이력이 있으면 막는다', async () => {
     const { service, prisma, graphqlClient } = createManualSyncTestbed();
     prisma.account.findFirst.mockResolvedValue({

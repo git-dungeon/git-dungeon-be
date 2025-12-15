@@ -22,12 +22,40 @@ import {
 } from '../common/http/response-helpers';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import { GithubManualSyncService } from './github-sync.manual.service';
-import type { GithubSyncResponse } from './github.interfaces';
+import type { GithubSyncResponse, GithubSyncStatus } from './github.interfaces';
 
 @Controller('api/github')
 @UseGuards(AuthenticatedThrottlerGuard)
 export class GithubSyncController {
   constructor(private readonly manualSyncService: GithubManualSyncService) {}
+
+  @TypedRoute.Get<ApiSuccessResponse<GithubSyncStatus>>('sync/status')
+  @HttpCode(HttpStatus.OK)
+  @Authenticated()
+  @TypedException<ApiErrorResponse>({
+    status: 401,
+    description: '세션 쿠키가 없거나 만료된 경우',
+  })
+  @TypedException<ApiErrorResponse>({
+    status: 429,
+    description: '요청 한도 초과',
+  })
+  async getSyncStatus(
+    @CurrentAuthSession() session: ActiveSessionResult,
+    @Req() request: Request & { id?: string },
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ApiSuccessResponse<GithubSyncStatus>> {
+    applyNoCacheHeaders(response);
+    appendCookies(response, session.cookies);
+
+    const status = await this.manualSyncService.getSyncStatus(
+      session.view.session.userId,
+    );
+
+    return successResponseWithGeneratedAt(status, {
+      requestId: request.id,
+    });
+  }
 
   @TypedRoute.Post<ApiSuccessResponse<GithubSyncResponse>>('sync')
   @HttpCode(HttpStatus.OK)

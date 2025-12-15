@@ -106,3 +106,12 @@ export interface GithubSyncResponse {
     backoffMs?: number | null;
   } | null;
 }
+
+export interface GithubSyncStatus {
+  connected: boolean;
+  allowed: boolean;
+  cooldownMs: number;
+  lastSyncAt: string | null;
+  nextAvailableAt: string | null;
+  retryAfterMs: number | null;
+}
