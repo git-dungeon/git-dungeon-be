@@ -12,6 +12,10 @@ import { AuthSessionController } from './auth-session.controller';
 import { AuthSessionService } from './auth-session.service';
 import { AuthGuard } from './guards/auth.guard';
 import { randomUUID } from 'crypto';
+import {
+  AuthenticatedThrottlerGuard,
+  RATE_LIMIT_CONFIG,
+} from '../common/guards/authenticated-throttler.guard';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
@@ -143,6 +147,14 @@ const BETTER_AUTH_UUID_ID_MODELS = new Set([
     AuthService,
     AuthSessionService,
     AuthGuard,
+    {
+      provide: RATE_LIMIT_CONFIG,
+      useValue: {
+        code: 'AUTH_RATE_LIMITED',
+        message: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+      },
+    },
+    AuthenticatedThrottlerGuard,
   ],
   exports: [
     AUTH_CONFIG_TOKEN,

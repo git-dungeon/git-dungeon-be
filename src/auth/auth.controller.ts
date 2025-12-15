@@ -1,11 +1,13 @@
-import { Controller, Get, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('github')
+  @UseGuards(AuthenticatedThrottlerGuard)
   async githubRedirect(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,

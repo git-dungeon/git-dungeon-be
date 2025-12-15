@@ -1,9 +1,10 @@
-import { Controller, Inject, Req, Res } from '@nestjs/common';
+import { Controller, Inject, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { TypedException, TypedRoute } from '@nestia/core';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
+import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
@@ -29,6 +30,7 @@ export class SettingsController {
     description: '프로필 응답을 생성하지 못한 경우',
   })
   @Authenticated()
+  @UseGuards(AuthenticatedThrottlerGuard)
   async getProfile(
     @CurrentAuthSession() session: ActiveSessionResult,
     @Req() request: Request & { id?: string },
