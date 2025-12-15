@@ -8,17 +8,21 @@ export type InventorySlot =
   | 'ring'
   | 'consumable';
 
+export type InventoryRarity =
+  | 'common'
+  | 'uncommon'
+  | 'rare'
+  | 'epic'
+  | 'legendary';
+
 export interface EquipmentItem {
-  id: string & tags.Example<'weapon-longsword'>;
+  id: string &
+    tags.Format<'uuid'> &
+    tags.Example<'11111111-1111-4111-8111-111111111111'>;
   code: string & tags.Example<'weapon-longsword'>;
   name?: (string & tags.Example<'Longsword'>) | null;
   slot: InventorySlot & tags.Example<'weapon'>;
-  rarity:
-    | (string & tags.Example<'common'>)
-    | (string & tags.Example<'uncommon'>)
-    | (string & tags.Example<'rare'>)
-    | (string & tags.Example<'epic'>)
-    | (string & tags.Example<'legendary'>);
+  rarity: InventoryRarity & tags.Example<'common'>;
   modifiers: InventoryModifier[];
   effect?: (string & tags.Example<'bleed-1'>) | null;
   sprite?: (string & tags.Example<'sprite/weapon-longsword.svg'>) | null;

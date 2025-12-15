@@ -21,6 +21,7 @@ import type {
   EquipmentStats,
   EquippedItems,
   InventoryResponse,
+  InventoryRarity,
   InventorySlot,
 } from './dto/inventory.response';
 
@@ -343,13 +344,14 @@ export class InventoryService {
 
   private mapInventoryItem(item: InventoryItem): EquipmentItem {
     const modifiers = this.toInventoryModifiers(item.modifiers);
+    const rarity = item.rarity.toLowerCase();
 
     return {
       id: item.id,
       code: item.code,
       name: null,
       slot: item.slot.toLowerCase() as InventorySlot,
-      rarity: item.rarity.toLowerCase(),
+      rarity: this.assertInventoryRarity(rarity),
       modifiers,
       effect: null,
       sprite: null,
@@ -357,6 +359,27 @@ export class InventoryService {
       isEquipped: item.isEquipped,
       version: item.version,
     };
+  }
+
+  private assertInventoryRarity(rarity: string): InventoryRarity {
+    if (
+      rarity === 'common' ||
+      rarity === 'uncommon' ||
+      rarity === 'rare' ||
+      rarity === 'epic' ||
+      rarity === 'legendary'
+    ) {
+      return rarity;
+    }
+
+    throw new InternalServerErrorException({
+      code: 'INVENTORY_INVALID_RESPONSE',
+      message: '인벤토리 응답 스키마가 유효하지 않습니다.',
+      details: {
+        path: '$input.items[*].rarity',
+        expected: 'InventoryRarity',
+      },
+    });
   }
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {

@@ -179,6 +179,38 @@ describe('InventoryController (E2E)', () => {
     }
   });
 
+  it('/api/inventory/equip 요청의 itemId가 uuid가 아니면 400을 반환해야 한다', async () => {
+    const { app, inventoryServiceMock, authSessionServiceMock } =
+      await setupApp();
+    inventoryServiceMock.equipItem.mockResolvedValue(createInventoryResponse());
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession({
+        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+      }),
+    );
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.post('/api/inventory/equip').send({
+        itemId: 'weapon-longsword',
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(response.status).toBe(400);
+      expect(inventoryServiceMock.equipItem).not.toHaveBeenCalled();
+      expect(response.body).toMatchObject({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+        },
+      });
+    } finally {
+      await app.close();
+    }
+  });
+
   it('/api/inventory/unequip는 200을 반환해야 한다', async () => {
     const { app, inventoryServiceMock, authSessionServiceMock } =
       await setupApp();
