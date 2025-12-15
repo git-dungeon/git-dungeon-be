@@ -2,6 +2,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Inject,
   Req,
   Res,
   UseGuards,
@@ -27,7 +28,10 @@ import type { GithubSyncResponse, GithubSyncStatus } from './github.interfaces';
 @Controller('api/github')
 @UseGuards(AuthenticatedThrottlerGuard)
 export class GithubSyncController {
-  constructor(private readonly manualSyncService: GithubManualSyncService) {}
+  constructor(
+    @Inject(GithubManualSyncService)
+    private readonly manualSyncService: GithubManualSyncService,
+  ) {}
 
   @TypedRoute.Get<ApiSuccessResponse<GithubSyncStatus>>('sync/status')
   @HttpCode(HttpStatus.OK)

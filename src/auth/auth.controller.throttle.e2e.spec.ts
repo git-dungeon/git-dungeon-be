@@ -4,6 +4,7 @@ import request from 'supertest';
 import { createTestingApp } from '../test-support/app';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { DEFAULT_THROTTLE_LIMIT } from '../config/rate-limit.constant';
 
 vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
@@ -40,7 +41,7 @@ describe('AuthController RateLimit (E2E)', () => {
     const agent = request(server);
 
     try {
-      for (let i = 0; i < 60; i += 1) {
+      for (let i = 0; i < DEFAULT_THROTTLE_LIMIT; i += 1) {
         const ok = await agent
           .get('/auth/github')
           .set('x-request-id', '00000000-0000-4000-8000-000000000001');

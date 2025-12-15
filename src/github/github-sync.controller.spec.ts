@@ -6,7 +6,6 @@ import { AuthSessionService } from '../auth/auth-session.service';
 import { createActiveSession } from '../test-support/fixtures';
 import { createTestingApp } from '../test-support/app';
 import { GithubManualSyncService } from './github-sync.manual.service';
-import { GithubSyncController } from './github-sync.controller';
 
 vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
@@ -21,6 +20,7 @@ vi.mock('@nestia/core', async () => {
 
 describe('GithubSyncController (E2E)', () => {
   it('/api/github/sync/status는 200을 반환해야 한다', async () => {
+    const requestId = '00000000-0000-4000-8000-000000000001';
     const manualSyncServiceMock = {
       syncNow: vi.fn(),
       getSyncStatus: vi.fn(),
@@ -50,25 +50,23 @@ describe('GithubSyncController (E2E)', () => {
       ],
     });
 
-    const controller = app.get(GithubSyncController);
-    (
-      controller as unknown as { manualSyncService: GithubManualSyncService }
-    ).manualSyncService =
-      manualSyncServiceMock as unknown as GithubManualSyncService;
-
     const server = app.getHttpServer() as Parameters<typeof request>[0];
     const agent = request(server);
 
     try {
-      const response = await agent.get('/api/github/sync/status');
+      const response = await agent
+        .get('/api/github/sync/status')
+        .set('x-request-id', requestId);
 
       expect(response.status).toBe(200);
+      expect(response.body?.meta?.requestId).toBe(requestId);
     } finally {
       await app.close();
     }
   });
 
   it('/api/github/sync는 200을 반환해야 한다', async () => {
+    const requestId = '00000000-0000-4000-8000-000000000001';
     const manualSyncServiceMock = {
       syncNow: vi.fn(),
       getSyncStatus: vi.fn(),
@@ -100,19 +98,16 @@ describe('GithubSyncController (E2E)', () => {
       ],
     });
 
-    const controller = app.get(GithubSyncController);
-    (
-      controller as unknown as { manualSyncService: GithubManualSyncService }
-    ).manualSyncService =
-      manualSyncServiceMock as unknown as GithubManualSyncService;
-
     const server = app.getHttpServer() as Parameters<typeof request>[0];
     const agent = request(server);
 
     try {
-      const response = await agent.post('/api/github/sync');
+      const response = await agent
+        .post('/api/github/sync')
+        .set('x-request-id', requestId);
 
       expect(response.status).toBe(200);
+      expect(response.body?.meta?.requestId).toBe(requestId);
     } finally {
       await app.close();
     }
