@@ -15,6 +15,13 @@ import { randomUUID } from 'crypto';
 
 const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
 
+const BETTER_AUTH_UUID_ID_MODELS = new Set([
+  'user',
+  'account',
+  'session',
+  'verification',
+]);
+
 @Module({
   imports: [ConfigModule, PrismaModule],
   controllers: [AuthController, AuthSessionController],
@@ -107,11 +114,18 @@ const DEFAULT_GITHUB_SCOPE = ['read:user', 'user:email'] as const;
           }),
           advanced: {
             database: {
-              generateId: ({ size }) => {
+              generateId: ({ model, size }) => {
+                // better-auth는 이 훅을 두 용도로 사용한다.
+                // - DB "id" 생성(모델별 PK): UUID 타입 컬럼과 호환되어야 하므로 항상 UUID를 반환한다.
+                // - 길이 지정이 필요한 토큰/코드 생성(size 제공): length 계약을 맞추기 위해 better-auth 기본 generator를 사용한다.
+                const normalizedModel =
+                  typeof model === 'string' ? model.toLowerCase() : '';
+                if (BETTER_AUTH_UUID_ID_MODELS.has(normalizedModel)) {
+                  return randomUUID();
+                }
                 if (typeof size === 'number') {
                   return betterAuthGenerateId(size);
                 }
-
                 return randomUUID();
               },
             },
