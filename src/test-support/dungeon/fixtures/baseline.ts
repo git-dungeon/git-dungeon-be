@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { DungeonLogPayload } from '../../../dungeon/events/event.types';
+import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 기본 시나리오
@@ -9,7 +10,7 @@ import type { DungeonLogPayload } from '../../../dungeon/events/event.types';
 export const baselineSeed = 'baseline';
 
 export const baselineInitialState: DungeonState = {
-  userId: 'user-baseline',
+  userId: '00000000-0000-4000-8000-000000000101',
   level: 1,
   exp: 0,
   hp: 6,
@@ -94,7 +95,7 @@ export const baselineSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'ring-topaz',
+                  itemId: deterministicUuidV5('inventory:ring-topaz'),
                   code: 'ring-topaz',
                   slot: 'ring',
                   rarity: 'uncommon',
@@ -224,7 +225,7 @@ export const baselineSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'ring-topaz',
+                  itemId: deterministicUuidV5('inventory:ring-topaz'),
                   code: 'ring-topaz',
                   slot: 'ring',
                   rarity: 'uncommon',

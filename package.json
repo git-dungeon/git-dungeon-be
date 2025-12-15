@@ -38,8 +38,8 @@
     "validate:config": "pnpm exec ts-node --compiler ts-patch/compiler scripts/validate-config.ts",
     "sim": "ts-node scripts/simulate.ts",
     "sim:all": "pnpm ts-node scripts/simulate-all.ts",
-    "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user user-baseline --seed baseline --max-actions 3 --dry-run",
-    "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user user-turn-limit-prod --seed tlprod1 --max-actions 1 --dry-run"
+    "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user 00000000-0000-4000-8000-000000000101 --seed baseline --max-actions 3 --dry-run",
+    "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user 00000000-0000-4000-8000-000000000104 --seed tlprod1 --max-actions 1 --dry-run"
   },
   "lint-staged": {
     "config/**": [

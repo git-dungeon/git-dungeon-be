@@ -10,7 +10,7 @@ import type { SnapshotStep } from './baseline';
 export const restClampSeed = 'restfull2';
 
 export const restClampInitialState: DungeonState = {
-  userId: 'user-restfull',
+  userId: '00000000-0000-4000-8000-000000000108',
   level: 3,
   exp: 0,
   hp: 20,

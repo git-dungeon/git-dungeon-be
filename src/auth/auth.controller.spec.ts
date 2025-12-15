@@ -362,18 +362,21 @@ describe('AuthController (E2E)', () => {
   });
 
   it('GET /api/auth/session 요청 시 활성 세션 정보를 반환해야 한다', async () => {
+    const userId = '00000000-0000-4000-8000-000000000123';
+    const sessionId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1';
+
     const refreshedCookies = [
       'better-auth.session_token=renewed-session; Path=/; HttpOnly',
       'better-auth.session_data=renewed-data; Path=/; HttpOnly',
     ];
     const payload = {
       session: {
-        id: 'sess-123',
-        userId: 'user-123',
+        id: sessionId,
+        userId,
         expiresAt: new Date().toISOString(),
       },
       user: {
-        id: 'user-123',
+        id: userId,
         name: 'Test User',
         email: 'user@example.com',
         image: 'https://example.com/avatar.png',
@@ -405,7 +408,7 @@ describe('AuthController (E2E)', () => {
     }>(response);
 
     expect(body.data.session).toEqual({
-      userId: 'user-123',
+      userId,
       username: 'Test User',
       displayName: 'Test User',
       email: 'user@example.com',
@@ -445,16 +448,19 @@ describe('AuthController (E2E)', () => {
   });
 
   it('GET /api/auth/whoami 요청 시 현재 사용자명을 반환해야 한다', async () => {
+    const userId = '00000000-0000-4000-8000-000000000456';
+    const sessionId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2';
+
     const refreshedCookies = [
       'better-auth.session_token=renewed-session; Path=/; HttpOnly',
     ];
     const payload = {
       session: {
-        id: 'sess-whoami',
-        userId: 'user-whoami',
+        id: sessionId,
+        userId,
       },
       user: {
-        id: 'user-whoami',
+        id: userId,
         login: 'hero',
         name: 'Guild Hero',
       },
@@ -492,14 +498,17 @@ describe('AuthController (E2E)', () => {
   });
 
   it('POST /api/auth/logout 요청 시 세션이 해제되고 쿠키가 제거되어야 한다', async () => {
+    const userId = '00000000-0000-4000-8000-000000000789';
+    const sessionId = 'cccccccc-cccc-4ccc-8ccc-ccccccccccc3';
+
     const sessionPayload = {
       session: {
-        id: 'sess-logout',
-        userId: 'user-logout',
+        id: sessionId,
+        userId,
         expiresAt: new Date().toISOString(),
       },
       user: {
-        id: 'user-logout',
+        id: userId,
         name: 'Logout User',
       },
     };

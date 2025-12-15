@@ -3,6 +3,11 @@ import { ApSyncTokenType } from '@prisma/client';
 import { createSchedulerTestbed } from './helpers';
 
 describe('GithubSyncScheduler', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
+  const USER_ID_3 = '00000000-0000-4000-8000-000000000003';
+  const LOG_ID_1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+
   beforeEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
@@ -13,7 +18,7 @@ describe('GithubSyncScheduler', () => {
 
     prisma.user.findMany.mockResolvedValue([
       {
-        id: 'user-1',
+        id: USER_ID_1,
         accounts: [
           {
             accountId: 'octocat',
@@ -51,14 +56,14 @@ describe('GithubSyncScheduler', () => {
 
     syncService.applyContributionSync.mockResolvedValue({
       apDelta: 2,
-      log: { id: 'log-1' },
+      log: { id: LOG_ID_1 },
     });
 
     await scheduler.handleSyncJob();
 
     expect(syncService.applyContributionSync).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-1',
+        userId: USER_ID_1,
         contributions: 2, // 5 - prevTotal(3)
         tokenType: ApSyncTokenType.OAUTH,
       }),
@@ -71,7 +76,7 @@ describe('GithubSyncScheduler', () => {
 
     prisma.user.findMany.mockResolvedValue([
       {
-        id: 'user-2',
+        id: USER_ID_2,
         accounts: [
           {
             accountId: 'octocat',
@@ -95,7 +100,7 @@ describe('GithubSyncScheduler', () => {
 
     prisma.user.findMany.mockResolvedValue([
       {
-        id: 'user-3',
+        id: USER_ID_3,
         accounts: [
           {
             accountId: 'octocat',
@@ -117,7 +122,7 @@ describe('GithubSyncScheduler', () => {
 
     expect(retryQueue.enqueue).toHaveBeenCalledWith(
       expect.objectContaining({
-        userId: 'user-3',
+        userId: USER_ID_3,
         reason: 'RATE_LIMITED',
       }),
     );

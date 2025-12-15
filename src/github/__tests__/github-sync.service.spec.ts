@@ -48,8 +48,14 @@ const createPrismaMock = () => {
 };
 
 describe('GithubSyncService 동작', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const LOG_ID_1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const LOG_ID_2 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const LOG_ID_3 = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  const LOG_ID_LAST_SUCCESS = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+
   const baseParams = {
-    userId: 'user-1',
+    userId: USER_ID_1,
     contributions: 5,
     windowStart: new Date('2025-11-01T00:00:00Z'),
     windowEnd: new Date('2025-11-02T00:00:00Z'),
@@ -70,7 +76,7 @@ describe('GithubSyncService 동작', () => {
     mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     mocks.findUnique.mockResolvedValue(null);
     mocks.create.mockResolvedValue({
-      id: 'log-1',
+      id: LOG_ID_1,
       status: ApSyncStatus.SUCCESS,
     });
 
@@ -106,7 +112,7 @@ describe('GithubSyncService 동작', () => {
     const service = new GithubSyncService(prisma);
     mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     const existing: { id: string; status: ApSyncStatus; apDelta: number } = {
-      id: 'log-existing',
+      id: LOG_ID_2,
       status: ApSyncStatus.SUCCESS,
       apDelta: 3,
     };
@@ -130,7 +136,7 @@ describe('GithubSyncService 동작', () => {
     const service = new GithubSyncService(prisma);
     mocks.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     const existing: { id: string; status: ApSyncStatus; apDelta: number } = {
-      id: 'log-failed',
+      id: LOG_ID_3,
       status: ApSyncStatus.FAILED,
       apDelta: 0,
     };
@@ -171,7 +177,7 @@ describe('GithubSyncService 동작', () => {
 
     const service = new GithubSyncService(prisma);
     const lastSuccess = {
-      id: 'last-success',
+      id: LOG_ID_LAST_SUCCESS,
       status: ApSyncStatus.SUCCESS,
       apDelta: 4,
       windowStart: new Date('2025-11-01T00:00:00Z'),

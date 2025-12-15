@@ -9,6 +9,8 @@ import {
   AuthSessionInvalidException,
 } from '../errors/auth-session.exception';
 
+const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+
 const createHttpContext = (request: Request): ExecutionContext => {
   return {
     getType: () => 'http',
@@ -54,8 +56,8 @@ describe('AuthGuard', () => {
     const activeSession = {
       cookies: ['better-auth.session=abc; Path=/; HttpOnly'],
       payload: {
-        session: { userId: 'user-1' },
-        user: { id: 'user-1' },
+        session: { userId: USER_ID_1 },
+        user: { id: USER_ID_1 },
       },
       refreshed: false,
       view: {
@@ -64,7 +66,7 @@ describe('AuthGuard', () => {
           avatarUrl: '',
           displayName: '',
           email: '',
-          userId: 'user-1',
+          userId: USER_ID_1,
           username: '',
         },
       },
@@ -82,7 +84,7 @@ describe('AuthGuard', () => {
   it('이미 세션이 존재하면 추가 호출 없이 통과해야 한다', async () => {
     const existingSession = {
       cookies: [],
-      payload: { session: { userId: 'user-1' }, user: {} },
+      payload: { session: { userId: USER_ID_1 }, user: {} },
       refreshed: false,
       view: {
         refreshed: false,
@@ -90,7 +92,7 @@ describe('AuthGuard', () => {
           avatarUrl: '',
           displayName: '',
           email: '',
-          userId: 'user-1',
+          userId: USER_ID_1,
           username: 'rogue',
         },
       },

@@ -15,6 +15,14 @@ import type { SimpleQueue } from '../../common/queue/simple-queue';
 
 type MockConfigService = Pick<ConfigService, 'get'>;
 
+const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
+const USER_ID_3 = '00000000-0000-4000-8000-000000000003';
+const USER_ID_A = '00000000-0000-4000-8000-00000000a001';
+const USER_ID_B = '00000000-0000-4000-8000-00000000a002';
+const USER_ID_C = '00000000-0000-4000-8000-00000000a003';
+const USER_ID_X = '00000000-0000-4000-8000-00000000b001';
+
 const createConfigService = (
   overrides?: Record<string, unknown>,
 ): MockConfigService => {
@@ -36,7 +44,7 @@ const createConfigService = (
 };
 
 const createState = (overrides: Partial<DungeonState> = {}): DungeonState => ({
-  userId: 'user-1',
+  userId: USER_ID_1,
   level: 1,
   exp: 0,
   hp: 10,
@@ -224,9 +232,9 @@ describe('DungeonBatchService 배치 동작', () => {
     const configService = createConfigService({
       'dungeon.batch.maxUsersPerTick': 2,
     });
-    const user1 = createState({ userId: 'user-1' });
-    const user2 = createState({ userId: 'user-2' });
-    const user3 = createState({ userId: 'user-3' });
+    const user1 = createState({ userId: USER_ID_1 });
+    const user2 = createState({ userId: USER_ID_2 });
+    const user3 = createState({ userId: USER_ID_3 });
 
     // First tick: return user1,user2
     prismaMock.dungeonState.findMany.mockImplementationOnce(() =>
@@ -250,7 +258,7 @@ describe('DungeonBatchService 배치 동작', () => {
     prismaMock.dungeonState.findMany.mockImplementationOnce((args: unknown) => {
       const cursorUserId = (args as { cursor?: { userId?: string } }).cursor
         ?.userId;
-      if (cursorUserId === 'user-2') {
+      if (cursorUserId === USER_ID_2) {
         return Promise.resolve([user3]);
       }
       return Promise.resolve([]);
@@ -267,7 +275,7 @@ describe('DungeonBatchService 배치 동작', () => {
 
     expect(prismaMock.dungeonState.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        cursor: { userId: 'user-2' },
+        cursor: { userId: USER_ID_2 },
         take: 2,
         skip: 1,
       }),
@@ -285,9 +293,9 @@ describe('DungeonBatchService 배치 동작', () => {
       'dungeon.batch.maxActionsPerUser': 2,
     });
     const users = [
-      createState({ userId: 'user-a', ap: 2, version: 1 }),
-      createState({ userId: 'user-b', ap: 2, version: 5 }),
-      createState({ userId: 'user-c', ap: 1, version: 10 }),
+      createState({ userId: USER_ID_A, ap: 2, version: 1 }),
+      createState({ userId: USER_ID_B, ap: 2, version: 5 }),
+      createState({ userId: USER_ID_C, ap: 1, version: 10 }),
     ];
 
     prismaMock.dungeonState.findMany
@@ -330,7 +338,7 @@ describe('DungeonBatchService 배치 동작', () => {
     const service = buildService(configService);
     await service.runBatchTick();
 
-    // user-a/user-b는 AP 2 → 2회, user-c는 AP 1 → 1회 실행
+    // USER_ID_A/USER_ID_B는 AP 2 → 2회, USER_ID_C는 AP 1 → 1회 실행
     expect(eventServiceMock.execute).toHaveBeenCalledTimes(5);
     expect(prismaMock.dungeonLog.createMany).toHaveBeenCalledTimes(5);
 
@@ -347,7 +355,7 @@ describe('DungeonBatchService 배치 동작', () => {
 
   it('상태 버전 충돌 시 DungeonBatchError로 실패하고 락을 해제한다', async () => {
     const configService = createConfigService();
-    const state = createState({ userId: 'user-x', ap: 1, version: 3 });
+    const state = createState({ userId: USER_ID_X, ap: 1, version: 3 });
 
     prismaMock.dungeonState.findMany.mockResolvedValue([state]);
     prismaMock.dungeonState.findUnique.mockResolvedValue(state);

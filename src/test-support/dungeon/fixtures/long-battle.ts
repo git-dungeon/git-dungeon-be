@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { SnapshotStep } from './baseline';
+import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 장기 전투(6턴) 지표용 시나리오
@@ -10,7 +11,7 @@ import type { SnapshotStep } from './baseline';
 export const longBattleSeed = 't0';
 
 export const longBattleInitialState: DungeonState = {
-  userId: 'user-turn-limit',
+  userId: '00000000-0000-4000-8000-000000000105',
   level: 1,
   exp: 0,
   hp: 10,
@@ -87,7 +88,7 @@ export const longBattleSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: 'ring-silver-band',
+                  itemId: deterministicUuidV5('inventory:ring-silver-band'),
                   code: 'ring-silver-band',
                   slot: 'ring',
                   rarity: 'common',

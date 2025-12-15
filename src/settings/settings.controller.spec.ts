@@ -27,6 +27,8 @@ vi.mock('@nestia/core', async () => {
 });
 
 describe('SettingsService', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+
   const prismaMock = {
     user: {
       findUnique: vi.fn(),
@@ -42,7 +44,7 @@ describe('SettingsService', () => {
 
   it('프로필 정보를 반환해야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue({
-      id: 'user-1',
+      id: USER_ID_1,
       email: 'mock@example.com',
       name: 'Mock User',
       image: 'https://example.com/avatar.png',
@@ -59,7 +61,7 @@ describe('SettingsService', () => {
 
     expect(result).toEqual<SettingsProfileResponse>({
       profile: {
-        userId: 'user-1',
+        userId: USER_ID_1,
         username: 'mock-user',
         displayName: 'Mock User',
         avatarUrl: 'https://example.com/avatar.png',
@@ -79,7 +81,7 @@ describe('SettingsService', () => {
 
   it('GitHub 연결이 없으면 lastSyncAt이 null이어야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue({
-      id: 'user-1',
+      id: USER_ID_1,
       email: 'mock@example.com',
       name: 'Mock User',
       image: 'https://example.com/avatar.png',
@@ -105,7 +107,7 @@ describe('SettingsService', () => {
 
   it('Typia 검증 실패 시 예외를 변환해야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue({
-      id: 'user-1',
+      id: USER_ID_1,
       email: 'mock@example.com',
       name: 'Mock User',
       image: 'https://example.com/avatar.png',
@@ -129,6 +131,9 @@ describe('SettingsService', () => {
 });
 
 describe('SettingsController', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const REQUEST_ID_1 = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
+
   const serviceMock = {
     getProfile: vi.fn(),
   };
@@ -158,7 +163,7 @@ describe('SettingsController', () => {
   };
 
   const createRequest = (overrides: Partial<{ id: string }> = {}) => ({
-    id: overrides.id ?? 'request-id',
+    id: overrides.id ?? REQUEST_ID_1,
   });
 
   beforeEach(() => {
@@ -181,7 +186,7 @@ describe('SettingsController', () => {
 
     const profileResponse: SettingsProfileResponse = {
       profile: {
-        userId: 'user-1',
+        userId: USER_ID_1,
         username: 'mock-user',
         displayName: 'Mock User',
         avatarUrl: 'https://example.com/avatar.png',
@@ -199,7 +204,7 @@ describe('SettingsController', () => {
     serviceMock.getProfile.mockResolvedValue(profileResponse);
 
     const response = createResponse();
-    const request = createRequest({ id: 'req-123' }) as Request & {
+    const request = createRequest({ id: REQUEST_ID_1 }) as Request & {
       id?: string;
     };
     const result = await controller.getProfile(
@@ -220,6 +225,6 @@ describe('SettingsController', () => {
     expect(result.meta.generatedAt).toEqual(expect.any(String));
     const generatedAt = result.meta.generatedAt!;
     expect(new Date(generatedAt).toISOString()).toBe(generatedAt);
-    expect(result.meta.requestId).toBe('req-123');
+    expect(result.meta.requestId).toBe(REQUEST_ID_1);
   });
 });

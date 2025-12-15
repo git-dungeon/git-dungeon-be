@@ -2,18 +2,23 @@ import type { ActiveSessionResult } from '../auth/auth-session.service';
 import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state.response';
 import type { InventoryResponse } from '../inventory/dto/inventory.response';
 
+export const TEST_USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+export const TEST_USER_ID_2 = '00000000-0000-4000-8000-000000000002';
+
+export const TEST_INVENTORY_ITEM_ID_1 = '11111111-1111-4111-8111-111111111111';
+
 export const createActiveSession = (
   overrides: Partial<ActiveSessionResult> = {},
 ): ActiveSessionResult => ({
   payload: {
-    session: { userId: 'user-1' },
-    user: { id: 'user-1' },
+    session: { userId: TEST_USER_ID_1 },
+    user: { id: TEST_USER_ID_1 },
   },
   cookies: ['better-auth.session_token=stub; Path=/; HttpOnly'],
   refreshed: false,
   view: {
     session: {
-      userId: 'user-1',
+      userId: TEST_USER_ID_1,
       username: 'mock-user',
       displayName: 'Mock User',
       email: 'mock@example.com',
@@ -28,7 +33,7 @@ export const createDashboardStateResponse = (
   overrides: Partial<DashboardStateResponse['state']> = {},
 ): DashboardStateResponse => ({
   state: {
-    userId: 'user-1',
+    userId: TEST_USER_ID_1,
     level: 5,
     exp: 120,
     hp: 100,
@@ -48,7 +53,7 @@ export const createDashboardStateResponse = (
     expToLevel: 50,
     equippedItems: [
       {
-        id: 'item-1',
+        id: TEST_INVENTORY_ITEM_ID_1,
         code: 'SWORD_1',
         name: null,
         slot: 'weapon',
@@ -72,7 +77,7 @@ export const createInventoryResponse = (
   version: 3,
   items: [
     {
-      id: 'item-weapon',
+      id: TEST_INVENTORY_ITEM_ID_1,
       code: 'weapon-longsword',
       name: null,
       slot: 'weapon',
@@ -90,7 +95,7 @@ export const createInventoryResponse = (
   ],
   equipped: {
     weapon: {
-      id: 'item-weapon',
+      id: TEST_INVENTORY_ITEM_ID_1,
       code: 'weapon-longsword',
       name: null,
       slot: 'weapon',

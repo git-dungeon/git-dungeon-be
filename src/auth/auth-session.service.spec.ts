@@ -5,6 +5,8 @@ import type { ConfigService } from '@nestjs/config';
 import { AuthSessionService } from './auth-session.service';
 import type { PrismaService } from '../prisma/prisma.service';
 
+const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+
 const createHeaders = (cookies: string[] = []) => {
   const headers = new Headers();
   for (const cookie of cookies) {
@@ -77,14 +79,14 @@ describe('AuthSessionService', () => {
     });
 
     betterAuthApiGetSession.mockResolvedValue({
-      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      response: { session: { userId: USER_ID_1 }, user: { id: USER_ID_1 } },
       headers: createHeaders(),
     });
 
     const service = createService();
     const result = await service.getSession(createRequest());
 
-    expect(result?.view.session.userId).toBe('user-1');
+    expect(result?.view.session.userId).toBe(USER_ID_1);
     expect(prismaCreateMany).not.toHaveBeenCalled();
   });
 
@@ -96,7 +98,7 @@ describe('AuthSessionService', () => {
     });
 
     betterAuthApiGetSession.mockResolvedValue({
-      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      response: { session: { userId: USER_ID_1 }, user: { id: USER_ID_1 } },
       headers: createHeaders(),
     });
 
@@ -104,7 +106,7 @@ describe('AuthSessionService', () => {
     await service.getSession(createRequest());
 
     expect(prismaCreateMany).toHaveBeenCalledWith({
-      data: [{ userId: 'user-1', ap: 10 }],
+      data: [{ userId: USER_ID_1, ap: 10 }],
       skipDuplicates: true,
     });
   });
@@ -117,7 +119,7 @@ describe('AuthSessionService', () => {
     });
 
     betterAuthApiGetSession.mockResolvedValue({
-      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      response: { session: { userId: USER_ID_1 }, user: { id: USER_ID_1 } },
       headers: createHeaders(),
     });
 
@@ -125,7 +127,7 @@ describe('AuthSessionService', () => {
     await service.getSession(createRequest());
 
     expect(prismaCreateMany).toHaveBeenCalledWith({
-      data: [{ userId: 'user-1', ap: 7 }],
+      data: [{ userId: USER_ID_1, ap: 7 }],
       skipDuplicates: true,
     });
   });
@@ -138,7 +140,7 @@ describe('AuthSessionService', () => {
     });
 
     betterAuthApiGetSession.mockResolvedValue({
-      response: { session: { userId: 'user-1' }, user: { id: 'user-1' } },
+      response: { session: { userId: USER_ID_1 }, user: { id: USER_ID_1 } },
       headers: createHeaders(),
     });
 

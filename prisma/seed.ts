@@ -64,7 +64,6 @@ async function main() {
 
   const inventoryItems: Prisma.InventoryItemUncheckedCreateInput[] = [
     {
-      id: 'weapon-longsword',
       userId: user.id,
       code: 'weapon-longsword',
       slot: 'WEAPON',
@@ -77,7 +76,6 @@ async function main() {
       version: 3,
     },
     {
-      id: 'weapon-rusty-sword',
       userId: user.id,
       code: 'weapon-rusty-sword',
       slot: 'WEAPON',
@@ -90,7 +88,6 @@ async function main() {
       version: 2,
     },
     {
-      id: 'ring-topaz',
       userId: user.id,
       code: 'ring-topaz',
       slot: 'RING',
@@ -104,7 +101,6 @@ async function main() {
       version: 4,
     },
     {
-      id: 'armor-steel-armor',
       userId: user.id,
       code: 'armor-steel-armor',
       slot: 'ARMOR',
@@ -118,7 +114,6 @@ async function main() {
       version: 5,
     },
     {
-      id: 'potion-healing-small',
       userId: user.id,
       code: 'potion-healing-small',
       slot: 'CONSUMABLE',

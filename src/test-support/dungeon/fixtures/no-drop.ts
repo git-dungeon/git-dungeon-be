@@ -10,7 +10,7 @@ import type { SnapshotStep } from './baseline';
 export const noDropSeed = 'nodrop';
 
 export const noDropInitialState: DungeonState = {
-  userId: 'user-nodrop',
+  userId: '00000000-0000-4000-8000-000000000102',
   level: 1,
   exp: 0,
   hp: 3,

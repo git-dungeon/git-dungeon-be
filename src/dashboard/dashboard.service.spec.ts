@@ -18,6 +18,9 @@ vi.mock('typia', async () => {
 });
 
 describe('DashboardService', () => {
+  const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
+  const INVENTORY_ITEM_ID_1 = '11111111-1111-4111-8111-111111111111';
+
   const prismaMock = {
     dungeonState: {
       findUnique: vi.fn(),
@@ -37,7 +40,7 @@ describe('DashboardService', () => {
 
   it('대시보드 상태를 반환해야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       level: 5,
       exp: 120,
       hp: 100,
@@ -59,7 +62,7 @@ describe('DashboardService', () => {
 
     prismaMock.inventoryItem.findMany.mockResolvedValue([
       {
-        id: 'item-1',
+        id: INVENTORY_ITEM_ID_1,
         code: 'SWORD_1',
         slot: 'WEAPON',
         rarity: 'COMMON',
@@ -70,7 +73,7 @@ describe('DashboardService', () => {
       },
     ]);
 
-    const result = await service.getState('user-1');
+    const result = await service.getState(USER_ID_1);
 
     expect(result).toEqual(createDashboardStateResponse());
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
@@ -78,7 +81,7 @@ describe('DashboardService', () => {
 
   it('레벨이 없으면 expToLevel이 null이어야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       level: 0,
       exp: 0,
       hp: 10,
@@ -99,7 +102,7 @@ describe('DashboardService', () => {
     });
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
 
-    const result = await service.getState('user-1');
+    const result = await service.getState(USER_ID_1);
 
     expect(result.state.expToLevel).toBeNull();
     expect(result.state.equippedItems).toEqual([]);
@@ -110,7 +113,7 @@ describe('DashboardService', () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue(null);
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
 
-    await expect(service.getState('user-1')).rejects.toMatchObject({
+    await expect(service.getState(USER_ID_1)).rejects.toMatchObject({
       constructor: UnauthorizedException,
       response: { code: 'DASHBOARD_UNAUTHORIZED' },
     });
@@ -118,7 +121,7 @@ describe('DashboardService', () => {
 
   it('Typia 검증 실패 시 로깅 후 예외를 던져야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
-      userId: 'user-1',
+      userId: USER_ID_1,
       level: 5,
       exp: 120,
       hp: 100,
@@ -152,7 +155,7 @@ describe('DashboardService', () => {
       throw new MockTypeGuardError('state.level', 'number', null);
     });
 
-    await expect(service.getState('user-1')).rejects.toMatchObject({
+    await expect(service.getState(USER_ID_1)).rejects.toMatchObject({
       constructor: InternalServerErrorException,
       response: { code: 'DASHBOARD_STATE_INVALID_RESPONSE' },
     });

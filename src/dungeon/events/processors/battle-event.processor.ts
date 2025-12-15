@@ -270,7 +270,6 @@ export class BattleEventProcessor implements DungeonEventProcessor {
                 itemCode: item.itemCode,
                 quantity: item.quantity,
               })) ?? [],
-            ...(dropMeta?.gold !== undefined ? { gold: dropMeta.gold } : {}),
           },
           progress:
             outcome === 'DEFEAT'

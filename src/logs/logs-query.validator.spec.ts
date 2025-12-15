@@ -54,7 +54,7 @@ describe('validateLogsQuery', () => {
 
   it('기존 createdAt|id 포맷 cursor는 예외를 던진다', () => {
     const legacy = Buffer.from(
-      '2025-01-01T00:00:00.000Z|log-1',
+      '2025-01-01T00:00:00.000Z|00000000-0000-4000-8000-0000000000f1',
       'utf8',
     ).toString('base64url');
     expect(() => validateLogsQuery({ cursor: legacy })).toThrow();
