@@ -19,6 +19,12 @@ export interface SyncApParams {
   meta?: Prisma.JsonValue;
 }
 
+type SyncStateTx = {
+  githubSyncState: {
+    upsert: (args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>;
+  };
+};
+
 @Injectable()
 export class GithubSyncService {
   private readonly initialAp: number;
@@ -35,6 +41,7 @@ export class GithubSyncService {
     params: SyncApParams,
   ): Promise<{ apDelta: number; log: ApSyncLog }> {
     const apDelta = params.contributions;
+    const lastSuccessfulSyncAt = params.windowEnd;
     let attempt = 0;
     const maxAttempts = 3;
     const baseDelayMs = 50;
@@ -51,6 +58,10 @@ export class GithubSyncService {
 
           // 동일 anchor로 이미 성공했고 추가 적재가 없으면 스킵
           if (anchorLog?.status === ApSyncStatus.SUCCESS && apDelta === 0) {
+            await this.upsertSyncState(tx as unknown as SyncStateTx, {
+              userId: params.userId,
+              lastSuccessfulSyncAt,
+            });
             return { apDelta: 0, log: anchorLog };
           }
 
@@ -67,8 +78,16 @@ export class GithubSyncService {
           // 이미 동일 윈도우 성공 로그가 있으면 중복 적재를 방지한다.
           if (existing?.status === ApSyncStatus.SUCCESS) {
             if (apDelta <= 0) {
+              await this.upsertSyncState(tx as unknown as SyncStateTx, {
+                userId: params.userId,
+                lastSuccessfulSyncAt,
+              });
               return { apDelta: 0, log: existing };
             }
+            await this.upsertSyncState(tx as unknown as SyncStateTx, {
+              userId: params.userId,
+              lastSuccessfulSyncAt,
+            });
             return { apDelta: existing.apDelta, log: existing };
           }
 
@@ -84,10 +103,9 @@ export class GithubSyncService {
             });
           }
 
-          // lastSyncAt 대체: GitHub 계정 updatedAt을 갱신
-          await tx.account.updateMany({
-            where: { userId: params.userId, providerId: 'github' },
-            data: { updatedAt: new Date() },
+          await this.upsertSyncState(tx as unknown as SyncStateTx, {
+            userId: params.userId,
+            lastSuccessfulSyncAt,
           });
 
           const upsertData: Prisma.ApSyncLogUncheckedCreateInput = {
@@ -132,5 +150,20 @@ export class GithubSyncService {
         attempt += 1;
       }
     }
+  }
+
+  private async upsertSyncState(
+    tx: SyncStateTx,
+    params: { userId: string; lastSuccessfulSyncAt: Date },
+  ): Promise<void> {
+    await tx.githubSyncState.upsert({
+      where: { userId: params.userId },
+      update: { lastSuccessfulSyncAt: params.lastSuccessfulSyncAt },
+      create: {
+        userId: params.userId,
+        lastSuccessfulSyncAt: params.lastSuccessfulSyncAt,
+        lastManualSuccessfulSyncAt: null,
+      },
+    });
   }
 }

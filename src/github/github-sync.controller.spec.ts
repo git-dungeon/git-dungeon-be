@@ -20,6 +20,10 @@ vi.mock('@nestia/core', async () => {
 });
 
 describe('GithubSyncController (E2E)', () => {
+  type Meta = { requestId?: string };
+  type ApiSuccess<T> = { success: true; data: T; meta: Meta };
+  type ApiError = { success: false; error: { code: string }; meta: Meta };
+
   it('/api/github/sync/status는 200을 반환해야 한다', async () => {
     const requestId = '00000000-0000-4000-8000-000000000001';
     const manualSyncServiceMock = {
@@ -59,8 +63,9 @@ describe('GithubSyncController (E2E)', () => {
         .get('/api/github/sync/status')
         .set('x-request-id', requestId);
 
+      const body = response.body as unknown as ApiSuccess<unknown>;
       expect(response.status).toBe(200);
-      expect(response.body?.meta?.requestId).toBe(requestId);
+      expect(body.meta?.requestId).toBe(requestId);
     } finally {
       await app.close();
     }
@@ -107,8 +112,9 @@ describe('GithubSyncController (E2E)', () => {
         .post('/api/github/sync')
         .set('x-request-id', requestId);
 
+      const body = response.body as unknown as ApiSuccess<unknown>;
       expect(response.status).toBe(200);
-      expect(response.body?.meta?.requestId).toBe(requestId);
+      expect(body.meta?.requestId).toBe(requestId);
     } finally {
       await app.close();
     }
@@ -157,10 +163,11 @@ describe('GithubSyncController (E2E)', () => {
         .post('/api/github/sync')
         .set('x-request-id', requestId);
 
+      const body = response.body as unknown as ApiError;
       expect(response.status).toBe(409);
-      expect(response.body?.success).toBe(false);
-      expect(response.body?.error?.code).toBe('GITHUB_SYNC_IN_PROGRESS');
-      expect(response.body?.meta?.requestId).toBe(requestId);
+      expect(body.success).toBe(false);
+      expect(body.error?.code).toBe('GITHUB_SYNC_IN_PROGRESS');
+      expect(body.meta?.requestId).toBe(requestId);
     } finally {
       await app.close();
     }

@@ -78,20 +78,39 @@ export class GithubManualSyncService {
     }
 
     const now = new Date();
+    const syncState = await this.prisma.githubSyncState.findUnique({
+      where: { userId },
+      select: { lastSuccessfulSyncAt: true, lastManualSuccessfulSyncAt: true },
+    });
+
     const lastSuccess = await this.prisma.apSyncLog.findFirst({
       where: { userId, status: ApSyncStatus.SUCCESS },
       orderBy: { windowEnd: 'desc' },
       select: { windowEnd: true },
     });
 
-    const lastSyncAt = account.updatedAt ?? lastSuccess?.windowEnd ?? null;
-    const cooldown = this.computeCooldownStatus(lastSyncAt, now);
+    const lastSuccessfulSyncAtRaw =
+      syncState?.lastSuccessfulSyncAt ??
+      account.updatedAt ??
+      lastSuccess?.windowEnd ??
+      null;
+    const lastSuccessfulSyncAt =
+      lastSuccessfulSyncAtRaw &&
+      lastSuccessfulSyncAtRaw.getTime() > now.getTime()
+        ? now
+        : lastSuccessfulSyncAtRaw;
+    const lastManualSuccessfulSyncAt =
+      syncState?.lastManualSuccessfulSyncAt ?? null;
+    const cooldown = this.computeCooldownStatus(
+      lastManualSuccessfulSyncAt,
+      now,
+    );
 
     return {
       connected: true,
       allowed: cooldown.allowed,
       cooldownMs: this.cooldownMs,
-      lastSyncAt: cooldown.lastEffective?.toISOString() ?? null,
+      lastSyncAt: lastSuccessfulSyncAt?.toISOString() ?? null,
       nextAvailableAt: cooldown.nextAvailableAt?.toISOString() ?? null,
       retryAfterMs: cooldown.retryAfterMs,
     };
@@ -120,13 +139,22 @@ export class GithubManualSyncService {
     }
 
     const now = new Date();
+    const syncState = await this.prisma.githubSyncState.findUnique({
+      where: { userId },
+      select: { lastSuccessfulSyncAt: true, lastManualSuccessfulSyncAt: true },
+    });
     const lastSuccess = await this.prisma.apSyncLog.findFirst({
       where: { userId, status: ApSyncStatus.SUCCESS },
       orderBy: { windowEnd: 'desc' },
       select: { windowStart: true, windowEnd: true, meta: true },
     });
-    const baseFrom = account.updatedAt
-      ? new Date(account.updatedAt.getTime() + 1)
+    const lastSuccessfulSyncAt =
+      syncState?.lastSuccessfulSyncAt ??
+      account.updatedAt ??
+      lastSuccess?.windowEnd ??
+      null;
+    const baseFrom = lastSuccessfulSyncAt
+      ? new Date(lastSuccessfulSyncAt.getTime() + 1)
       : new Date(now.getTime() - DEFAULT_LOOKBACK_MS);
     const anchorFrom =
       getAnchorFromMeta(lastSuccess?.meta) ??
@@ -135,8 +163,9 @@ export class GithubManualSyncService {
     const from = anchorFrom;
     const to = now;
 
-    const lastSyncAt = account.updatedAt ?? lastSuccess?.windowEnd ?? null;
-    this.enforceCooldown(userId, lastSyncAt, now);
+    const lastManualSuccessfulSyncAt =
+      syncState?.lastManualSuccessfulSyncAt ?? null;
+    this.enforceCooldown(userId, lastManualSuccessfulSyncAt, now);
 
     const context: SyncContext = {
       userId,
@@ -251,6 +280,19 @@ export class GithubManualSyncService {
         rateLimitRemaining: result.rateLimit?.remaining,
         cursor: null,
         meta,
+      });
+
+      await this.prisma.githubSyncState.upsert({
+        where: { userId },
+        update: {
+          lastManualSuccessfulSyncAt: context.to,
+          lastSuccessfulSyncAt: context.to,
+        },
+        create: {
+          userId,
+          lastManualSuccessfulSyncAt: context.to,
+          lastSuccessfulSyncAt: context.to,
+        },
       });
 
       return {

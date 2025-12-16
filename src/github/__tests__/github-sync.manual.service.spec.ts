@@ -59,6 +59,10 @@ describe('GithubManualSyncService', () => {
       accessToken: 'token',
       updatedAt: new Date('2025-12-15T05:00:00.000Z'),
     });
+    prisma.githubSyncState.findUnique.mockResolvedValue({
+      lastSuccessfulSyncAt: new Date('2025-12-15T05:00:00.000Z'),
+      lastManualSuccessfulSyncAt: new Date('2025-12-15T05:00:00.000Z'),
+    });
     prisma.apSyncLog.findFirst.mockResolvedValue(null);
 
     const status = await service.getSyncStatus(USER_ID_1);
@@ -77,6 +81,10 @@ describe('GithubManualSyncService', () => {
       accountId: 'octocat',
       accessToken: 'token',
       updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
+    });
+    prisma.githubSyncState.findUnique.mockResolvedValue({
+      lastSuccessfulSyncAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      lastManualSuccessfulSyncAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
     });
     prisma.apSyncLog.findFirst.mockResolvedValue(null);
     graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
@@ -147,6 +155,7 @@ describe('GithubManualSyncService', () => {
       accessToken: 'token',
       updatedAt: new Date('2025-11-20T00:00:00Z'),
     });
+    prisma.githubSyncState.findUnique.mockResolvedValue(null);
     prisma.apSyncLog.findFirst.mockResolvedValue(null);
     graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
 
@@ -179,10 +188,94 @@ describe('GithubManualSyncService', () => {
 
     expect(result.apDelta).toBe(3);
     expect(result.contributions).toBe(3);
+    const upsertArgs = prisma.githubSyncState.upsert.mock.calls[0]?.[0] as
+      | {
+          where?: { userId?: string };
+          update?: {
+            lastManualSuccessfulSyncAt?: unknown;
+            lastSuccessfulSyncAt?: unknown;
+          };
+        }
+      | undefined;
+    const anyDate = expect.any(Date) as unknown;
+    expect(upsertArgs?.where).toEqual({ userId: USER_ID_1 });
+    expect(upsertArgs?.update).toEqual(
+      expect.objectContaining({
+        lastManualSuccessfulSyncAt: anyDate,
+        lastSuccessfulSyncAt: anyDate,
+      }),
+    );
     expect(syncService.applyContributionSync).toHaveBeenCalledWith(
       expect.objectContaining({
         contributions: 3,
         rateLimitRemaining: 50,
+      }),
+    );
+  });
+
+  it('기여 증가분이 0이어도 성공(200)이면 lastSyncAt 소스를 갱신한다', async () => {
+    const { service, prisma, graphqlClient, syncService } =
+      createManualSyncTestbed();
+    prisma.account.findFirst.mockResolvedValue({
+      accountId: 'octocat',
+      accessToken: 'token',
+      updatedAt: new Date('2025-11-20T00:00:00Z'),
+    });
+    prisma.githubSyncState.findUnique.mockResolvedValue(null);
+    prisma.apSyncLog.findFirst.mockResolvedValue({
+      windowStart: new Date('2025-11-20T00:00:00Z'),
+      windowEnd: new Date('2025-11-20T06:00:00Z'),
+      meta: {
+        anchorFrom: '2025-11-20T00:00:00.000Z',
+        totals: { contributions: 3 },
+      },
+    });
+    graphqlClient.fetchViewerLogin.mockResolvedValue('octocat');
+
+    graphqlClient.fetchContributions.mockResolvedValue({
+      data: {
+        user: {
+          contributionsCollection: {
+            totalCommitContributions: 1,
+            restrictedContributionsCount: 0,
+            pullRequestContributions: { totalCount: 1 },
+            pullRequestReviewContributions: { totalCount: 1 },
+            issueContributions: { totalCount: 0 },
+          },
+        },
+      },
+      rateLimit: {
+        remaining: 50,
+        resetAt: Date.now() + 1000,
+        resource: 'core',
+      },
+      tokenType: 'oauth',
+    });
+
+    syncService.applyContributionSync.mockResolvedValue({
+      apDelta: 0,
+      log: { id: LOG_ID_2 },
+    });
+
+    const result = await service.syncNow(USER_ID_2);
+
+    expect(result.contributions).toBe(0);
+    expect(result.apDelta).toBe(0);
+    const upsertArgs = prisma.githubSyncState.upsert.mock.calls[0]?.[0] as
+      | {
+          where?: { userId?: string };
+          update?: {
+            lastManualSuccessfulSyncAt?: unknown;
+            lastSuccessfulSyncAt?: unknown;
+          };
+        }
+      | undefined;
+    const anyDate = expect.any(Date) as unknown;
+    expect(upsertArgs?.where).toEqual({ userId: USER_ID_2 });
+    expect(upsertArgs?.update).toEqual(
+      expect.objectContaining({
+        lastManualSuccessfulSyncAt: anyDate,
+        lastSuccessfulSyncAt: anyDate,
       }),
     );
   });
