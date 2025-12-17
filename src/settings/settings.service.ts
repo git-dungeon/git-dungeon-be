@@ -40,6 +40,11 @@ export class SettingsService {
             updatedAt: true,
           },
         },
+        githubSyncState: {
+          select: {
+            lastSuccessfulSyncAt: true,
+          },
+        },
       },
     });
 
@@ -51,6 +56,10 @@ export class SettingsService {
     }
 
     const githubAccount = user.accounts.at(0);
+    const lastSuccessfulSyncAt =
+      user.githubSyncState?.lastSuccessfulSyncAt ??
+      githubAccount?.updatedAt ??
+      null;
     const sessionView = session.view.session;
 
     const response: SettingsProfileResponse = {
@@ -65,7 +74,7 @@ export class SettingsService {
       connections: {
         github: {
           connected: Boolean(githubAccount),
-          lastSyncAt: githubAccount?.updatedAt.toISOString() ?? null,
+          lastSyncAt: lastSuccessfulSyncAt?.toISOString() ?? null,
         },
       },
     };

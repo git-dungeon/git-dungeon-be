@@ -94,6 +94,9 @@ export class GithubSyncScheduler implements OnModuleInit {
             where: { providerId: 'github' },
             select: { accountId: true, accessToken: true, updatedAt: true },
           },
+          githubSyncState: {
+            select: { lastSuccessfulSyncAt: true },
+          },
         },
       });
 
@@ -119,8 +122,13 @@ export class GithubSyncScheduler implements OnModuleInit {
             select: { windowStart: true, windowEnd: true, meta: true },
           });
 
-          const baseFrom = account.updatedAt
-            ? new Date(account.updatedAt.getTime() + 1)
+          const lastSuccessfulSyncAt =
+            user.githubSyncState?.lastSuccessfulSyncAt ??
+            account.updatedAt ??
+            lastSuccess?.windowEnd ??
+            null;
+          const baseFrom = lastSuccessfulSyncAt
+            ? new Date(lastSuccessfulSyncAt.getTime() + 1)
             : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
           const anchorFrom =

@@ -14,8 +14,8 @@ type MockPrismaTx = {
   dungeonState: {
     upsert: (args: Prisma.DungeonStateUpsertArgs) => Promise<unknown>;
   };
-  account: {
-    updateMany: (args: Prisma.AccountUpdateManyArgs) => Promise<unknown>;
+  githubSyncState: {
+    upsert: (args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>;
   };
 };
 
@@ -28,7 +28,7 @@ const createPrismaMock = () => {
       create,
       update,
       upsertState,
-      updateAccount,
+      upsertSyncState,
     },
     tx,
   } = createSyncServiceTestbed();
@@ -42,7 +42,7 @@ const createPrismaMock = () => {
       create,
       update,
       upsertState,
-      updateAccount,
+      upsertSyncState,
     },
   };
 };
@@ -93,7 +93,12 @@ describe('GithubSyncService 동작', () => {
         ap: expect.any(Number),
       },
     });
-    expect(mocks.updateAccount).toHaveBeenCalled();
+    expect(mocks.upsertSyncState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseParams.userId },
+        update: { lastSuccessfulSyncAt: baseParams.windowEnd },
+      }),
+    );
     expect(mocks.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: baseParams.userId,
@@ -125,6 +130,12 @@ describe('GithubSyncService 동작', () => {
     });
 
     expect(mocks.upsertState).not.toHaveBeenCalled();
+    expect(mocks.upsertSyncState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseParams.userId },
+        update: { lastSuccessfulSyncAt: baseParams.windowEnd },
+      }),
+    );
     expect(mocks.create).not.toHaveBeenCalled();
     expect(mocks.update).not.toHaveBeenCalled();
     expect(result.apDelta).toBe(0);
@@ -161,6 +172,12 @@ describe('GithubSyncService 동작', () => {
         ap: expect.any(Number),
       },
     });
+    expect(mocks.upsertSyncState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseParams.userId },
+        update: { lastSuccessfulSyncAt: baseParams.windowEnd },
+      }),
+    );
     expect(mocks.update).toHaveBeenCalledWith({
       where: { id: existing.id },
       data: expect.objectContaining({
@@ -198,6 +215,12 @@ describe('GithubSyncService 동작', () => {
     expect(result.log).toBe(lastSuccess);
     expect(mocks.findUnique).not.toHaveBeenCalled();
     expect(mocks.upsertState).not.toHaveBeenCalled();
+    expect(mocks.upsertSyncState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseParams.userId },
+        update: { lastSuccessfulSyncAt: baseParams.windowEnd },
+      }),
+    );
     expect(mocks.create).not.toHaveBeenCalled();
   });
 });

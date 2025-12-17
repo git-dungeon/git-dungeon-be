@@ -19,6 +19,16 @@ type PrismaManualMock = {
       typeof vi.fn<(args: Prisma.ApSyncLogUpsertArgs) => Promise<unknown>>
     >;
   };
+  githubSyncState: {
+    findUnique: ReturnType<
+      typeof vi.fn<
+        (args: Prisma.GithubSyncStateFindUniqueArgs) => Promise<unknown>
+      >
+    >;
+    upsert: ReturnType<
+      typeof vi.fn<(args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>>
+    >;
+  };
 };
 
 export const createManualSyncTestbed = () => {
@@ -31,6 +41,14 @@ export const createManualSyncTestbed = () => {
       findFirst:
         vi.fn<(args: Prisma.ApSyncLogFindFirstArgs) => Promise<unknown>>(),
       upsert: vi.fn<(args: Prisma.ApSyncLogUpsertArgs) => Promise<unknown>>(),
+    },
+    githubSyncState: {
+      findUnique:
+        vi.fn<
+          (args: Prisma.GithubSyncStateFindUniqueArgs) => Promise<unknown>
+        >(),
+      upsert:
+        vi.fn<(args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>>(),
     },
   };
 
@@ -143,8 +161,8 @@ type MockPrismaTx = {
   dungeonState: {
     upsert: (args: Prisma.DungeonStateUpsertArgs) => Promise<unknown>;
   };
-  account: {
-    updateMany: (args: Prisma.AccountUpdateManyArgs) => Promise<unknown>;
+  githubSyncState: {
+    upsert: (args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>;
   };
 };
 
@@ -163,8 +181,8 @@ export const createSyncServiceTestbed = () => {
     vi.fn<(args: Prisma.ApSyncLogUpdateArgs) => Promise<unknown>>();
   const upsertState =
     vi.fn<(args: Prisma.DungeonStateUpsertArgs) => Promise<unknown>>();
-  const updateAccount =
-    vi.fn<(args: Prisma.AccountUpdateManyArgs) => Promise<unknown>>();
+  const upsertSyncState =
+    vi.fn<(args: Prisma.GithubSyncStateUpsertArgs) => Promise<unknown>>();
 
   const tx: MockPrismaTx = {
     apSyncLog: {
@@ -177,9 +195,9 @@ export const createSyncServiceTestbed = () => {
     dungeonState: {
       upsert: upsertState as unknown as MockPrismaTx['dungeonState']['upsert'],
     },
-    account: {
-      updateMany:
-        updateAccount as unknown as MockPrismaTx['account']['updateMany'],
+    githubSyncState: {
+      upsert:
+        upsertSyncState as unknown as MockPrismaTx['githubSyncState']['upsert'],
     },
   };
 
@@ -200,7 +218,7 @@ export const createSyncServiceTestbed = () => {
       create,
       update,
       upsertState,
-      updateAccount,
+      upsertSyncState,
     },
   };
 };
