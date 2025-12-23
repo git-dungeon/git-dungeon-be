@@ -7,7 +7,13 @@ import {
   PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, type InventoryItem } from '@prisma/client';
+import {
+  DungeonLogAction,
+  DungeonLogCategory,
+  DungeonLogStatus,
+  Prisma,
+  type InventoryItem,
+} from '@prisma/client';
 import typia, { TypeGuardError } from 'typia';
 import {
   INVENTORY_STATS,
@@ -24,6 +30,10 @@ import type {
   InventoryRarity,
   InventorySlot,
 } from './dto/inventory.response';
+import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
+import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
+
+type InventoryLogAction = 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
 
 const INVENTORY_SLOTS: InventorySlot[] = [
   'helmet',
@@ -97,6 +107,14 @@ export class InventoryService {
         });
       }
 
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.EQUIP_ITEM,
+        item: this.mapInventoryItem(target),
+        replaced: equippedInSlot
+          ? this.mapInventoryItem(equippedInSlot)
+          : undefined,
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
       });
@@ -149,6 +167,11 @@ export class InventoryService {
         });
       }
 
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.UNEQUIP_ITEM,
+        item: this.mapInventoryItem(target),
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
       });
@@ -192,6 +215,11 @@ export class InventoryService {
           message: '아이템 버전이 일치하지 않습니다.',
         });
       }
+
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.DISCARD_ITEM,
+        item: this.mapInventoryItem(target),
+      });
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
@@ -502,5 +530,132 @@ export class InventoryService {
 
   private createEmptyStats(): EquipmentStats {
     return { hp: 0, atk: 0, def: 0, luck: 0 };
+  }
+
+  private async appendInventoryLog(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    input: {
+      action: InventoryLogAction;
+      item: EquipmentItem;
+      replaced?: EquipmentItem;
+    },
+  ): Promise<void> {
+    const delta: DungeonLogDelta = this.buildInventoryDelta(input);
+    const extra: DungeonLogDetails = this.buildInventoryDetails(input);
+
+    await tx.dungeonLog.create({
+      data: {
+        userId,
+        category: DungeonLogCategory.STATUS,
+        action: input.action,
+        status: DungeonLogStatus.COMPLETED,
+        floor: null,
+        turnNumber: null,
+        stateVersionBefore: null,
+        stateVersionAfter: null,
+        delta: delta as Prisma.InputJsonValue,
+        extra: extra as Prisma.InputJsonValue,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  private buildInventoryDelta(input: {
+    action: InventoryLogAction;
+    item: EquipmentItem;
+    replaced?: EquipmentItem;
+  }): DungeonLogDelta {
+    if (input.action === DungeonLogAction.EQUIP_ITEM) {
+      return {
+        type: 'EQUIP_ITEM',
+        detail: {
+          inventory: {
+            equipped: {
+              slot: input.item.slot,
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+            unequipped: input.replaced
+              ? {
+                  slot: input.replaced.slot,
+                  itemId: input.replaced.id,
+                  code: input.replaced.code,
+                }
+              : undefined,
+          },
+        },
+      };
+    }
+
+    if (input.action === DungeonLogAction.UNEQUIP_ITEM) {
+      return {
+        type: 'UNEQUIP_ITEM',
+        detail: {
+          inventory: {
+            unequipped: {
+              slot: input.item.slot,
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+          },
+        },
+      };
+    }
+
+    return {
+      type: 'DISCARD_ITEM',
+      detail: {
+        inventory: {
+          removed: [
+            {
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+          ],
+          unequipped: input.item.isEquipped
+            ? {
+                slot: input.item.slot,
+                itemId: input.item.id,
+                code: input.item.code,
+              }
+            : undefined,
+        },
+      },
+    };
+  }
+
+  private buildInventoryDetails(input: {
+    action: InventoryLogAction;
+    item: EquipmentItem;
+    replaced?: EquipmentItem;
+  }): DungeonLogDetails {
+    return {
+      type:
+        input.action === DungeonLogAction.EQUIP_ITEM
+          ? 'EQUIP_ITEM'
+          : input.action === DungeonLogAction.UNEQUIP_ITEM
+            ? 'UNEQUIP_ITEM'
+            : 'DISCARD_ITEM',
+      details: {
+        item: {
+          id: input.item.id,
+          code: input.item.code,
+          slot: input.item.slot,
+          rarity: input.item.rarity,
+          name: input.item.name ?? null,
+          modifiers: input.item.modifiers,
+        },
+        replacedItem: input.replaced
+          ? {
+              id: input.replaced.id,
+              code: input.replaced.code,
+              slot: input.replaced.slot,
+              rarity: input.replaced.rarity,
+              name: input.replaced.name ?? null,
+            }
+          : undefined,
+      },
+    };
   }
 }
