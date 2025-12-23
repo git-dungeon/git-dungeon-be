@@ -6,6 +6,7 @@ import {
   PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import type { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from './inventory.service';
 import {
@@ -222,6 +223,7 @@ describe('InventoryService mutations', () => {
     }>;
   }) => {
     let inventoryItems = [...items];
+    const dungeonLogCreates: unknown[] = [];
     const prismaMock = {
       dungeonState: {
         findUnique: vi.fn(({ where }: { where: { userId: string } }) =>
@@ -317,6 +319,12 @@ describe('InventoryService mutations', () => {
           });
         }),
       },
+      dungeonLog: {
+        create: vi.fn(({ data }: { data: unknown }) => {
+          dungeonLogCreates.push(data);
+          return Promise.resolve(data);
+        }),
+      },
       $transaction: vi.fn((cb: (tx: PrismaService) => Promise<unknown>) =>
         cb(prismaMock as unknown as PrismaService),
       ),
@@ -326,6 +334,7 @@ describe('InventoryService mutations', () => {
       service: new InventoryService(prismaMock as unknown as PrismaService),
       prismaMock,
       getItems: () => inventoryItems,
+      getDungeonLogs: () => dungeonLogCreates,
     };
   };
 
@@ -337,8 +346,8 @@ describe('InventoryService mutations', () => {
     luck: 1,
   };
 
-  it('equip: 기존 슬롯 해제 후 대상 아이템을 장착하고 버전을 증가시켜야 한다', async () => {
-    const { service, getItems } = createPrismaMock({
+  it('equip: 기존 슬롯 해제 후 대상 아이템을 장착하고 버전을 증가시키며 로그를 남긴다', async () => {
+    const { service, getItems, getDungeonLogs } = createPrismaMock({
       dungeonState: baseDungeonState,
       items: [
         createItem({ id: SWORD_ID, version: 1 }),
@@ -370,6 +379,15 @@ describe('InventoryService mutations', () => {
     expect(sword?.version).toBe(2);
     expect(dagger?.isEquipped).toBe(false);
     expect(dagger?.version).toBe(3);
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.EQUIP_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
   });
 
   it('equip: 버전 불일치 시 412를 던져야 한다', async () => {
@@ -417,8 +435,39 @@ describe('InventoryService mutations', () => {
     });
   });
 
-  it('discard: 장착 상태여도 삭제하고 버전을 증가시킨다', async () => {
-    const { service, getItems } = createPrismaMock({
+  it('unequip: 성공 시 로그를 남긴다', async () => {
+    const { service, getDungeonLogs } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: RING_ID,
+          code: 'ring-topaz',
+          slot: 'RING',
+          rarity: 'UNCOMMON',
+          isEquipped: true,
+          version: 1,
+        }),
+      ],
+    });
+
+    await service.unequipItem(USER_ID_1, {
+      itemId: RING_ID,
+      expectedVersion: 1,
+      inventoryVersion: 1,
+    });
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.UNEQUIP_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
+  });
+
+  it('discard: 장착 상태여도 삭제하고 버전을 증가시키며 로그를 남긴다', async () => {
+    const { service, getItems, getDungeonLogs } = createPrismaMock({
       dungeonState: baseDungeonState,
       items: [
         createItem({
@@ -449,6 +498,15 @@ describe('InventoryService mutations', () => {
     expect(response.version).toBeGreaterThanOrEqual(5);
 
     expect(getItems().some((item) => item.id === RING_ID)).toBe(false);
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.DISCARD_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
   });
 
   it('inventoryVersion 불일치 시 412를 던져야 한다', async () => {
