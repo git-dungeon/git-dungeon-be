@@ -54,6 +54,7 @@ export type DungeonEventLogStub = {
   extra?: DungeonLogDetails;
   actionOverride?: DungeonLogAction;
   categoryOverride?: DungeonLogCategory;
+  floor?: number;
 };
 
 export type DungeonLogPayload = {

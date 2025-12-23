@@ -112,6 +112,7 @@ export class DungeonEventService {
       selectedEvent === DungeonEventType.MOVE
         ? processorResult
         : this.applyProgress(processorResult, selectedEvent);
+    const completedFloor = progressedState.state.floor;
 
     const deathApplied = this.applyDeathIfNeeded(
       progressedState.state,
@@ -147,6 +148,7 @@ export class DungeonEventService {
       status: 'COMPLETED',
       delta: completedDelta,
       extra: processorResult.extra,
+      floor: completedFloor,
     });
 
     if (deathApplied.deathLog) {
@@ -157,7 +159,12 @@ export class DungeonEventService {
     }
 
     if (expApplied.levelUpLogs.length) {
-      logs.push(...expApplied.levelUpLogs);
+      logs.push(
+        ...expApplied.levelUpLogs.map((log) => ({
+          ...log,
+          floor: log.floor ?? expApplied.state.floor,
+        })),
+      );
     }
 
     const needsForcedMove =
@@ -271,6 +278,7 @@ export class DungeonEventService {
         status: 'COMPLETED',
         delta: moveResult.delta,
         extra: moveResult.extra,
+        floor: moveResult.state.floor,
       });
 
       workingState = moveResult.state;
@@ -307,6 +315,7 @@ export class DungeonEventService {
       type,
       status: 'STARTED',
       delta: this.buildStartedApDelta(type, apCost),
+      floor: state.floor,
     });
 
     const result = processor.process({
@@ -315,7 +324,12 @@ export class DungeonEventService {
     });
 
     if (result.followUpLogs?.length) {
-      logs.push(...result.followUpLogs);
+      logs.push(
+        ...result.followUpLogs.map((log) => ({
+          ...log,
+          floor: log.floor ?? state.floor,
+        })),
+      );
     }
 
     return result;
@@ -436,6 +450,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'DEATH',
+      floor: deadState.floor,
       delta: {
         type: 'DEATH',
         detail: {
@@ -459,6 +474,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'REVIVE',
+      floor: revivedState.floor,
       delta: {
         type: 'REVIVE',
         detail: {

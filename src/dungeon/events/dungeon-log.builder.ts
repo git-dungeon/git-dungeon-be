@@ -38,7 +38,9 @@ export class DungeonLogBuilder {
         log.status === 'STARTED'
           ? DungeonLogStatus.STARTED
           : DungeonLogStatus.COMPLETED,
-      floor: log.status === 'STARTED' ? stateBefore.floor : stateAfter.floor,
+      floor:
+        log.floor ??
+        (log.status === 'STARTED' ? stateBefore.floor : stateAfter.floor),
       turnNumber,
       stateVersionBefore: stateBefore.version,
       stateVersionAfter:

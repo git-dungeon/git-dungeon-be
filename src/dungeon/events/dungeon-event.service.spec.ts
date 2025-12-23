@@ -106,6 +106,14 @@ describe('DungeonEventService', () => {
         log.status === DungeonLogStatus.COMPLETED,
     );
 
+    const restCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.REST &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+
+    expect(restCompleted?.floor).toBe(state.floor);
+    expect(moveCompleted?.floor).toBe(state.floor + 1);
     expect(moveCompleted?.stateVersionAfter).toBe(state.version + 1);
   });
 
@@ -324,6 +332,7 @@ describe('DungeonEventService', () => {
         'number',
       );
     }
+    expect(deathLog?.floor).toBe(1);
 
     const trapCompleted = result.logs.find(
       (log) =>
@@ -345,6 +354,7 @@ describe('DungeonEventService', () => {
       expect(trapCompleted.delta.detail.progress).toBeUndefined();
       expect(trapCompleted.delta.detail.stats.ap).toBeUndefined();
     }
+    expect(trapCompleted?.floor).toBe(state.floor);
 
     const trapCompletedIndex = result.logs.findIndex(
       (log) =>
