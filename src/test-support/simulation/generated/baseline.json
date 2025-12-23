@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "TREASURE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "TREASURE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "TREASURE",
@@ -22,15 +31,11 @@
         "delta": {
           "type": "TREASURE",
           "detail": {
-            "gold": 5,
             "rewards": {
               "gold": 5,
               "items": [
                 {
-                  "itemId": "ring-topaz",
-                  "code": "ring-topaz",
-                  "slot": "ring",
-                  "rarity": "uncommon",
+                  "itemCode": "ring-topaz",
                   "quantity": 1
                 }
               ],
@@ -43,7 +48,8 @@
               "delta": 10
             }
           }
-        }
+        },
+        "floor": 1
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -54,7 +60,7 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "ring-topaz",
+                  "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
                   "code": "ring-topaz",
                   "slot": "ring",
                   "rarity": "uncommon",
@@ -81,7 +87,8 @@
               }
             }
           }
-        }
+        },
+        "floor": 1
       }
     ]
   },
@@ -100,7 +107,16 @@
     "logs": [
       {
         "action": "REST",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "REST",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "REST",
@@ -117,7 +133,8 @@
               "delta": 10
             }
           }
-        }
+        },
+        "floor": 1
       }
     ]
   },
@@ -136,7 +153,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "BATTLE",
@@ -147,6 +173,14 @@
             "stats": {
               "hp": -1,
               "exp": 3
+            },
+            "rewards": {
+              "items": [
+                {
+                  "itemCode": "ring-topaz",
+                  "quantity": 1
+                }
+              ]
             },
             "progress": {
               "previousProgress": 20,
@@ -173,7 +207,8 @@
             "damageDealt": 9,
             "damageTaken": 1
           }
-        }
+        },
+        "floor": 1
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -184,7 +219,7 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "ring-topaz",
+                  "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
                   "code": "ring-topaz",
                   "slot": "ring",
                   "rarity": "uncommon",
@@ -211,7 +246,8 @@
               }
             }
           }
-        }
+        },
+        "floor": 1
       }
     ]
   }

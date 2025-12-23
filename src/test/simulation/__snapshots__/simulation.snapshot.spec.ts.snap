@@ -22,6 +22,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             "type": "TREASURE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -48,6 +49,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             "type": "TREASURE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -86,6 +88,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             },
             "type": "ACQUIRE_ITEM",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -114,6 +117,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             "type": "REST",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -132,6 +136,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             "type": "REST",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -160,6 +165,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             "type": "BATTLE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -205,6 +211,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             },
             "type": "BATTLE",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -243,6 +250,7 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
             },
             "type": "ACQUIRE_ITEM",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -272,6 +280,169 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
 }
 `;
 
+exports[`simulation fixtures snapshots > matches snapshot: forced-move 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "forced-move",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 100,
+                "previousProgress": 90,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "itemCode": "weapon-battle-axe",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 9,
+              "damageTaken": 1,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "def": 0,
+                "hp": 8,
+                "id": "monster-giant-rat",
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "result": "VICTORY",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "MOVE",
+          "delta": undefined,
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "MOVE",
+          "delta": {
+            "detail": {
+              "fromFloor": 1,
+              "previousProgress": 100,
+              "progress": {
+                "delta": -100,
+                "floorProgress": 0,
+                "previousProgress": 100,
+              },
+              "toFloor": 2,
+            },
+            "type": "MOVE",
+          },
+          "extra": undefined,
+          "floor": 2,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "weapon-battle-axe",
+                    "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
+                    "quantity": 1,
+                    "rarity": "rare",
+                    "slot": "weapon",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "itemCode": "weapon-battle-axe",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 2,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 2,
+        "exp": 3,
+        "floor": 2,
+        "floorProgress": 0,
+        "hp": 9,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 2,
+    "finalFloor": 2,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
 exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
 {
   "fixtureCheck": {
@@ -294,6 +465,7 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
             "type": "BATTLE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -339,6 +511,7 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
             },
             "type": "BATTLE",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -377,6 +550,7 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
             },
             "type": "ACQUIRE_ITEM",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -428,6 +602,7 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             "type": "BATTLE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -462,6 +637,7 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             },
             "type": "BATTLE",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -483,6 +659,7 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             },
             "type": "DEATH",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -496,6 +673,7 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
             "type": "REVIVE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -547,6 +725,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             "type": "TRAP",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "STARTED",
         },
         {
@@ -560,6 +739,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             "type": "TRAP",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -581,6 +761,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             },
             "type": "DEATH",
           },
+          "floor": 1,
           "status": "COMPLETED",
         },
         {
@@ -594,6 +775,7 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
             "type": "REVIVE",
           },
           "extra": undefined,
+          "floor": 1,
           "status": "COMPLETED",
         },
       ],
@@ -645,6 +827,7 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
             "type": "BATTLE",
           },
           "extra": undefined,
+          "floor": 120,
           "status": "STARTED",
         },
         {
@@ -684,6 +867,7 @@ exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
             },
             "type": "BATTLE",
           },
+          "floor": 120,
           "status": "COMPLETED",
         },
       ],

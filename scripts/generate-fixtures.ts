@@ -88,6 +88,7 @@ type OutputStep = {
     status: string;
     delta: unknown;
     extra: unknown;
+    floor: number | null | undefined;
   }>;
 };
 
@@ -124,6 +125,7 @@ async function runSnapshot(snapshot: Snapshot): Promise<OutputStep[]> {
         status: l.status,
         delta: l.delta,
         extra: l.extra,
+        floor: l.floor,
       })),
     });
     state = res.stateAfter;

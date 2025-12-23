@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "BATTLE",
@@ -25,6 +34,14 @@
             "stats": {
               "hp": -1,
               "exp": 3
+            },
+            "rewards": {
+              "items": [
+                {
+                  "itemCode": "weapon-battle-axe",
+                  "quantity": 1
+                }
+              ]
             },
             "progress": {
               "previousProgress": 90,
@@ -50,11 +67,13 @@
             "damageDealt": 9,
             "damageTaken": 1
           }
-        }
+        },
+        "floor": 1
       },
       {
         "action": "MOVE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "floor": 1
       },
       {
         "action": "MOVE",
@@ -71,7 +90,8 @@
               "delta": -100
             }
           }
-        }
+        },
+        "floor": 2
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -82,7 +102,7 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "weapon-battle-axe",
+                  "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
                   "code": "weapon-battle-axe",
                   "slot": "weapon",
                   "rarity": "rare",
@@ -109,7 +129,8 @@
               }
             }
           }
-        }
+        },
+        "floor": 2
       }
     ]
   }

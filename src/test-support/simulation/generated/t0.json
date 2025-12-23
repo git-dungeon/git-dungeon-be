@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "BATTLE",
@@ -25,6 +34,14 @@
             "stats": {
               "hp": -5,
               "exp": 3
+            },
+            "rewards": {
+              "items": [
+                {
+                  "itemCode": "ring-silver-band",
+                  "quantity": 1
+                }
+              ]
             },
             "progress": {
               "previousProgress": 20,
@@ -50,7 +67,8 @@
             "damageDealt": 8,
             "damageTaken": 5
           }
-        }
+        },
+        "floor": 1
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -61,7 +79,7 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "ring-silver-band",
+                  "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
                   "code": "ring-silver-band",
                   "slot": "ring",
                   "rarity": "common",
@@ -88,7 +106,8 @@
               }
             }
           }
-        }
+        },
+        "floor": 1
       }
     ]
   }

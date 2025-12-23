@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "REST",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "REST",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 2
       },
       {
         "action": "REST",
@@ -31,7 +40,8 @@
               "delta": 10
             }
           }
-        }
+        },
+        "floor": 2
       }
     ]
   }

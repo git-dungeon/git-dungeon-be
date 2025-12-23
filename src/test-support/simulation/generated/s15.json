@@ -14,7 +14,29 @@
     "logs": [
       {
         "action": "TRAP",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "TRAP",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 1
+      },
+      {
+        "action": "TRAP",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "TRAP",
+          "detail": {
+            "stats": {
+              "hp": -3
+            }
+          }
+        },
+        "floor": 1
       },
       {
         "action": "DEATH",
@@ -22,9 +44,7 @@
         "delta": {
           "type": "DEATH",
           "detail": {
-            "stats": {
-              "hp": 10
-            },
+            "stats": {},
             "progress": {
               "previousProgress": 10,
               "floorProgress": 0,
@@ -37,19 +57,21 @@
           "details": {
             "cause": "TRAP_DAMAGE"
           }
-        }
+        },
+        "floor": 1
       },
       {
-        "action": "TRAP",
+        "action": "REVIVE",
         "status": "COMPLETED",
         "delta": {
-          "type": "TRAP",
+          "type": "REVIVE",
           "detail": {
             "stats": {
-              "hp": -3
+              "hp": 10
             }
           }
-        }
+        },
+        "floor": 1
       }
     ]
   }

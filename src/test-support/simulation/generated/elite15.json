@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 5
       },
       {
         "action": "BATTLE",
@@ -25,6 +34,18 @@
             "stats": {
               "hp": -1,
               "exp": 10
+            },
+            "rewards": {
+              "items": [
+                {
+                  "itemCode": "weapon-battle-axe",
+                  "quantity": 1
+                },
+                {
+                  "itemCode": "helmet-bronze-helm",
+                  "quantity": 1
+                }
+              ]
             },
             "progress": {
               "previousProgress": 0,
@@ -50,7 +71,8 @@
             "damageDealt": 15,
             "damageTaken": 1
           }
-        }
+        },
+        "floor": 5
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -61,14 +83,14 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "weapon-battle-axe",
+                  "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
                   "code": "weapon-battle-axe",
                   "slot": "weapon",
                   "rarity": "rare",
                   "quantity": 1
                 },
                 {
-                  "itemId": "helmet-bronze-helm",
+                  "itemId": "fd2ad6b8-8b36-5b0e-ad9d-a973e643057a",
                   "code": "helmet-bronze-helm",
                   "slot": "helmet",
                   "rarity": "uncommon",
@@ -99,7 +121,8 @@
               }
             }
           }
-        }
+        },
+        "floor": 5
       }
     ]
   }

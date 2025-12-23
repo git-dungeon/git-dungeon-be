@@ -14,6 +14,7 @@ const cases: Case[] = [
   { name: 'trap-death', maxActions: 1 },
   { name: 'no-drop', maxActions: 1 },
   { name: 'long-battle', maxActions: 1 },
+  { name: 'forced-move', maxActions: 1 },
 ];
 
 const runner = new SimulationRunner(false); // dry-run (no DB)
@@ -93,6 +94,24 @@ describe('simulation fixtures snapshots', () => {
           .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
         const deathExtra = death?.extra as { details?: { cause?: unknown } };
         expect(deathExtra?.details?.cause).toBe('TRAP_DAMAGE');
+        expect(death?.floor).toBe(1);
+
+        const trapCompleted = result.steps
+          .flatMap((s) => s.logs)
+          .find((l) => l.action === 'TRAP' && l.status === 'COMPLETED');
+        expect(trapCompleted?.floor).toBe(fixture.initialState.floor);
+      }
+
+      if (name === 'forced-move') {
+        const battleCompleted = result.steps
+          .flatMap((s) => s.logs)
+          .find((l) => l.action === 'BATTLE' && l.status === 'COMPLETED');
+        const moveCompleted = result.steps
+          .flatMap((s) => s.logs)
+          .find((l) => l.action === 'MOVE' && l.status === 'COMPLETED');
+
+        expect(battleCompleted?.floor).toBe(fixture.initialState.floor);
+        expect(moveCompleted?.floor).toBe(fixture.initialState.floor + 1);
       }
 
       const normalized = normalizeResult(result);
