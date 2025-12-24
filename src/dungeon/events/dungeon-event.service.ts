@@ -311,16 +311,18 @@ export class DungeonEventService {
       });
     }
 
-    logs.push({
-      type,
-      status: 'STARTED',
-      delta: this.buildStartedApDelta(type, apCost),
-      floor: state.floor,
-    });
-
+    const startedDelta = this.buildStartedApDelta(type, apCost);
     const result = processor.process({
       state,
       rngValue,
+    });
+
+    logs.push({
+      type,
+      status: 'STARTED',
+      delta: startedDelta,
+      extra: result.startedExtra,
+      floor: state.floor,
     });
 
     if (result.followUpLogs?.length) {

@@ -106,6 +106,7 @@ export type DungeonEventProcessorOutput = {
   state: DungeonState;
   delta?: DungeonLogDelta;
   extra?: DungeonLogDetails;
+  startedExtra?: DungeonLogDetails;
   expGained?: number;
   followUpLogs?: DungeonEventLogStub[];
   drops?: DropResult[];

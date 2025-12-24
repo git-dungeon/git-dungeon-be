@@ -303,6 +303,42 @@ describe('DungeonEventService', () => {
     }
   });
 
+  it('전투 STARTED 로그에 몬스터 extra가 포함된다', async () => {
+    const state: DungeonState = createState({
+      ap: 5,
+      floorProgress: 0,
+    });
+
+    const result = await service.execute({
+      state,
+      seed: 'battle-start-extra',
+      weights: {
+        [DungeonEventType.BATTLE]: 1,
+        [DungeonEventType.TREASURE]: 0,
+        [DungeonEventType.REST]: 0,
+        [DungeonEventType.TRAP]: 0,
+      },
+    });
+
+    const startedLog = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+
+    expect(startedLog?.extra?.type).toBe('BATTLE');
+    const details =
+      startedLog?.extra?.type === 'BATTLE'
+        ? startedLog.extra.details
+        : undefined;
+    expect(details?.monster?.code).toBeTypeOf('string');
+    expect(details?.monster?.name).toBeTypeOf('string');
+    expect(details?.monster?.hp).toBeTypeOf('number');
+    expect(details?.monster?.atk).toBeTypeOf('number');
+    expect(details?.monster?.def).toBeTypeOf('number');
+    expect(details?.monster?.spriteId).toBeTypeOf('string');
+  });
+
   it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
     const state: DungeonState = createState({
       hp: 1,

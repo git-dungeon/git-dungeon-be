@@ -299,6 +299,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           damageTaken,
         },
       ),
+      startedExtra: this.buildBattleDetails(monsterMeta, scaled, undefined, {}),
       expGained,
       drops: params.drops?.length ? params.drops : undefined,
       dropMeta,
@@ -340,7 +341,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
   private buildBattleDetails(
     monster: CatalogMonster,
     scaled: ReturnType<typeof getScaledStats>,
-    result: 'VICTORY' | 'DEFEAT',
+    result: 'VICTORY' | 'DEFEAT' | undefined,
     options: {
       cause?: string;
       expGained?: number;
