@@ -552,6 +552,75 @@ describe('DungeonEventService', () => {
   );
 
   it.sequential(
+    '강제 MOVE가 필요한 경우 ACQUIRE_ITEM 로그가 MOVE보다 먼저 기록된다',
+    async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+      process.env.NODE_ENV = 'development';
+      process.env.DATABASE_SKIP_CONNECTION = 'false';
+
+      const dropService: Pick<DropService, 'roll'> = {
+        roll: vi
+          .fn()
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
+      };
+      const inventoryAdds = [
+        {
+          itemId: '00000000-0000-4000-8000-000000000402',
+          code: 'weapon-wooden-sword',
+          slot: 'weapon',
+          rarity: 'common',
+          quantity: 1,
+        },
+      ];
+      const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+        applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+      };
+
+      try {
+        const module = await Test.createTestingModule({
+          imports: [DungeonModule],
+        })
+          .overrideProvider(DropService)
+          .useValue(dropService)
+          .overrideProvider(DropInventoryService)
+          .useValue(dropInventoryService)
+          .compile();
+
+        const serviceWithDrops = module.get(DungeonEventService);
+        const state: DungeonState = createState({ ap: 5, floorProgress: 95 });
+
+        const result = await serviceWithDrops.execute({
+          state,
+          seed: 'acquire-log-move-order',
+          weights: {
+            [DungeonEventType.BATTLE]: 0,
+            [DungeonEventType.TREASURE]: 1,
+            [DungeonEventType.REST]: 0,
+            [DungeonEventType.TRAP]: 0,
+          },
+        });
+
+        const acquireIndex = result.logs.findIndex(
+          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        );
+        const moveStartedIndex = result.logs.findIndex(
+          (log) =>
+            log.action === DungeonLogAction.MOVE &&
+            log.status === DungeonLogStatus.STARTED,
+        );
+
+        expect(acquireIndex).toBeGreaterThanOrEqual(0);
+        expect(moveStartedIndex).toBeGreaterThanOrEqual(0);
+        expect(acquireIndex).toBeLessThan(moveStartedIndex);
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+        process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
+      }
+    },
+  );
+
+  it.sequential(
     'DB 연결을 건너뛰는 환경에서도 드랍 로그를 남긴다',
     async () => {
       const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;

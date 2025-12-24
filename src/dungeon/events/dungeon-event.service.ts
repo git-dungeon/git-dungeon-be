@@ -167,18 +167,6 @@ export class DungeonEventService {
       );
     }
 
-    const needsForcedMove =
-      selectedEvent !== DungeonEventType.MOVE &&
-      expApplied.state.floorProgress >= MAX_FLOOR_PROGRESS;
-
-    const finalState = this.completeFlow(
-      expApplied.state,
-      needsForcedMove,
-      rngValue,
-      startedAt,
-      logs,
-    );
-
     let inventoryAdds: InventoryDelta['added'] | undefined;
 
     const shouldApplyDrops =
@@ -228,8 +216,21 @@ export class DungeonEventService {
             },
           },
         },
+        floor: completedFloor,
       });
     }
+
+    const needsForcedMove =
+      selectedEvent !== DungeonEventType.MOVE &&
+      expApplied.state.floorProgress >= MAX_FLOOR_PROGRESS;
+
+    const finalState = this.completeFlow(
+      expApplied.state,
+      needsForcedMove,
+      rngValue,
+      startedAt,
+      logs,
+    );
 
     const builtLogs = this.logBuilder.buildExplorationLogs({
       stateBefore,

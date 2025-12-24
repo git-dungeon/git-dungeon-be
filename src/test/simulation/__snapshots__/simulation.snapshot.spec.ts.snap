@@ -388,32 +388,6 @@ exports[`simulation fixtures snapshots > matches snapshot: forced-move 1`] = `
           "status": "COMPLETED",
         },
         {
-          "action": "MOVE",
-          "delta": undefined,
-          "extra": undefined,
-          "floor": 1,
-          "status": "STARTED",
-        },
-        {
-          "action": "MOVE",
-          "delta": {
-            "detail": {
-              "fromFloor": 1,
-              "previousProgress": 100,
-              "progress": {
-                "delta": -100,
-                "floorProgress": 0,
-                "previousProgress": 100,
-              },
-              "toFloor": 2,
-            },
-            "type": "MOVE",
-          },
-          "extra": undefined,
-          "floor": 2,
-          "status": "COMPLETED",
-        },
-        {
           "action": "ACQUIRE_ITEM",
           "delta": {
             "detail": {
@@ -449,6 +423,32 @@ exports[`simulation fixtures snapshots > matches snapshot: forced-move 1`] = `
             },
             "type": "ACQUIRE_ITEM",
           },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "MOVE",
+          "delta": undefined,
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "MOVE",
+          "delta": {
+            "detail": {
+              "fromFloor": 1,
+              "previousProgress": 100,
+              "progress": {
+                "delta": -100,
+                "floorProgress": 0,
+                "previousProgress": 100,
+              },
+              "toFloor": 2,
+            },
+            "type": "MOVE",
+          },
+          "extra": undefined,
           "floor": 2,
           "status": "COMPLETED",
         },
