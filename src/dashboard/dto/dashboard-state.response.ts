@@ -15,6 +15,19 @@ export interface EquipmentItem {
   version: number & tags.Minimum<1>;
 }
 
+export interface StatBlock {
+  hp: number & tags.Example<32>;
+  atk: number & tags.Example<18>;
+  def: number & tags.Example<14>;
+  luck: number & tags.Example<6>;
+}
+
+export interface StatBreakdown {
+  base: StatBlock;
+  equipmentBonus: StatBlock;
+  total: StatBlock;
+}
+
 export interface DashboardState {
   userId: string & tags.Format<'uuid'>;
   level: number & tags.Minimum<1> & tags.Example<8>;
@@ -38,6 +51,7 @@ export interface DashboardState {
   version: number & tags.Minimum<1>;
   updatedAt: string & tags.Format<'date-time'>;
   expToLevel: (number & tags.Minimum<1>) | null;
+  stats: StatBreakdown;
   equippedItems: EquipmentItem[];
 }
 

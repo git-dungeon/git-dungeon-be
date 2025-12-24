@@ -2,6 +2,31 @@ import type { InventoryModifier } from '../inventory/inventory-modifier';
 
 type BattleResult = 'VICTORY' | 'DEFEAT';
 
+type BattlePlayerStatBlock = {
+  hp: number;
+  atk: number;
+  def: number;
+  luck: number;
+};
+
+type BattlePlayerStatBreakdown = {
+  base: BattlePlayerStatBlock;
+  equipmentBonus: BattlePlayerStatBlock;
+  total: BattlePlayerStatBlock;
+};
+
+export type BattlePlayerSnapshot = {
+  hp: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  luck: number;
+  stats: BattlePlayerStatBreakdown;
+  level: number;
+  exp: number;
+  expToLevel?: number;
+};
+
 export type BattleDetails = {
   type: 'BATTLE';
   details: {
@@ -13,6 +38,7 @@ export type BattleDetails = {
       def: number;
       spriteId: string;
     };
+    player: BattlePlayerSnapshot;
     result?: BattleResult;
     cause?: string;
     expGained?: number;

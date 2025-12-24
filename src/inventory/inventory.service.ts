@@ -258,6 +258,7 @@ export class InventoryService {
         .map((item) => item.modifiers),
     );
     const summary = {
+      base: baseStats,
       equipmentBonus,
       total: addEquipmentStats(baseStats, equipmentBonus),
     };
@@ -424,13 +425,13 @@ export class InventoryService {
   }
 
   private getBaseStats(dungeonState: {
-    hp: number;
+    maxHp: number;
     atk: number;
     def: number;
     luck: number;
   }): EquipmentStats {
     return {
-      hp: dungeonState.hp,
+      hp: dungeonState.maxHp,
       atk: dungeonState.atk,
       def: dungeonState.def,
       luck: dungeonState.luck,

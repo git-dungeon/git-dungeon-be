@@ -337,6 +337,15 @@ describe('DungeonEventService', () => {
     expect(details?.monster?.atk).toBeTypeOf('number');
     expect(details?.monster?.def).toBeTypeOf('number');
     expect(details?.monster?.spriteId).toBeTypeOf('string');
+    expect(details?.player?.hp).toBeTypeOf('number');
+    expect(details?.player?.maxHp).toBeTypeOf('number');
+    expect(details?.player?.atk).toBeTypeOf('number');
+    expect(details?.player?.def).toBeTypeOf('number');
+    expect(details?.player?.luck).toBeTypeOf('number');
+    expect(details?.player?.level).toBeTypeOf('number');
+    expect(details?.player?.exp).toBeTypeOf('number');
+    expect(details?.player?.stats?.total?.atk).toBeTypeOf('number');
+    expect(details?.player?.stats?.equipmentBonus?.atk).toBeTypeOf('number');
   });
 
   it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
@@ -450,6 +459,13 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.BATTLE &&
         log.status === DungeonLogStatus.STARTED,
     );
+    expect(battleStarted?.extra?.type).toBe('BATTLE');
+    if (battleStarted?.extra?.type === 'BATTLE') {
+      expect(battleStarted.extra.details.player?.hp).toBeTypeOf('number');
+      expect(battleStarted.extra.details.player?.stats?.total?.hp).toBeTypeOf(
+        'number',
+      );
+    }
     expect(battleStarted?.delta?.type).toBe('BATTLE');
     if (battleStarted?.delta?.type === 'BATTLE') {
       expect(battleStarted.delta.detail.stats?.ap).toBe(-1);
@@ -463,6 +479,13 @@ describe('DungeonEventService', () => {
       expect(battleCompleted.delta.detail.stats?.ap).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
+    }
+    expect(battleCompleted?.extra?.type).toBe('BATTLE');
+    if (battleCompleted?.extra?.type === 'BATTLE') {
+      expect(battleCompleted.extra.details.player?.hp).toBeTypeOf('number');
+      expect(battleCompleted.extra.details.player?.stats?.total?.hp).toBeTypeOf(
+        'number',
+      );
     }
 
     const battleCompletedIndex = result.logs.findIndex(

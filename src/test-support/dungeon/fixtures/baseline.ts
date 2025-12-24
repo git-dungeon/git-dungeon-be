@@ -1,5 +1,4 @@
 import type { DungeonState } from '@prisma/client';
-import type { DungeonLogPayload } from '../../../dungeon/events/event.types';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -37,9 +36,12 @@ export type SnapshotStep = {
     DungeonState,
     'hp' | 'ap' | 'floor' | 'floorProgress' | 'level' | 'exp' | 'version'
   >;
-  extra: Array<
-    Pick<DungeonLogPayload, 'action' | 'status' | 'delta' | 'extra'>
-  >;
+  extra: Array<{
+    action: string;
+    status: string;
+    delta?: unknown;
+    extra?: unknown;
+  }>;
 };
 
 export const baselineSteps: SnapshotStep[] = [
