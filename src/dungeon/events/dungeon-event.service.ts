@@ -106,6 +106,7 @@ export class DungeonEventService {
       rngValue,
       logs,
       apCost,
+      context.equipmentBonus,
     );
 
     const progressedState =
@@ -302,6 +303,7 @@ export class DungeonEventService {
     rngValue: number,
     logs: DungeonEventLogStub[],
     apCost?: number,
+    equipmentBonus?: DungeonEventContext['equipmentBonus'],
   ): DungeonEventProcessorOutput {
     const processor = this.processors[type];
 
@@ -316,6 +318,7 @@ export class DungeonEventService {
     const result = processor.process({
       state,
       rngValue,
+      equipmentBonus,
     });
 
     logs.push({

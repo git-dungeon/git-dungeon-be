@@ -107,6 +107,38 @@ describe('BattleEventProcessor', () => {
     expect(result.delta?.type).toBe('BATTLE');
   });
 
+  it('장비 보너스 스탯을 전투 계산에 반영한다', () => {
+    const processor = new BattleEventProcessor(registry, {
+      rngFactory: fixedRngFactory([0.9]),
+    });
+    const state = createState({ atk: 2, def: 0, luck: 0 });
+
+    const withoutBonus = processor.process({
+      state,
+      rngValue: 0,
+    });
+    const withBonus = processor.process({
+      state,
+      rngValue: 0,
+      equipmentBonus: { hp: 0, atk: 3, def: 0, luck: 0 },
+    });
+
+    const withoutExtra = withoutBonus.extra;
+    const withExtra = withBonus.extra;
+    if (
+      !withoutExtra ||
+      withoutExtra.type !== 'BATTLE' ||
+      !withExtra ||
+      withExtra.type !== 'BATTLE'
+    ) {
+      throw new Error('battle extra가 없습니다');
+    }
+
+    const withoutDamage = withoutExtra.details.damageDealt ?? 0;
+    const withDamage = withExtra.details.damageDealt ?? 0;
+    expect(withDamage).toBeGreaterThan(withoutDamage);
+  });
+
   it('승리 시 드랍 엔진을 호출해 drops를 반환한다', () => {
     const dropService: Pick<DropService, 'roll'> = {
       roll: vi.fn().mockReturnValue([{ code: 'angel-ring', quantity: 1 }]),

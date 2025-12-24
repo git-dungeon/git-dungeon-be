@@ -35,13 +35,21 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
 
     const baseGold = this.effect.rewards?.gold ?? 0;
     const goldDelta = baseGold;
-    const applied = applyEffectDelta(input.state, {
-      ...this.effect,
-      rewards: {
-        ...(this.effect.rewards ?? {}),
-        gold: goldDelta,
+    const maxHp = Math.max(
+      0,
+      input.state.maxHp + (input.equipmentBonus?.hp ?? 0),
+    );
+    const applied = applyEffectDelta(
+      input.state,
+      {
+        ...this.effect,
+        rewards: {
+          ...(this.effect.rewards ?? {}),
+          gold: goldDelta,
+        },
       },
-    });
+      { maxHp },
+    );
 
     const drops = this.rollDrops(rng);
     const dropMeta =

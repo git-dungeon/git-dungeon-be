@@ -31,3 +31,32 @@ export const normalizeInventoryModifier = (
 
   return modifier;
 };
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === 'object';
+
+export const parseInventoryModifiers = (
+  modifiers: unknown,
+): InventoryModifier[] => {
+  if (!Array.isArray(modifiers)) {
+    return [];
+  }
+
+  return modifiers
+    .filter((modifier): modifier is InventoryModifier => {
+      if (!isPlainObject(modifier) || !('kind' in modifier)) {
+        return false;
+      }
+
+      if (modifier.kind === 'stat') {
+        return 'stat' in modifier && 'value' in modifier;
+      }
+
+      if (modifier.kind === 'effect') {
+        return 'effectCode' in modifier;
+      }
+
+      return false;
+    })
+    .map((modifier) => normalizeInventoryModifier(modifier));
+};

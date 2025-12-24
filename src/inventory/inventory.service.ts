@@ -15,12 +15,11 @@ import {
   type InventoryItem,
 } from '@prisma/client';
 import typia, { TypeGuardError } from 'typia';
+import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import {
-  INVENTORY_STATS,
-  normalizeInventoryModifier,
-  type InventoryModifier,
-  type InventoryStat,
-} from '../common/inventory/inventory-modifier';
+  addEquipmentStats,
+  calculateEquipmentBonus,
+} from '../common/inventory/equipment-stats';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   EquipmentItem,
@@ -252,10 +251,15 @@ export class InventoryService {
     const items = inventoryItems.map((item) => this.mapInventoryItem(item));
     const equipped = this.mapEquipped(items);
     const baseStats = this.getBaseStats(dungeonState);
-    const equipmentBonus = this.calculateEquipmentBonus(baseStats, equipped);
+    const equipmentBonus = calculateEquipmentBonus(
+      baseStats,
+      Object.values(equipped)
+        .filter((item): item is EquipmentItem => Boolean(item))
+        .map((item) => item.modifiers),
+    );
     const summary = {
       equipmentBonus,
-      total: this.addStats(baseStats, equipmentBonus),
+      total: addEquipmentStats(baseStats, equipmentBonus),
     };
 
     const version =
@@ -371,7 +375,7 @@ export class InventoryService {
   }
 
   private mapInventoryItem(item: InventoryItem): EquipmentItem {
-    const modifiers = this.toInventoryModifiers(item.modifiers);
+    const modifiers = parseInventoryModifiers(item.modifiers);
     const rarity = item.rarity.toLowerCase();
 
     return {
@@ -433,103 +437,8 @@ export class InventoryService {
     };
   }
 
-  private calculateEquipmentBonus(
-    baseStats: EquipmentStats,
-    equipped: EquippedItems,
-  ): EquipmentStats {
-    const flat = this.createEmptyStats();
-    const percent = this.createEmptyStats();
-
-    const equippedItems = Object.values(equipped).filter(
-      (item): item is EquipmentItem => Boolean(item),
-    );
-
-    equippedItems.forEach((item) => {
-      item.modifiers.forEach((modifier) => {
-        if (!this.isStatModifier(modifier)) {
-          return;
-        }
-
-        if (modifier.mode === 'percent') {
-          percent[modifier.stat] += modifier.value;
-          return;
-        }
-
-        flat[modifier.stat] += modifier.value;
-      });
-    });
-
-    const bonus = this.createEmptyStats();
-
-    INVENTORY_STATS.forEach((stat) => {
-      const flatValue = flat[stat];
-      const percentValue = percent[stat];
-      const base = baseStats[stat];
-
-      bonus[stat] = flatValue + Math.floor((base + flatValue) * percentValue);
-    });
-
-    return bonus;
-  }
-
-  private addStats(
-    base: EquipmentStats,
-    bonus: EquipmentStats,
-  ): EquipmentStats {
-    return {
-      hp: base.hp + bonus.hp,
-      atk: base.atk + bonus.atk,
-      def: base.def + bonus.def,
-      luck: base.luck + bonus.luck,
-    };
-  }
-
-  private toInventoryModifiers(modifiers: unknown): InventoryModifier[] {
-    if (!Array.isArray(modifiers)) {
-      return [];
-    }
-
-    const modifierArray: unknown[] = modifiers;
-
-    return modifierArray
-      .filter((modifier): modifier is InventoryModifier => {
-        if (!this.isPlainObject(modifier) || !('kind' in modifier)) {
-          return false;
-        }
-
-        if (modifier.kind === 'stat') {
-          return 'stat' in modifier && 'value' in modifier;
-        }
-
-        if (modifier.kind === 'effect') {
-          return 'effectCode' in modifier;
-        }
-
-        return false;
-      })
-      .map((modifier) => normalizeInventoryModifier(modifier));
-  }
-
-  private isPlainObject(value: unknown): value is Record<string, unknown> {
-    return Boolean(value) && typeof value === 'object';
-  }
-
-  private isStatModifier(
-    modifier: InventoryModifier,
-  ): modifier is Extract<InventoryModifier, { kind: 'stat' }> {
-    return modifier.kind === 'stat' && this.isInventoryStat(modifier.stat);
-  }
-
-  private isInventoryStat(stat: string): stat is InventoryStat {
-    return (INVENTORY_STATS as readonly string[]).includes(stat);
-  }
-
   private isInventorySlot(slot: string): slot is InventorySlot {
     return INVENTORY_SLOTS.includes(slot as InventorySlot);
-  }
-
-  private createEmptyStats(): EquipmentStats {
-    return { hp: 0, atk: 0, def: 0, luck: 0 };
   }
 
   private async appendInventoryLog(

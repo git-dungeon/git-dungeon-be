@@ -3,6 +3,10 @@ import type { StatsDelta } from '../../../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../../../common/logs/dungeon-log-extra';
 import type { CatalogMonster } from '../../../catalog';
 import {
+  addEquipmentStats,
+  createEmptyEquipmentStats,
+} from '../../../common/inventory/equipment-stats';
+import {
   DungeonEventProcessor,
   DungeonEventProcessorInput,
   DungeonEventProcessorOutput,
@@ -137,7 +141,22 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       this.options.scalingOptions,
     );
 
-    let playerHp = input.state.hp;
+    const equipmentBonus = input.equipmentBonus ?? createEmptyEquipmentStats();
+    const effectiveStats = addEquipmentStats(
+      {
+        hp: 0,
+        atk: input.state.atk,
+        def: input.state.def,
+        luck: input.state.luck,
+      },
+      {
+        ...equipmentBonus,
+        hp: 0,
+      },
+    );
+    const effectiveMaxHp = Math.max(0, input.state.maxHp + equipmentBonus.hp);
+
+    let playerHp = Math.min(Math.max(input.state.hp, 0), effectiveMaxHp);
     let monsterHp = scaled.hp;
     let outcome: BattleOutcome = 'VICTORY';
     let cause: string | undefined;
@@ -151,9 +170,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       turn += 1;
 
       const playerHit = computeDamage(
-        input.state.atk,
+        effectiveStats.atk,
         scaled.def,
-        input.state.luck,
+        effectiveStats.luck,
         rng,
         { critBase, critLuckFactor },
       );
@@ -168,7 +187,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
 
       const monsterHit = computeDamage(
         scaled.atk,
-        input.state.def,
+        effectiveStats.def,
         0, // 몬스터 luck은 현재 모델링하지 않음
         rng,
         { critBase, critLuckFactor },
@@ -202,6 +221,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       monsterMeta,
       scaled,
       playerHp: Math.max(0, playerHp),
+      effectiveMaxHp,
       cause,
       expGained,
       turns: turn,
@@ -217,6 +237,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     monsterMeta: CatalogMonster;
     scaled: ReturnType<typeof getScaledStats>;
     playerHp: number;
+    effectiveMaxHp: number;
     expGained: number;
     cause?: string;
     turns?: number;
@@ -230,6 +251,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       monsterMeta,
       scaled,
       playerHp,
+      effectiveMaxHp,
       cause,
       expGained,
       turns,
@@ -237,7 +259,12 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       damageTaken,
     } = params;
 
-    const nextState = this.buildNextState(input.state, outcome, playerHp);
+    const nextState = this.buildNextState(
+      input.state,
+      outcome,
+      playerHp,
+      effectiveMaxHp,
+    );
     const statsDelta: StatsDelta = {};
     if (nextState.hp !== input.state.hp) {
       statsDelta.hp = nextState.hp - input.state.hp;
@@ -310,15 +337,17 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     state: DungeonState,
     outcome: BattleOutcome,
     playerHp: number,
+    maxHpOverride?: number,
   ): DungeonState {
     const defeatedProgress =
       outcome === 'DEFEAT'
         ? Math.max(0, state.floorProgress - BATTLE_PROGRESS_INCREMENT)
         : state.floorProgress;
+    const maxHp = maxHpOverride !== undefined ? maxHpOverride : state.maxHp;
 
     return {
       ...state,
-      hp: Math.max(0, Math.min(playerHp, state.maxHp)),
+      hp: Math.max(0, Math.min(playerHp, maxHp)),
       floorProgress: defeatedProgress,
     };
   }
