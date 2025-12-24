@@ -64,7 +64,7 @@ export const eliteBattleSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-cave-spider-elite',
+              code: 'monster-cave-spider-elite',
               name: 'Cave Spider (Elite)',
               hp: 14,
               atk: 5,
@@ -114,8 +114,8 @@ export const eliteBattleSteps: SnapshotStep[] = [
                 tableId: 'drops-default',
                 isElite: true,
                 items: [
-                  { itemCode: 'weapon-battle-axe', quantity: 1 },
-                  { itemCode: 'helmet-bronze-helm', quantity: 1 },
+                  { code: 'weapon-battle-axe', quantity: 1 },
+                  { code: 'helmet-bronze-helm', quantity: 1 },
                 ],
               },
             },

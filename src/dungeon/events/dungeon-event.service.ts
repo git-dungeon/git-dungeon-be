@@ -220,7 +220,7 @@ export class DungeonEventService {
                     tableId: processorResult.dropMeta.tableId ?? undefined,
                     isElite: processorResult.dropMeta.isElite,
                     items: processorResult.dropMeta.items?.map((item) => ({
-                      itemCode: item.itemCode,
+                      code: item.code,
                       quantity: item.quantity,
                     })),
                   }

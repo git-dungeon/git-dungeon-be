@@ -1,246 +1,246 @@
 {
-  "version": 5,
-  "updatedAt": "2025-12-11T12:41:06.744Z",
+  "version": 6,
+  "updatedAt": "2025-12-24T05:42:25.477Z",
   "dropTables": [
     {
       "tableId": "drops-default",
       "drops": [
         {
-          "itemCode": "weapon-wooden-sword",
+          "code": "weapon-wooden-sword",
           "weight": 15,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-iron-dagger",
+          "code": "weapon-iron-dagger",
           "weight": 12,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-short-sword",
+          "code": "weapon-short-sword",
           "weight": 10,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-steel-sword",
+          "code": "weapon-steel-sword",
           "weight": 8,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-longsword",
+          "code": "weapon-longsword",
           "weight": 7,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-battle-axe",
+          "code": "weapon-battle-axe",
           "weight": 6,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-warhammer",
+          "code": "weapon-warhammer",
           "weight": 5,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-greatsword",
+          "code": "weapon-greatsword",
           "weight": 3,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-spear-of-valor",
+          "code": "weapon-spear-of-valor",
           "weight": 2,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "weapon-excalibur",
+          "code": "weapon-excalibur",
           "weight": 1,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-leather-armor",
+          "code": "armor-leather-armor",
           "weight": 15,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-iron-shield",
+          "code": "armor-iron-shield",
           "weight": 12,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-chainmail",
+          "code": "armor-chainmail",
           "weight": 10,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-steel-armor",
+          "code": "armor-steel-armor",
           "weight": 8,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-knights-plate",
+          "code": "armor-knights-plate",
           "weight": 7,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-tower-shield",
+          "code": "armor-tower-shield",
           "weight": 6,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-guardian-armor",
+          "code": "armor-guardian-armor",
           "weight": 5,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-dragon-scale",
+          "code": "armor-dragon-scale",
           "weight": 4,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-mythril-armor",
+          "code": "armor-mythril-armor",
           "weight": 2,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "armor-divine-cloak",
+          "code": "armor-divine-cloak",
           "weight": 1,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-leather-cap",
+          "code": "helmet-leather-cap",
           "weight": 15,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-iron-helm",
+          "code": "helmet-iron-helm",
           "weight": 12,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-bronze-helm",
+          "code": "helmet-bronze-helm",
           "weight": 10,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-steel-helm",
+          "code": "helmet-steel-helm",
           "weight": 8,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-knights-helm",
+          "code": "helmet-knights-helm",
           "weight": 7,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-horned-helm",
+          "code": "helmet-horned-helm",
           "weight": 6,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-dragon-helm",
+          "code": "helmet-dragon-helm",
           "weight": 5,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-shadow-hood",
+          "code": "helmet-shadow-hood",
           "weight": 4,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-mythril-helm",
+          "code": "helmet-mythril-helm",
           "weight": 2,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "helmet-crown-of-valor",
+          "code": "helmet-crown-of-valor",
           "weight": 1,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-copper-band",
+          "code": "ring-copper-band",
           "weight": 15,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-silver-band",
+          "code": "ring-silver-band",
           "weight": 12,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-garnet",
+          "code": "ring-garnet",
           "weight": 10,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-topaz",
+          "code": "ring-topaz",
           "weight": 8,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-sapphire",
+          "code": "ring-sapphire",
           "weight": 7,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-emerald",
+          "code": "ring-emerald",
           "weight": 6,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-ruby-signet",
+          "code": "ring-ruby-signet",
           "weight": 5,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-obsidian",
+          "code": "ring-obsidian",
           "weight": 4,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "ring-mythril",
+          "code": "ring-mythril",
           "weight": 2,
           "minQuantity": 1,
           "maxQuantity": 1
         },
         {
-          "itemCode": "angel-ring",
+          "code": "angel-ring",
           "weight": 1,
           "minQuantity": 1,
           "maxQuantity": 1
@@ -251,7 +251,7 @@
       "tableId": "drops-ancient-dragon",
       "drops": [
         {
-          "itemCode": "angel-ring",
+          "code": "angel-ring",
           "weight": 100,
           "minQuantity": 1,
           "maxQuantity": 1

@@ -63,7 +63,7 @@ export const noDropSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,

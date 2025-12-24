@@ -50,7 +50,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
             tableId: DEFAULT_DROP_TABLE_ID,
             isElite: false,
             items: drops.map((drop) => ({
-              itemCode: drop.itemCode,
+              code: drop.code,
               quantity: drop.quantity,
             })),
           }
@@ -59,7 +59,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
     const rewardItems = [
       ...this.toRewardItems(baseAdds),
       ...drops.map((drop) => ({
-        itemCode: drop.itemCode,
+        code: drop.code,
         quantity: drop.quantity,
       })),
     ];
@@ -107,10 +107,10 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
 
   private toRewardItems(
     adds: InventoryDelta['added'] | undefined,
-  ): Array<{ itemCode: string; quantity?: number }> {
+  ): Array<{ code: string; quantity?: number }> {
     if (!adds?.length) return [];
     return adds.map((it) => ({
-      itemCode: it.code,
+      code: it.code,
       quantity: it.quantity ?? 1,
     }));
   }

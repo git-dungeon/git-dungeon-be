@@ -30,7 +30,7 @@ describe('TreasureEventProcessor', () => {
     const dropService: Pick<DropService, 'roll'> = {
       roll: vi
         .fn()
-        .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+        .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
     };
     const processor = new TreasureEventProcessor(
       {
@@ -53,17 +53,17 @@ describe('TreasureEventProcessor', () => {
       }),
     );
     expect(result.drops).toEqual([
-      { itemCode: 'weapon-wooden-sword', quantity: 1 },
+      { code: 'weapon-wooden-sword', quantity: 1 },
     ]);
     expect(result.dropMeta).toEqual({
       tableId: 'drops-default',
       isElite: false,
-      items: [{ itemCode: 'weapon-wooden-sword', quantity: 1 }],
+      items: [{ code: 'weapon-wooden-sword', quantity: 1 }],
     });
     expect(result.delta?.type).toBe('TREASURE');
     if (result.delta?.type === 'TREASURE') {
       expect(result.delta.detail.rewards?.items).toEqual([
-        { itemCode: 'weapon-wooden-sword', quantity: 1 },
+        { code: 'weapon-wooden-sword', quantity: 1 },
       ]);
     }
   });

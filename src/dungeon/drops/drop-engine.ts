@@ -22,11 +22,11 @@ const DEFAULT_OPTIONS: Required<DropEngineOptions> = {
 export const mergeResults = (results: DropResult[]): DropResult[] => {
   const merged = new Map<string, number>();
   results.forEach((result) => {
-    const current = merged.get(result.itemCode) ?? 0;
-    merged.set(result.itemCode, current + result.quantity);
+    const current = merged.get(result.code) ?? 0;
+    merged.set(result.code, current + result.quantity);
   });
-  return Array.from(merged.entries()).map(([itemCode, quantity]) => ({
-    itemCode,
+  return Array.from(merged.entries()).map(([code, quantity]) => ({
+    code,
     quantity,
   }));
 };

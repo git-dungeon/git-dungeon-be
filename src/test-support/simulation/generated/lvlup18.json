@@ -38,7 +38,7 @@
             "rewards": {
               "items": [
                 {
-                  "itemCode": "angel-ring",
+                  "code": "angel-ring",
                   "quantity": 1
                 }
               ]
@@ -54,7 +54,7 @@
           "type": "BATTLE",
           "details": {
             "monster": {
-              "id": "monster-ancient-dragon",
+              "code": "monster-ancient-dragon",
               "name": "Ancient Dragon",
               "hp": 90,
               "atk": 18,
@@ -157,7 +157,7 @@
                 "isElite": false,
                 "items": [
                   {
-                    "itemCode": "angel-ring",
+                    "code": "angel-ring",
                     "quantity": 1
                   }
                 ]

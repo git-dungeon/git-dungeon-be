@@ -72,7 +72,7 @@ export const baselineSteps: SnapshotStep[] = [
               items: [
                 {
                   quantity: 1,
-                  itemCode: 'ring-topaz',
+                  code: 'ring-topaz',
                 },
               ],
               buffs: [],
@@ -115,7 +115,7 @@ export const baselineSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'ring-topaz',
+                    code: 'ring-topaz',
                     quantity: 1,
                   },
                 ],
@@ -187,7 +187,7 @@ export const baselineSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: -1, exp: 3 },
             rewards: {
-              items: [{ itemCode: 'ring-topaz', quantity: 1 }],
+              items: [{ code: 'ring-topaz', quantity: 1 }],
             },
             progress: {
               previousProgress: 20,
@@ -200,7 +200,7 @@ export const baselineSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,
@@ -245,7 +245,7 @@ export const baselineSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'ring-topaz',
+                    code: 'ring-topaz',
                     quantity: 1,
                   },
                 ],

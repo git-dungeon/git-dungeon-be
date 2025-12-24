@@ -63,7 +63,7 @@ export const turnLimitSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-ancient-dragon',
+              code: 'monster-ancient-dragon',
               name: 'Ancient Dragon',
               hp: 110,
               atk: 22,

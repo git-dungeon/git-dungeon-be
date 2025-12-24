@@ -3,7 +3,7 @@ import path from 'node:path';
 import type { SeededRandom } from '../events/seeded-rng.provider';
 
 export type DropEntry = {
-  itemCode: string;
+  code: string;
   weight: number;
   minQuantity: number;
   maxQuantity: number;
@@ -15,7 +15,7 @@ export type DropTable = {
 };
 
 export type DropResult = {
-  itemCode: string;
+  code: string;
   quantity: number;
 };
 
@@ -79,7 +79,7 @@ export function rollTable(
   for (let i = 0; i < rolls; i += 1) {
     const entry = pickEntry(table.drops, rng);
     const quantity = rollQuantity(entry, rng);
-    results.push({ itemCode: entry.itemCode, quantity });
+    results.push({ code: entry.code, quantity });
   }
 
   return results;
@@ -118,31 +118,31 @@ function normalizeDropTable(table: DropTable): DropTable {
 }
 
 function normalizeDropEntry(entry: DropEntry): DropEntry {
-  const itemCode = entry.itemCode;
+  const code = entry.code;
   const weight = Number(entry.weight);
   const minQuantity = Number(entry.minQuantity);
   const maxQuantity = Number(entry.maxQuantity);
 
   if (!Number.isFinite(weight) || weight <= 0) {
     throw new Error(
-      `드랍 weight가 유효하지 않습니다 (itemCode=${itemCode}, weight=${entry.weight})`,
+      `드랍 weight가 유효하지 않습니다 (code=${code}, weight=${entry.weight})`,
     );
   }
 
   if (!Number.isFinite(minQuantity) || minQuantity < 0) {
     throw new Error(
-      `드랍 minQuantity가 유효하지 않습니다 (itemCode=${itemCode}, minQuantity=${entry.minQuantity})`,
+      `드랍 minQuantity가 유효하지 않습니다 (code=${code}, minQuantity=${entry.minQuantity})`,
     );
   }
 
   if (!Number.isFinite(maxQuantity) || maxQuantity < minQuantity) {
     throw new Error(
-      `드랍 maxQuantity가 유효하지 않습니다 (itemCode=${itemCode}, maxQuantity=${entry.maxQuantity}, minQuantity=${entry.minQuantity})`,
+      `드랍 maxQuantity가 유효하지 않습니다 (code=${code}, maxQuantity=${entry.maxQuantity}, minQuantity=${entry.minQuantity})`,
     );
   }
 
   return {
-    itemCode,
+    code,
     weight,
     minQuantity,
     maxQuantity,

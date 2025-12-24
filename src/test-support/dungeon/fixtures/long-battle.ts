@@ -64,7 +64,7 @@ export const longBattleSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,
@@ -108,7 +108,7 @@ export const longBattleSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'ring-silver-band',
+                    code: 'ring-silver-band',
                     quantity: 1,
                   },
                 ],

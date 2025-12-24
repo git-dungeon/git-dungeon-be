@@ -202,7 +202,7 @@ async function main() {
         type: 'BATTLE',
         details: {
           monster: {
-            id: 'monster-giant-rat',
+            code: 'monster-giant-rat',
             name: '거대 쥐',
             hp: 24,
             atk: 3,
@@ -233,7 +233,7 @@ async function main() {
         type: 'BATTLE',
         details: {
           monster: {
-            id: 'monster-giant-rat',
+            code: 'monster-giant-rat',
             name: '거대 쥐',
             hp: 0,
             atk: 3,

@@ -453,7 +453,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const inventoryAdds = [
         {
@@ -503,9 +503,9 @@ describe('DungeonEventService', () => {
           );
         }
         if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
-          expect(
-            acquireLog.extra.details.reward.drop?.items?.[0]?.itemCode,
-          ).toBe('weapon-wooden-sword');
+          expect(acquireLog.extra.details.reward.drop?.items?.[0]?.code).toBe(
+            'weapon-wooden-sword',
+          );
         }
         expect(result.inventoryAdds?.length).toBeGreaterThan(0);
       } finally {
@@ -524,7 +524,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
         applyDrops: vi.fn(),
@@ -586,7 +586,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
         applyDrops: vi.fn().mockResolvedValue(inventoryAdds),

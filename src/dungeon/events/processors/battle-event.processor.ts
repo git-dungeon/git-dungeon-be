@@ -252,7 +252,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
               DEFAULT_DROP_TABLE_ID,
             isElite: params.monsterMeta.rarity === 'elite',
             items: params.drops.map((drop) => ({
-              itemCode: drop.itemCode,
+              code: drop.code,
               quantity: drop.quantity,
             })),
           }
@@ -267,7 +267,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           rewards: {
             items:
               dropMeta?.items?.map((item) => ({
-                itemCode: item.itemCode,
+                code: item.code,
                 quantity: item.quantity,
               })) ?? [],
           },
@@ -353,7 +353,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       type: 'BATTLE',
       details: {
         monster: {
-          id: monster.id,
+          code: monster.code,
           name: monster.name,
           hp: scaled.hp,
           atk: scaled.atk,

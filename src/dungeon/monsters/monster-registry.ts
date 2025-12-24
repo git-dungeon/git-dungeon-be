@@ -16,28 +16,28 @@ export class MonsterRegistry {
   static from(monsters: CatalogMonster[]): MonsterRegistry {
     const registry: Record<string, CatalogMonster> = {};
     monsters.forEach((monster) => {
-      if (registry[monster.id]) {
-        throw new Error(`Duplicate monster id detected: ${monster.id}`);
+      if (registry[monster.code]) {
+        throw new Error(`Duplicate monster code detected: ${monster.code}`);
       }
-      registry[monster.id] = monster;
+      registry[monster.code] = monster;
     });
     return new MonsterRegistry(registry);
   }
 
-  getMeta(id: string): CatalogMonster {
-    const meta = this.monsters[id];
+  getMeta(code: string): CatalogMonster {
+    const meta = this.monsters[code];
     if (!meta) {
-      throw new Error(`Unknown monster id: ${id}`);
+      throw new Error(`Unknown monster code: ${code}`);
     }
     return meta;
   }
 
   getScaledMonster(
-    id: string,
+    code: string,
     floor: number,
     options?: MonsterScalingOptions,
   ): ScaledMonster {
-    const meta = this.getMeta(id);
+    const meta = this.getMeta(code);
     return {
       meta,
       stats: getScaledStats(meta, floor, options),

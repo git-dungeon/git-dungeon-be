@@ -64,7 +64,7 @@ export const forcedMoveSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,
@@ -126,7 +126,7 @@ export const forcedMoveSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'weapon-battle-axe',
+                    code: 'weapon-battle-axe',
                     quantity: 1,
                   },
                 ],

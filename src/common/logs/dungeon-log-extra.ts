@@ -6,7 +6,7 @@ export type BattleDetails = {
   type: 'BATTLE';
   details: {
     monster: {
-      id: string;
+      code: string;
       name: string;
       hp: number;
       atk: number;
@@ -39,7 +39,7 @@ export type AcquireItemDetails = {
         tableId?: string | null;
         isElite?: boolean;
         items?: Array<{
-          itemCode: string;
+          code: string;
           quantity?: number;
         }>;
       };

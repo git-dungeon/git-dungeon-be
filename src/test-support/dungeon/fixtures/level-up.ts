@@ -127,7 +127,7 @@ export const levelUpSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-ancient-dragon',
+              code: 'monster-ancient-dragon',
               name: 'Ancient Dragon',
               hp: 90,
               atk: 18,
@@ -169,7 +169,7 @@ export const levelUpSteps: SnapshotStep[] = [
               drop: {
                 tableId: 'drops-ancient-dragon',
                 isElite: false,
-                items: [{ itemCode: 'angel-ring', quantity: 1 }],
+                items: [{ code: 'angel-ring', quantity: 1 }],
               },
             },
           },

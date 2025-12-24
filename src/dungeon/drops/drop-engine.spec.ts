@@ -19,22 +19,22 @@ const fixedRng = (values: number[]) => {
 const baseTable: DropTable = {
   tableId: 'test',
   drops: [
-    { itemCode: 'common', weight: 1, minQuantity: 1, maxQuantity: 1 },
-    { itemCode: 'rare', weight: 3, minQuantity: 1, maxQuantity: 2 },
+    { code: 'common', weight: 1, minQuantity: 1, maxQuantity: 1 },
+    { code: 'rare', weight: 3, minQuantity: 1, maxQuantity: 2 },
   ],
 };
 
 describe('mergeResults', () => {
-  it('동일 itemCode를 수량 합산하여 병합한다', () => {
+  it('동일 code를 수량 합산하여 병합한다', () => {
     const merged = mergeResults([
-      { itemCode: 'common', quantity: 1 },
-      { itemCode: 'common', quantity: 2 },
-      { itemCode: 'rare', quantity: 1 },
+      { code: 'common', quantity: 1 },
+      { code: 'common', quantity: 2 },
+      { code: 'rare', quantity: 1 },
     ]);
 
     expect(merged).toEqual([
-      { itemCode: 'common', quantity: 3 },
-      { itemCode: 'rare', quantity: 1 },
+      { code: 'common', quantity: 3 },
+      { code: 'rare', quantity: 1 },
     ]);
   });
 });
@@ -50,7 +50,7 @@ describe('DropEngine', () => {
       isElite: false,
     });
 
-    expect(results).toEqual([{ itemCode: 'rare', quantity: 1 }]);
+    expect(results).toEqual([{ code: 'rare', quantity: 1 }]);
   });
 
   it('엘리트일 때 추가 롤이 적용되고 결과가 병합된다', () => {
@@ -70,8 +70,8 @@ describe('DropEngine', () => {
     });
 
     expect(results).toEqual([
-      { itemCode: 'rare', quantity: 2 },
-      { itemCode: 'common', quantity: 1 },
+      { code: 'rare', quantity: 2 },
+      { code: 'common', quantity: 1 },
     ]);
   });
 
@@ -79,7 +79,7 @@ describe('DropEngine', () => {
     const dragonTable: DropTable = {
       tableId: 'drops-ancient-dragon',
       drops: [
-        { itemCode: 'angel-ring', weight: 100, minQuantity: 1, maxQuantity: 1 },
+        { code: 'angel-ring', weight: 100, minQuantity: 1, maxQuantity: 1 },
       ],
     };
     const rng = fixedRng([0.3]); // any value
@@ -87,7 +87,7 @@ describe('DropEngine', () => {
 
     const results = engine.roll({ table: dragonTable, rng });
 
-    expect(results).toEqual([{ itemCode: 'angel-ring', quantity: 1 }]);
+    expect(results).toEqual([{ code: 'angel-ring', quantity: 1 }]);
   });
 
   it('동일 시드에서 결정적으로 동일 결과를 반환한다', () => {
@@ -111,7 +111,7 @@ describe('rollTable', () => {
   it('가중치 합이 0 이하이면 오류를 발생시킨다', () => {
     const zeroTable: DropTable = {
       tableId: 'zero',
-      drops: [{ itemCode: 'none', weight: 0, minQuantity: 1, maxQuantity: 1 }],
+      drops: [{ code: 'none', weight: 0, minQuantity: 1, maxQuantity: 1 }],
     };
     const rng = fixedRng([0]);
 
@@ -135,8 +135,8 @@ describe('rollTable', () => {
 
     for (let i = 0; i < samples; i += 1) {
       const [pick] = rollTable(baseTable, rng);
-      if (pick?.itemCode === 'common') commonCount += 1;
-      if (pick?.itemCode === 'rare') rareCount += 1;
+      if (pick?.code === 'common') commonCount += 1;
+      if (pick?.code === 'rare') rareCount += 1;
     }
 
     const commonRatio = commonCount / samples;
@@ -155,7 +155,7 @@ describe('rollTable', () => {
     let totalWeight = 0;
     table.drops.forEach((drop) => {
       const slot = (
-        getCatalogItemMeta(drop.itemCode)?.slot ?? 'unknown'
+        getCatalogItemMeta(drop.code)?.slot ?? 'unknown'
       ).toLowerCase();
       weightBySlot.set(slot, (weightBySlot.get(slot) ?? 0) + drop.weight);
       totalWeight += drop.weight;
@@ -177,7 +177,7 @@ describe('rollTable', () => {
       const [pick] = rollTable(table, rng);
       if (!pick) continue;
       const slot = (
-        getCatalogItemMeta(pick.itemCode)?.slot ?? 'unknown'
+        getCatalogItemMeta(pick.code)?.slot ?? 'unknown'
       ).toLowerCase();
       counts.set(slot, (counts.get(slot) ?? 0) + 1);
     }

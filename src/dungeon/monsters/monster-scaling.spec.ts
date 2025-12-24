@@ -4,7 +4,7 @@ import { MonsterRegistry } from './monster-registry';
 import { getScaledStats } from './monster-scaling';
 
 const baseMonster: CatalogMonster = {
-  id: 'monster-test',
+  code: 'monster-test',
   nameKey: 'monster.test.name',
   descriptionKey: 'monster.test.desc',
   name: 'Test Monster',
@@ -54,13 +54,15 @@ describe('getScaledStats', () => {
 describe('MonsterRegistry', () => {
   it('몬스터 메타와 스케일링 결과를 조회한다', () => {
     const registry = MonsterRegistry.from([baseMonster]);
-    const result = registry.getScaledMonster(baseMonster.id, 5);
-    expect(result.meta.id).toBe(baseMonster.id);
+    const result = registry.getScaledMonster(baseMonster.code, 5);
+    expect(result.meta.code).toBe(baseMonster.code);
     expect(result.stats.floor).toBe(5);
   });
 
-  it('없는 몬스터 id 조회 시 에러를 던진다', () => {
+  it('없는 몬스터 code 조회 시 에러를 던진다', () => {
     const registry = MonsterRegistry.from([baseMonster]);
-    expect(() => registry.getMeta('unknown-id')).toThrow(/Unknown monster id/);
+    expect(() => registry.getMeta('unknown-code')).toThrow(
+      /Unknown monster code/,
+    );
   });
 });

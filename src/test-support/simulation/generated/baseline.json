@@ -35,7 +35,7 @@
               "gold": 5,
               "items": [
                 {
-                  "itemCode": "ring-topaz",
+                  "code": "ring-topaz",
                   "quantity": 1
                 }
               ],
@@ -80,7 +80,7 @@
                 "isElite": false,
                 "items": [
                   {
-                    "itemCode": "ring-topaz",
+                    "code": "ring-topaz",
                     "quantity": 1
                   }
                 ]
@@ -177,7 +177,7 @@
             "rewards": {
               "items": [
                 {
-                  "itemCode": "ring-topaz",
+                  "code": "ring-topaz",
                   "quantity": 1
                 }
               ]
@@ -193,7 +193,7 @@
           "type": "BATTLE",
           "details": {
             "monster": {
-              "id": "monster-giant-rat",
+              "code": "monster-giant-rat",
               "name": "Giant Rat",
               "hp": 8,
               "atk": 2,
@@ -239,7 +239,7 @@
                 "isElite": false,
                 "items": [
                   {
-                    "itemCode": "ring-topaz",
+                    "code": "ring-topaz",
                     "quantity": 1
                   }
                 ]
