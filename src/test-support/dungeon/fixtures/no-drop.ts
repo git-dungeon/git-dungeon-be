@@ -44,7 +44,38 @@ export const noDropSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-giant-rat',
+              name: 'Giant Rat',
+              hp: 8,
+              atk: 2,
+              def: 0,
+              spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 3,
+              maxHp: 10,
+              atk: 1,
+              def: 0,
+              luck: 0,
+              stats: {
+                base: { hp: 10, atk: 1, def: 0, luck: 0 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 1, def: 0, luck: 0 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
+            },
+          },
+        },
+      },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
@@ -69,6 +100,21 @@ export const noDropSteps: SnapshotStep[] = [
               atk: 2,
               def: 0,
               spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 0,
+              maxHp: 10,
+              atk: 1,
+              def: 0,
+              luck: 0,
+              stats: {
+                base: { hp: 10, atk: 1, def: 0, luck: 0 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 1, def: 0, luck: 0 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
             },
             result: 'DEFEAT',
             cause: 'PLAYER_DEFEATED',

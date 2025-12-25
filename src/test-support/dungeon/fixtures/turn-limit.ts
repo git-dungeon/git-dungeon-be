@@ -44,7 +44,38 @@ export const turnLimitSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-ancient-dragon',
+              name: 'Ancient Dragon',
+              hp: 110,
+              atk: 22,
+              def: 11,
+              spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 150,
+              maxHp: 150,
+              atk: 2,
+              def: 60,
+              luck: 0,
+              stats: {
+                base: { hp: 150, atk: 2, def: 60, luck: 0 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 150, atk: 2, def: 60, luck: 0 },
+              },
+              level: 30,
+              exp: 0,
+              expToLevel: 300,
+            },
+          },
+        },
+      },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
@@ -69,6 +100,21 @@ export const turnLimitSteps: SnapshotStep[] = [
               atk: 22,
               def: 11,
               spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 116,
+              maxHp: 150,
+              atk: 2,
+              def: 60,
+              luck: 0,
+              stats: {
+                base: { hp: 150, atk: 2, def: 60, luck: 0 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 150, atk: 2, def: 60, luck: 0 },
+              },
+              level: 30,
+              exp: 0,
+              expToLevel: 300,
             },
             result: 'DEFEAT',
             cause: 'TURN_LIMIT',

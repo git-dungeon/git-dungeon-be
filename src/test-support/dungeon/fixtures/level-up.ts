@@ -45,7 +45,38 @@ export const levelUpSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-ancient-dragon',
+              name: 'Ancient Dragon',
+              hp: 90,
+              atk: 18,
+              def: 9,
+              spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 60,
+              maxHp: 60,
+              atk: 35,
+              def: 12,
+              luck: 5,
+              stats: {
+                base: { hp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 60, atk: 35, def: 12, luck: 5 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
+            },
+          },
+        },
+      },
       {
         action: 'LEVEL_UP',
         status: 'COMPLETED',
@@ -133,6 +164,21 @@ export const levelUpSteps: SnapshotStep[] = [
               atk: 18,
               def: 9,
               spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 45,
+              maxHp: 60,
+              atk: 35,
+              def: 12,
+              luck: 5,
+              stats: {
+                base: { hp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 60, atk: 35, def: 12, luck: 5 },
+              },
+              level: 1,
+              exp: 39,
+              expToLevel: 10,
             },
             result: 'VICTORY',
             expGained: 39,
