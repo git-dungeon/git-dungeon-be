@@ -10,6 +10,10 @@ vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
   return typiaModuleMock;
 });
+vi.mock('../config/rate-limit.constant', () => ({
+  DEFAULT_THROTTLE_TTL_MS: 60_000,
+  DEFAULT_THROTTLE_LIMIT: 5,
+}));
 vi.mock('@nestia/core', async () => {
   const { createNestiaModuleMock } = await import(
     '../test-support/mocks/nestia'

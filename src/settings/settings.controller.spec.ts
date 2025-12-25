@@ -115,6 +115,16 @@ describe('SettingsService', () => {
       accounts: [],
     });
 
+    const loggerSpy = vi.spyOn(
+      (
+        service as unknown as {
+          logger: { error: (...params: unknown[]) => void };
+        }
+      ).logger,
+      'error',
+    );
+    loggerSpy.mockImplementation(() => undefined);
+
     typiaAssertMock.mockImplementationOnce(() => {
       throw new MockTypeGuardError('profile.email', 'string', 42);
     });
@@ -127,6 +137,9 @@ describe('SettingsService', () => {
         code: 'SETTINGS_PROFILE_UNEXPECTED',
       },
     });
+
+    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    loggerSpy.mockRestore();
   });
 });
 

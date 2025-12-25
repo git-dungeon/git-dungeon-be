@@ -817,9 +817,11 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 2 delta mismatch",
+    ],
     "name": "no-drop",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -1018,9 +1020,11 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 1 delta mismatch",
+    ],
     "name": "trap-death",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {

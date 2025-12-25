@@ -163,6 +163,7 @@ describe('InventoryService', () => {
       ).logger,
       'error',
     );
+    loggerSpy.mockImplementation(() => undefined);
 
     typiaAssertMock.mockImplementationOnce(() => {
       throw new MockTypeGuardError('items', 'InventoryResponse', null);

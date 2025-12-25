@@ -149,15 +149,12 @@ export const levelUpSteps: SnapshotStep[] = [
         category: 'EXPLORATION',
         floor: 80,
         turnNumber: 0,
+        // 레벨업 로그는 이후에 기록되므로 전투 로그의 스냅샷은 레벨업 이전 상태를 유지한다.
         delta: {
           type: 'BATTLE',
           detail: {
             stats: {
               hp: -15,
-              maxHp: 4,
-              atk: 1,
-              luck: 1,
-              level: 2,
               exp: 39,
             },
             rewards: {

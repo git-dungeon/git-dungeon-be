@@ -77,7 +77,7 @@ async function main() {
     },
     {
       userId: user.id,
-      code: 'weapon-rusty-sword',
+      code: 'weapon-wooden-sword',
       slot: 'WEAPON',
       rarity: 'COMMON',
       modifiers: [
@@ -115,14 +115,15 @@ async function main() {
     },
     {
       userId: user.id,
-      code: 'potion-healing-small',
-      slot: 'CONSUMABLE',
+      code: 'helmet-leather-cap',
+      slot: 'HELMET',
       rarity: 'COMMON',
       modifiers: [
         {
-          kind: 'effect',
-          effectCode: 'restore-hp',
-          params: { amount: 20 },
+          kind: 'stat',
+          stat: 'def',
+          mode: 'flat',
+          value: 1,
         },
       ] as unknown as Prisma.InputJsonValue,
       isEquipped: false,
@@ -290,9 +291,9 @@ async function main() {
           inventory: {
             added: [
               {
-                itemId: 'potion-small',
-                code: 'potion-healing-small',
-                slot: 'CONSUMABLE',
+                itemId: 'helmet-leather-cap',
+                code: 'helmet-leather-cap',
+                slot: 'HELMET',
                 rarity: 'common',
                 quantity: 1,
               },
@@ -330,8 +331,8 @@ async function main() {
             },
             unequipped: {
               slot: 'WEAPON',
-              itemId: 'weapon-rusty-sword',
-              code: 'weapon-rusty-sword',
+              itemId: 'weapon-wooden-sword',
+              code: 'weapon-wooden-sword',
             },
           },
           stats: { atk: 5, ap: -1 },
