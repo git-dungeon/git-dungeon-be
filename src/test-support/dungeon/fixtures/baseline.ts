@@ -1,5 +1,4 @@
 import type { DungeonState } from '@prisma/client';
-import type { DungeonLogPayload } from '../../../dungeon/events/event.types';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -37,9 +36,15 @@ export type SnapshotStep = {
     DungeonState,
     'hp' | 'ap' | 'floor' | 'floorProgress' | 'level' | 'exp' | 'version'
   >;
-  extra: Array<
-    Pick<DungeonLogPayload, 'action' | 'status' | 'delta' | 'extra'>
-  >;
+  extra: Array<{
+    action: string;
+    status: string;
+    category?: string;
+    floor?: number | null;
+    turnNumber?: number | null;
+    delta?: unknown;
+    extra?: unknown;
+  }>;
 };
 
 export const baselineSteps: SnapshotStep[] = [
@@ -59,11 +64,17 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'TREASURE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: { type: 'TREASURE', detail: { stats: { ap: -1 } } },
       },
       {
         action: 'TREASURE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'TREASURE',
           detail: {
@@ -72,7 +83,7 @@ export const baselineSteps: SnapshotStep[] = [
               items: [
                 {
                   quantity: 1,
-                  itemCode: 'ring-topaz',
+                  code: 'ring-topaz',
                 },
               ],
               buffs: [],
@@ -89,6 +100,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -115,7 +129,7 @@ export const baselineSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'ring-topaz',
+                    code: 'ring-topaz',
                     quantity: 1,
                   },
                 ],
@@ -142,11 +156,17 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'REST',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 1,
         delta: { type: 'REST', detail: { stats: { ap: -1 } } },
       },
       {
         action: 'REST',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 1,
         delta: {
           type: 'REST',
           detail: {
@@ -177,17 +197,51 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 2,
         delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-giant-rat',
+              name: 'Giant Rat',
+              hp: 8,
+              atk: 2,
+              def: 0,
+              spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 10,
+              maxHp: 10,
+              atk: 3,
+              def: 1,
+              luck: 1,
+              stats: {
+                base: { hp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
+            },
+          },
+        },
       },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 2,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 3 },
             rewards: {
-              items: [{ itemCode: 'ring-topaz', quantity: 1 }],
+              items: [{ code: 'ring-topaz', quantity: 1 }],
             },
             progress: {
               previousProgress: 20,
@@ -200,12 +254,27 @@ export const baselineSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,
               def: 0,
               spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 9,
+              maxHp: 10,
+              atk: 3,
+              def: 1,
+              luck: 1,
+              stats: {
+                base: { hp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+              },
+              level: 1,
+              exp: 3,
+              expToLevel: 10,
             },
             result: 'VICTORY',
             cause: 'CRITICAL_HIT',
@@ -219,6 +288,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 2,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -245,7 +317,7 @@ export const baselineSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'ring-topaz',
+                    code: 'ring-topaz',
                     quantity: 1,
                   },
                 ],

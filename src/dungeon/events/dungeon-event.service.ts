@@ -106,12 +106,14 @@ export class DungeonEventService {
       rngValue,
       logs,
       apCost,
+      context.equipmentBonus,
     );
 
     const progressedState =
       selectedEvent === DungeonEventType.MOVE
         ? processorResult
         : this.applyProgress(processorResult, selectedEvent);
+    const completedFloor = progressedState.state.floor;
 
     const deathApplied = this.applyDeathIfNeeded(
       progressedState.state,
@@ -147,6 +149,7 @@ export class DungeonEventService {
       status: 'COMPLETED',
       delta: completedDelta,
       extra: processorResult.extra,
+      floor: completedFloor,
     });
 
     if (deathApplied.deathLog) {
@@ -157,20 +160,13 @@ export class DungeonEventService {
     }
 
     if (expApplied.levelUpLogs.length) {
-      logs.push(...expApplied.levelUpLogs);
+      logs.push(
+        ...expApplied.levelUpLogs.map((log) => ({
+          ...log,
+          floor: log.floor ?? expApplied.state.floor,
+        })),
+      );
     }
-
-    const needsForcedMove =
-      selectedEvent !== DungeonEventType.MOVE &&
-      expApplied.state.floorProgress >= MAX_FLOOR_PROGRESS;
-
-    const finalState = this.completeFlow(
-      expApplied.state,
-      needsForcedMove,
-      rngValue,
-      startedAt,
-      logs,
-    );
 
     let inventoryAdds: InventoryDelta['added'] | undefined;
 
@@ -213,7 +209,7 @@ export class DungeonEventService {
                     tableId: processorResult.dropMeta.tableId ?? undefined,
                     isElite: processorResult.dropMeta.isElite,
                     items: processorResult.dropMeta.items?.map((item) => ({
-                      itemCode: item.itemCode,
+                      code: item.code,
                       quantity: item.quantity,
                     })),
                   }
@@ -221,8 +217,21 @@ export class DungeonEventService {
             },
           },
         },
+        floor: completedFloor,
       });
     }
+
+    const needsForcedMove =
+      selectedEvent !== DungeonEventType.MOVE &&
+      expApplied.state.floorProgress >= MAX_FLOOR_PROGRESS;
+
+    const finalState = this.completeFlow(
+      expApplied.state,
+      needsForcedMove,
+      rngValue,
+      startedAt,
+      logs,
+    );
 
     const builtLogs = this.logBuilder.buildExplorationLogs({
       stateBefore,
@@ -271,6 +280,7 @@ export class DungeonEventService {
         status: 'COMPLETED',
         delta: moveResult.delta,
         extra: moveResult.extra,
+        floor: moveResult.state.floor,
       });
 
       workingState = moveResult.state;
@@ -293,6 +303,7 @@ export class DungeonEventService {
     rngValue: number,
     logs: DungeonEventLogStub[],
     apCost?: number,
+    equipmentBonus?: DungeonEventContext['equipmentBonus'],
   ): DungeonEventProcessorOutput {
     const processor = this.processors[type];
 
@@ -303,19 +314,28 @@ export class DungeonEventService {
       });
     }
 
-    logs.push({
-      type,
-      status: 'STARTED',
-      delta: this.buildStartedApDelta(type, apCost),
-    });
-
+    const startedDelta = this.buildStartedApDelta(type, apCost);
     const result = processor.process({
       state,
       rngValue,
+      equipmentBonus,
+    });
+
+    logs.push({
+      type,
+      status: 'STARTED',
+      delta: startedDelta,
+      extra: result.startedExtra,
+      floor: state.floor,
     });
 
     if (result.followUpLogs?.length) {
-      logs.push(...result.followUpLogs);
+      logs.push(
+        ...result.followUpLogs.map((log) => ({
+          ...log,
+          floor: log.floor ?? state.floor,
+        })),
+      );
     }
 
     return result;
@@ -436,6 +456,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'DEATH',
+      floor: deadState.floor,
       delta: {
         type: 'DEATH',
         detail: {
@@ -459,6 +480,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'REVIVE',
+      floor: revivedState.floor,
       delta: {
         type: 'REVIVE',
         detail: {

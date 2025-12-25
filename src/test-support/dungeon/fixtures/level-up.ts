@@ -45,10 +45,48 @@ export const levelUpSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-ancient-dragon',
+              name: 'Ancient Dragon',
+              hp: 90,
+              atk: 18,
+              def: 9,
+              spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 60,
+              maxHp: 60,
+              atk: 35,
+              def: 12,
+              luck: 5,
+              stats: {
+                base: { hp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 60, atk: 35, def: 12, luck: 5 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
+            },
+          },
+        },
+      },
       {
         action: 'LEVEL_UP',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'LEVEL_UP',
           detail: {
@@ -77,6 +115,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'LEVEL_UP',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'LEVEL_UP',
           detail: {
@@ -105,16 +146,19 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
+        // 레벨업 로그는 이후에 기록되므로 전투 로그의 스냅샷은 레벨업 이전 상태를 유지한다.
         delta: {
           type: 'BATTLE',
           detail: {
             stats: {
               hp: -15,
-              maxHp: 4,
-              atk: 1,
-              luck: 1,
-              level: 2,
               exp: 39,
+            },
+            rewards: {
+              items: [{ code: 'angel-ring', quantity: 1 }],
             },
             progress: {
               previousProgress: 0,
@@ -127,12 +171,27 @@ export const levelUpSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-ancient-dragon',
+              code: 'monster-ancient-dragon',
               name: 'Ancient Dragon',
               hp: 90,
               atk: 18,
               def: 9,
               spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 45,
+              maxHp: 60,
+              atk: 35,
+              def: 12,
+              luck: 5,
+              stats: {
+                base: { hp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 60, atk: 35, def: 12, luck: 5 },
+              },
+              level: 1,
+              exp: 39,
+              expToLevel: 10,
             },
             result: 'VICTORY',
             expGained: 39,
@@ -145,6 +204,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -169,7 +231,7 @@ export const levelUpSteps: SnapshotStep[] = [
               drop: {
                 tableId: 'drops-ancient-dragon',
                 isElite: false,
-                items: [{ itemCode: 'angel-ring', quantity: 1 }],
+                items: [{ code: 'angel-ring', quantity: 1 }],
               },
             },
           },

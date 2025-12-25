@@ -45,14 +45,55 @@ export const forcedMoveSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-giant-rat',
+              name: 'Giant Rat',
+              hp: 8,
+              atk: 2,
+              def: 0,
+              spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 10,
+              maxHp: 10,
+              atk: 3,
+              def: 1,
+              luck: 1,
+              stats: {
+                base: { hp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+              },
+              level: 1,
+              exp: 0,
+              expToLevel: 10,
+            },
+          },
+        },
+      },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 3 },
+            rewards: {
+              items: [{ code: 'weapon-battle-axe', quantity: 1 }],
+            },
             progress: {
               previousProgress: 90,
               floorProgress: 100,
@@ -64,12 +105,27 @@ export const forcedMoveSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-giant-rat',
+              code: 'monster-giant-rat',
               name: 'Giant Rat',
               hp: 8,
               atk: 2,
               def: 0,
               spriteId: 'sprite/monster-giant-rat',
+            },
+            player: {
+              hp: 9,
+              maxHp: 10,
+              atk: 3,
+              def: 1,
+              luck: 1,
+              stats: {
+                base: { hp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+              },
+              level: 1,
+              exp: 3,
+              expToLevel: 10,
             },
             result: 'VICTORY',
             expGained: 3,
@@ -79,27 +135,12 @@ export const forcedMoveSteps: SnapshotStep[] = [
           },
         },
       },
-      { action: 'MOVE', status: 'STARTED' },
-      {
-        action: 'MOVE',
-        status: 'COMPLETED',
-        delta: {
-          type: 'MOVE',
-          detail: {
-            fromFloor: 1,
-            toFloor: 2,
-            previousProgress: 100,
-            progress: {
-              previousProgress: 100,
-              floorProgress: 0,
-              delta: -100,
-            },
-          },
-        },
-      },
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -126,11 +167,38 @@ export const forcedMoveSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    itemCode: 'weapon-battle-axe',
+                    code: 'weapon-battle-axe',
                     quantity: 1,
                   },
                 ],
               },
+            },
+          },
+        },
+      },
+      {
+        action: 'MOVE',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+      },
+      {
+        action: 'MOVE',
+        status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 2,
+        turnNumber: 0,
+        delta: {
+          type: 'MOVE',
+          detail: {
+            fromFloor: 1,
+            toFloor: 2,
+            previousProgress: 100,
+            progress: {
+              previousProgress: 100,
+              floorProgress: 0,
+              delta: -100,
             },
           },
         },

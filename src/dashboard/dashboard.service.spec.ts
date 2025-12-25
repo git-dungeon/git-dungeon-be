@@ -150,6 +150,7 @@ describe('DashboardService', () => {
       ).logger,
       'error',
     );
+    loggerSpy.mockImplementation(() => undefined);
 
     typiaAssertMock.mockImplementationOnce(() => {
       throw new MockTypeGuardError('state.level', 'number', null);

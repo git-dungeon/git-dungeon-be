@@ -39,6 +39,7 @@ export interface EquipmentStats {
 }
 
 export interface EquipmentSummary {
+  base: EquipmentStats;
   total: EquipmentStats;
   equipmentBonus: EquipmentStats;
 }

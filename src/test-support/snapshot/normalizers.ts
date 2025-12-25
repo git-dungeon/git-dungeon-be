@@ -6,6 +6,7 @@ type NormalizedStep = Omit<SimulationStep, 'logs'> & {
     status: string;
     delta: unknown;
     extra: unknown;
+    floor: number | null | undefined;
   }>;
 };
 
@@ -39,6 +40,7 @@ export const normalizeResult = (result: SimulationResult): NormalizedResult => {
       status: log.status,
       delta: stripDates(log.delta),
       extra: stripDates(log.extra),
+      floor: log.floor,
     })),
   }));
 

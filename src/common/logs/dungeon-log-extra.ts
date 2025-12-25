@@ -1,16 +1,44 @@
+import type { InventoryModifier } from '../inventory/inventory-modifier';
+
 type BattleResult = 'VICTORY' | 'DEFEAT';
+
+type BattlePlayerStatBlock = {
+  hp: number;
+  atk: number;
+  def: number;
+  luck: number;
+};
+
+type BattlePlayerStatBreakdown = {
+  base: BattlePlayerStatBlock;
+  equipmentBonus: BattlePlayerStatBlock;
+  total: BattlePlayerStatBlock;
+};
+
+export type BattlePlayerSnapshot = {
+  hp: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  luck: number;
+  stats: BattlePlayerStatBreakdown;
+  level: number;
+  exp: number;
+  expToLevel?: number;
+};
 
 export type BattleDetails = {
   type: 'BATTLE';
   details: {
     monster: {
-      id: string;
+      code: string;
       name: string;
       hp: number;
       atk: number;
       def: number;
       spriteId: string;
     };
+    player: BattlePlayerSnapshot;
     result?: BattleResult;
     cause?: string;
     expGained?: number;
@@ -37,7 +65,7 @@ export type AcquireItemDetails = {
         tableId?: string | null;
         isElite?: boolean;
         items?: Array<{
-          itemCode: string;
+          code: string;
           quantity?: number;
         }>;
       };
@@ -45,15 +73,23 @@ export type AcquireItemDetails = {
   };
 };
 
-export type EquipItemDetails = {
-  type: 'EQUIP_ITEM';
+export type InventoryMutationDetails = {
+  type: 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
   details: {
     item: {
       id: string;
       code: string;
-      name: string;
+      slot: string;
       rarity: string;
-      modifiers: Array<{ stat: string; value: number }>;
+      name?: string | null;
+      modifiers?: InventoryModifier[];
+    };
+    replacedItem?: {
+      id: string;
+      code: string;
+      slot: string;
+      rarity: string;
+      name?: string | null;
     };
   };
 };
@@ -124,7 +160,7 @@ export type DungeonLogDetails =
   | BattleDetails
   | DeathDetails
   | AcquireItemDetails
-  | EquipItemDetails
+  | InventoryMutationDetails
   | LevelUpDetails
   | BuffDetails
   | RestDetails

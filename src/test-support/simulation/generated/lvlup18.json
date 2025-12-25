@@ -14,7 +14,61 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 80
+      },
+      {
+        "action": "BATTLE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "hp": -19,
+              "exp": 39
+            },
+            "rewards": {
+              "items": [
+                {
+                  "code": "angel-ring",
+                  "quantity": 1
+                }
+              ]
+            },
+            "progress": {
+              "previousProgress": 0,
+              "floorProgress": 20,
+              "delta": 20
+            }
+          }
+        },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-ancient-dragon",
+              "name": "Ancient Dragon",
+              "hp": 90,
+              "atk": 18,
+              "def": 9,
+              "spriteId": "sprite/monster-ancient-dragon"
+            },
+            "result": "VICTORY",
+            "expGained": 39,
+            "turns": 4,
+            "damageDealt": 101,
+            "damageTaken": 19
+          }
+        },
+        "floor": 80
       },
       {
         "action": "LEVEL_UP",
@@ -42,7 +96,8 @@
               "hp": 2
             }
           }
-        }
+        },
+        "floor": 80
       },
       {
         "action": "LEVEL_UP",
@@ -70,47 +125,8 @@
               "hp": 2
             }
           }
-        }
-      },
-      {
-        "action": "BATTLE",
-        "status": "COMPLETED",
-        "delta": {
-          "type": "BATTLE",
-          "detail": {
-            "stats": {
-              "hp": -15,
-              "maxHp": 4,
-              "atk": 1,
-              "luck": 1,
-              "level": 2,
-              "exp": 39
-            },
-            "progress": {
-              "previousProgress": 0,
-              "floorProgress": 20,
-              "delta": 20
-            }
-          }
         },
-        "extra": {
-          "type": "BATTLE",
-          "details": {
-            "monster": {
-              "id": "monster-ancient-dragon",
-              "name": "Ancient Dragon",
-              "hp": 90,
-              "atk": 18,
-              "def": 9,
-              "spriteId": "sprite/monster-ancient-dragon"
-            },
-            "result": "VICTORY",
-            "expGained": 39,
-            "turns": 4,
-            "damageDealt": 101,
-            "damageTaken": 19
-          }
-        }
+        "floor": 80
       },
       {
         "action": "ACQUIRE_ITEM",
@@ -121,7 +137,7 @@
             "inventory": {
               "added": [
                 {
-                  "itemId": "angel-ring",
+                  "itemId": "96500a2e-61e6-56ad-af16-e7b74e11ede9",
                   "code": "angel-ring",
                   "slot": "ring",
                   "rarity": "legendary",
@@ -141,14 +157,15 @@
                 "isElite": false,
                 "items": [
                   {
-                    "itemCode": "angel-ring",
+                    "code": "angel-ring",
                     "quantity": 1
                   }
                 ]
               }
             }
           }
-        }
+        },
+        "floor": 80
       }
     ]
   }

@@ -77,7 +77,7 @@ async function main() {
     },
     {
       userId: user.id,
-      code: 'weapon-rusty-sword',
+      code: 'weapon-wooden-sword',
       slot: 'WEAPON',
       rarity: 'COMMON',
       modifiers: [
@@ -115,14 +115,15 @@ async function main() {
     },
     {
       userId: user.id,
-      code: 'potion-healing-small',
-      slot: 'CONSUMABLE',
+      code: 'helmet-leather-cap',
+      slot: 'HELMET',
       rarity: 'COMMON',
       modifiers: [
         {
-          kind: 'effect',
-          effectCode: 'restore-hp',
-          params: { amount: 20 },
+          kind: 'stat',
+          stat: 'def',
+          mode: 'flat',
+          value: 1,
         },
       ] as unknown as Prisma.InputJsonValue,
       isEquipped: false,
@@ -202,12 +203,27 @@ async function main() {
         type: 'BATTLE',
         details: {
           monster: {
-            id: 'monster-giant-rat',
+            code: 'monster-giant-rat',
             name: '거대 쥐',
             hp: 24,
             atk: 3,
             def: 0,
             spriteId: 'monster-giant-rat',
+          },
+          player: {
+            hp: 10,
+            maxHp: 12,
+            atk: 6,
+            def: 5,
+            luck: 3,
+            stats: {
+              base: { hp: 10, atk: 1, def: 1, luck: 1 },
+              equipmentBonus: { hp: 2, atk: 5, def: 4, luck: 2 },
+              total: { hp: 12, atk: 6, def: 5, luck: 3 },
+            },
+            level: 1,
+            exp: 0,
+            expToLevel: 10,
           },
         },
       }) as Prisma.InputJsonValue,
@@ -233,12 +249,27 @@ async function main() {
         type: 'BATTLE',
         details: {
           monster: {
-            id: 'monster-giant-rat',
+            code: 'monster-giant-rat',
             name: '거대 쥐',
             hp: 0,
             atk: 3,
             def: 0,
             spriteId: 'monster-giant-rat',
+          },
+          player: {
+            hp: 5,
+            maxHp: 12,
+            atk: 6,
+            def: 5,
+            luck: 3,
+            stats: {
+              base: { hp: 10, atk: 1, def: 1, luck: 1 },
+              equipmentBonus: { hp: 2, atk: 5, def: 4, luck: 2 },
+              total: { hp: 12, atk: 6, def: 5, luck: 3 },
+            },
+            level: 1,
+            exp: 3,
+            expToLevel: 10,
           },
           result: 'VICTORY',
         },
@@ -260,9 +291,9 @@ async function main() {
           inventory: {
             added: [
               {
-                itemId: 'potion-small',
-                code: 'potion-healing-small',
-                slot: 'CONSUMABLE',
+                itemId: 'helmet-leather-cap',
+                code: 'helmet-leather-cap',
+                slot: 'HELMET',
                 rarity: 'common',
                 quantity: 1,
               },
@@ -300,8 +331,8 @@ async function main() {
             },
             unequipped: {
               slot: 'WEAPON',
-              itemId: 'weapon-rusty-sword',
-              code: 'weapon-rusty-sword',
+              itemId: 'weapon-wooden-sword',
+              code: 'weapon-wooden-sword',
             },
           },
           stats: { atk: 5, ap: -1 },
@@ -314,8 +345,9 @@ async function main() {
             id: 'weapon-longsword',
             code: 'weapon-longsword',
             name: 'Longsword',
+            slot: 'weapon',
             rarity: 'rare',
-            modifiers: [{ stat: 'atk', value: 5 }],
+            modifiers: [{ kind: 'stat', stat: 'atk', mode: 'flat', value: 5 }],
           },
         },
       }) as Prisma.InputJsonValue,

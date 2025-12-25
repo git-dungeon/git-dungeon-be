@@ -44,28 +44,46 @@ export const trapDeathSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'TRAP', status: 'STARTED' },
+      {
+        action: 'TRAP',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+        delta: { type: 'TRAP', detail: { stats: { ap: -1 } } },
+      },
       {
         action: 'TRAP',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'TRAP',
           detail: {
             stats: { hp: -3 },
+            progress: {
+              previousProgress: 0,
+              floorProgress: 10,
+              delta: 10,
+            },
           },
         },
       },
       {
         action: 'DEATH',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'DEATH',
           detail: {
             stats: {},
             progress: {
-              previousProgress: 0,
+              previousProgress: 10,
               floorProgress: 0,
-              delta: 0,
+              delta: -10,
             },
           },
         },
@@ -79,6 +97,9 @@ export const trapDeathSteps: SnapshotStep[] = [
       {
         action: 'REVIVE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'REVIVE',
           detail: {

@@ -29,7 +29,7 @@ const createState = (overrides: Partial<DungeonState> = {}): DungeonState => ({
 
 const monsters: CatalogMonster[] = [
   {
-    id: 'monster-normal',
+    code: 'monster-normal',
     nameKey: 'monster.normal.name',
     descriptionKey: 'monster.normal.desc',
     name: 'Normal',
@@ -43,7 +43,7 @@ const monsters: CatalogMonster[] = [
     variantOf: null,
   },
   {
-    id: 'monster-elite',
+    code: 'monster-elite',
     nameKey: 'monster.elite.name',
     descriptionKey: 'monster.elite.desc',
     name: 'Elite',
@@ -85,7 +85,7 @@ describe('BattleEventProcessor', () => {
     if (!details || details.type !== 'BATTLE') {
       throw new Error('battle extra가 없습니다');
     }
-    expect(details.details.monster.id).toBe('monster-elite');
+    expect(details.details.monster.code).toBe('monster-elite');
   });
 
   it('기본적으로 일반 몬스터를 선택해 전투를 수행한다', () => {
@@ -102,14 +102,46 @@ describe('BattleEventProcessor', () => {
     if (!details || details.type !== 'BATTLE') {
       throw new Error('battle extra가 없습니다');
     }
-    expect(details.details.monster.id).toBe('monster-normal');
+    expect(details.details.monster.code).toBe('monster-normal');
     expect(result.state.hp).toBeGreaterThan(0);
     expect(result.delta?.type).toBe('BATTLE');
   });
 
+  it('장비 보너스 스탯을 전투 계산에 반영한다', () => {
+    const processor = new BattleEventProcessor(registry, {
+      rngFactory: fixedRngFactory([0.9]),
+    });
+    const state = createState({ atk: 2, def: 0, luck: 0 });
+
+    const withoutBonus = processor.process({
+      state,
+      rngValue: 0,
+    });
+    const withBonus = processor.process({
+      state,
+      rngValue: 0,
+      equipmentBonus: { hp: 0, atk: 3, def: 0, luck: 0 },
+    });
+
+    const withoutExtra = withoutBonus.extra;
+    const withExtra = withBonus.extra;
+    if (
+      !withoutExtra ||
+      withoutExtra.type !== 'BATTLE' ||
+      !withExtra ||
+      withExtra.type !== 'BATTLE'
+    ) {
+      throw new Error('battle extra가 없습니다');
+    }
+
+    const withoutDamage = withoutExtra.details.damageDealt ?? 0;
+    const withDamage = withExtra.details.damageDealt ?? 0;
+    expect(withDamage).toBeGreaterThan(withoutDamage);
+  });
+
   it('승리 시 드랍 엔진을 호출해 drops를 반환한다', () => {
     const dropService: Pick<DropService, 'roll'> = {
-      roll: vi.fn().mockReturnValue([{ itemCode: 'angel-ring', quantity: 1 }]),
+      roll: vi.fn().mockReturnValue([{ code: 'angel-ring', quantity: 1 }]),
     };
     const processor = new BattleEventProcessor(registry, {
       rngFactory: fixedRngFactory([0.9, 0.0]), // normal monster
@@ -122,13 +154,13 @@ describe('BattleEventProcessor', () => {
     });
 
     expect(dropService.roll).toHaveBeenCalled();
-    expect(result.drops).toEqual([{ itemCode: 'angel-ring', quantity: 1 }]);
+    expect(result.drops).toEqual([{ code: 'angel-ring', quantity: 1 }]);
   });
 
   it('패배 시 floor를 1로 리셋하고 HP를 초기화한다', () => {
     const strongMonster: CatalogMonster = {
       ...monsters[0],
-      id: 'monster-strong',
+      code: 'monster-strong',
       atk: 20,
       hp: 30,
       variantOf: null,
@@ -163,7 +195,7 @@ describe('BattleEventProcessor', () => {
   it('승리 시 EXP를 지급하고 레벨업을 적용한다', () => {
     const expMonster: CatalogMonster = {
       ...monsters[0],
-      id: 'monster-exp',
+      code: 'monster-exp',
       hp: 4,
       atk: 1,
       def: 0,

@@ -51,6 +51,11 @@ export const createDashboardStateResponse = (
     createdAt: '2025-10-27T06:00:00.000Z',
     updatedAt: '2025-10-27T07:00:00.000Z',
     expToLevel: 50,
+    stats: {
+      base: { hp: 120, atk: 25, def: 10, luck: 7 },
+      equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+      total: { hp: 120, atk: 25, def: 10, luck: 7 },
+    },
     equippedItems: [
       {
         id: TEST_INVENTORY_ITEM_ID_1,
@@ -112,6 +117,7 @@ export const createInventoryResponse = (
     },
   },
   summary: {
+    base: { hp: 10, atk: 5, def: 3, luck: 1 },
     total: { hp: 10, atk: 10, def: 5, luck: 1 },
     equipmentBonus: { hp: 0, atk: 5, def: 2, luck: 0 },
   },

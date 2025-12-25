@@ -106,6 +106,14 @@ describe('DungeonEventService', () => {
         log.status === DungeonLogStatus.COMPLETED,
     );
 
+    const restCompleted = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.REST &&
+        log.status === DungeonLogStatus.COMPLETED,
+    );
+
+    expect(restCompleted?.floor).toBe(state.floor);
+    expect(moveCompleted?.floor).toBe(state.floor + 1);
     expect(moveCompleted?.stateVersionAfter).toBe(state.version + 1);
   });
 
@@ -295,6 +303,51 @@ describe('DungeonEventService', () => {
     }
   });
 
+  it('전투 STARTED 로그에 몬스터 extra가 포함된다', async () => {
+    const state: DungeonState = createState({
+      ap: 5,
+      floorProgress: 0,
+    });
+
+    const result = await service.execute({
+      state,
+      seed: 'battle-start-extra',
+      weights: {
+        [DungeonEventType.BATTLE]: 1,
+        [DungeonEventType.TREASURE]: 0,
+        [DungeonEventType.REST]: 0,
+        [DungeonEventType.TRAP]: 0,
+      },
+    });
+
+    const startedLog = result.logs.find(
+      (log) =>
+        log.action === DungeonLogAction.BATTLE &&
+        log.status === DungeonLogStatus.STARTED,
+    );
+
+    expect(startedLog?.extra?.type).toBe('BATTLE');
+    const details =
+      startedLog?.extra?.type === 'BATTLE'
+        ? startedLog.extra.details
+        : undefined;
+    expect(details?.monster?.code).toBeTypeOf('string');
+    expect(details?.monster?.name).toBeTypeOf('string');
+    expect(details?.monster?.hp).toBeTypeOf('number');
+    expect(details?.monster?.atk).toBeTypeOf('number');
+    expect(details?.monster?.def).toBeTypeOf('number');
+    expect(details?.monster?.spriteId).toBeTypeOf('string');
+    expect(details?.player?.hp).toBeTypeOf('number');
+    expect(details?.player?.maxHp).toBeTypeOf('number');
+    expect(details?.player?.atk).toBeTypeOf('number');
+    expect(details?.player?.def).toBeTypeOf('number');
+    expect(details?.player?.luck).toBeTypeOf('number');
+    expect(details?.player?.level).toBeTypeOf('number');
+    expect(details?.player?.exp).toBeTypeOf('number');
+    expect(details?.player?.stats?.total?.atk).toBeTypeOf('number');
+    expect(details?.player?.stats?.equipmentBonus?.atk).toBeTypeOf('number');
+  });
+
   it('HP<=0이면 DEATH 로그가 생성되고(리셋 포함) 이벤트 progress는 DEATH에서만 표기된다', async () => {
     const state: DungeonState = createState({
       hp: 1,
@@ -324,6 +377,7 @@ describe('DungeonEventService', () => {
         'number',
       );
     }
+    expect(deathLog?.floor).toBe(1);
 
     const trapCompleted = result.logs.find(
       (log) =>
@@ -345,6 +399,7 @@ describe('DungeonEventService', () => {
       expect(trapCompleted.delta.detail.progress).toBeUndefined();
       expect(trapCompleted.delta.detail.stats.ap).toBeUndefined();
     }
+    expect(trapCompleted?.floor).toBe(state.floor);
 
     const trapCompletedIndex = result.logs.findIndex(
       (log) =>
@@ -404,6 +459,13 @@ describe('DungeonEventService', () => {
         log.action === DungeonLogAction.BATTLE &&
         log.status === DungeonLogStatus.STARTED,
     );
+    expect(battleStarted?.extra?.type).toBe('BATTLE');
+    if (battleStarted?.extra?.type === 'BATTLE') {
+      expect(battleStarted.extra.details.player?.hp).toBeTypeOf('number');
+      expect(battleStarted.extra.details.player?.stats?.total?.hp).toBeTypeOf(
+        'number',
+      );
+    }
     expect(battleStarted?.delta?.type).toBe('BATTLE');
     if (battleStarted?.delta?.type === 'BATTLE') {
       expect(battleStarted.delta.detail.stats?.ap).toBe(-1);
@@ -417,6 +479,13 @@ describe('DungeonEventService', () => {
       expect(battleCompleted.delta.detail.stats?.ap).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.level).toBeUndefined();
       expect(battleCompleted.delta.detail.stats?.maxHp).toBeUndefined();
+    }
+    expect(battleCompleted?.extra?.type).toBe('BATTLE');
+    if (battleCompleted?.extra?.type === 'BATTLE') {
+      expect(battleCompleted.extra.details.player?.hp).toBeTypeOf('number');
+      expect(battleCompleted.extra.details.player?.stats?.total?.hp).toBeTypeOf(
+        'number',
+      );
     }
 
     const battleCompletedIndex = result.logs.findIndex(
@@ -443,7 +512,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const inventoryAdds = [
         {
@@ -493,11 +562,80 @@ describe('DungeonEventService', () => {
           );
         }
         if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
-          expect(
-            acquireLog.extra.details.reward.drop?.items?.[0]?.itemCode,
-          ).toBe('weapon-wooden-sword');
+          expect(acquireLog.extra.details.reward.drop?.items?.[0]?.code).toBe(
+            'weapon-wooden-sword',
+          );
         }
         expect(result.inventoryAdds?.length).toBeGreaterThan(0);
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+        process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
+      }
+    },
+  );
+
+  it.sequential(
+    '강제 MOVE가 필요한 경우 ACQUIRE_ITEM 로그가 MOVE보다 먼저 기록된다',
+    async () => {
+      const originalNodeEnv = process.env.NODE_ENV;
+      const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
+      process.env.NODE_ENV = 'development';
+      process.env.DATABASE_SKIP_CONNECTION = 'false';
+
+      const dropService: Pick<DropService, 'roll'> = {
+        roll: vi
+          .fn()
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
+      };
+      const inventoryAdds = [
+        {
+          itemId: '00000000-0000-4000-8000-000000000402',
+          code: 'weapon-wooden-sword',
+          slot: 'weapon',
+          rarity: 'common',
+          quantity: 1,
+        },
+      ];
+      const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
+        applyDrops: vi.fn().mockResolvedValue(inventoryAdds),
+      };
+
+      try {
+        const module = await Test.createTestingModule({
+          imports: [DungeonModule],
+        })
+          .overrideProvider(DropService)
+          .useValue(dropService)
+          .overrideProvider(DropInventoryService)
+          .useValue(dropInventoryService)
+          .compile();
+
+        const serviceWithDrops = module.get(DungeonEventService);
+        const state: DungeonState = createState({ ap: 5, floorProgress: 95 });
+
+        const result = await serviceWithDrops.execute({
+          state,
+          seed: 'acquire-log-move-order',
+          weights: {
+            [DungeonEventType.BATTLE]: 0,
+            [DungeonEventType.TREASURE]: 1,
+            [DungeonEventType.REST]: 0,
+            [DungeonEventType.TRAP]: 0,
+          },
+        });
+
+        const acquireIndex = result.logs.findIndex(
+          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        );
+        const moveStartedIndex = result.logs.findIndex(
+          (log) =>
+            log.action === DungeonLogAction.MOVE &&
+            log.status === DungeonLogStatus.STARTED,
+        );
+
+        expect(acquireIndex).toBeGreaterThanOrEqual(0);
+        expect(moveStartedIndex).toBeGreaterThanOrEqual(0);
+        expect(acquireIndex).toBeLessThan(moveStartedIndex);
       } finally {
         process.env.NODE_ENV = originalNodeEnv;
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
@@ -514,7 +652,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
         applyDrops: vi.fn(),
@@ -576,7 +714,7 @@ describe('DungeonEventService', () => {
       const dropService: Pick<DropService, 'roll'> = {
         roll: vi
           .fn()
-          .mockReturnValue([{ itemCode: 'weapon-wooden-sword', quantity: 1 }]),
+          .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
       };
       const dropInventoryService: Pick<DropInventoryService, 'applyDrops'> = {
         applyDrops: vi.fn().mockResolvedValue(inventoryAdds),

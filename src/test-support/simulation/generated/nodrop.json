@@ -14,30 +14,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
-      },
-      {
-        "action": "DEATH",
-        "status": "COMPLETED",
+        "status": "STARTED",
         "delta": {
-          "type": "DEATH",
+          "type": "BATTLE",
           "detail": {
             "stats": {
-              "hp": 10
-            },
-            "progress": {
-              "previousProgress": 20,
-              "floorProgress": 0,
-              "delta": -20
+              "ap": -1
             }
           }
         },
-        "extra": {
-          "type": "DEATH",
-          "details": {
-            "cause": "PLAYER_DEFEATED"
-          }
-        }
+        "floor": 1
       },
       {
         "action": "BATTLE",
@@ -48,10 +34,8 @@
             "stats": {
               "hp": -3
             },
-            "progress": {
-              "previousProgress": 0,
-              "floorProgress": 0,
-              "delta": 0
+            "rewards": {
+              "items": []
             }
           }
         },
@@ -59,7 +43,7 @@
           "type": "BATTLE",
           "details": {
             "monster": {
-              "id": "monster-giant-rat",
+              "code": "monster-giant-rat",
               "name": "Giant Rat",
               "hp": 8,
               "atk": 2,
@@ -73,7 +57,43 @@
             "damageDealt": 2,
             "damageTaken": 4
           }
-        }
+        },
+        "floor": 1
+      },
+      {
+        "action": "DEATH",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "DEATH",
+          "detail": {
+            "stats": {},
+            "progress": {
+              "previousProgress": 20,
+              "floorProgress": 0,
+              "delta": -20
+            }
+          }
+        },
+        "extra": {
+          "type": "DEATH",
+          "details": {
+            "cause": "PLAYER_DEFEATED"
+          }
+        },
+        "floor": 1
+      },
+      {
+        "action": "REVIVE",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "REVIVE",
+          "detail": {
+            "stats": {
+              "hp": 10
+            }
+          }
+        },
+        "floor": 1
       }
     ]
   }

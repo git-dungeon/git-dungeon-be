@@ -26,7 +26,7 @@ export class DropInventoryService {
       let versionCounter = result._max.version ?? 0;
 
       for (const drop of input.drops) {
-        const meta = getCatalogItemMeta(drop.itemCode);
+        const meta = getCatalogItemMeta(drop.code);
         const slot = meta?.slot
           ? (meta.slot.toUpperCase() as InventorySlot)
           : ('CONSUMABLE' as InventorySlot);
@@ -43,7 +43,7 @@ export class DropInventoryService {
             data: {
               id,
               userId: input.userId,
-              code: drop.itemCode,
+              code: drop.code,
               slot,
               rarity,
               modifiers,
@@ -54,7 +54,7 @@ export class DropInventoryService {
 
           added.push({
             itemId: id,
-            code: drop.itemCode,
+            code: drop.code,
             slot: slot.toLowerCase(),
             rarity: rarity.toLowerCase(),
             quantity: 1,

@@ -112,6 +112,72 @@ describe('LogsController (E2E)', () => {
     }
   });
 
+  it('인벤토리 로그(EQUIP_ITEM)를 포함해 응답해야 한다', async () => {
+    const { app, logsServiceMock, authSessionServiceMock } = await setupApp();
+    const payload = {
+      logs: [
+        {
+          id: LOG_ID_2,
+          category: DungeonLogCategory.STATUS,
+          action: DungeonLogAction.EQUIP_ITEM,
+          status: DungeonLogStatus.COMPLETED,
+          floor: null,
+          turnNumber: null,
+          stateVersionBefore: null,
+          stateVersionAfter: null,
+          delta: {
+            type: 'EQUIP_ITEM',
+            detail: {
+              inventory: {
+                equipped: {
+                  slot: 'weapon',
+                  itemId: 'inventory-item-id',
+                  code: 'weapon-longsword',
+                },
+              },
+            },
+          },
+          extra: {
+            type: 'EQUIP_ITEM',
+            details: {
+              item: {
+                id: 'inventory-item-id',
+                code: 'weapon-longsword',
+                slot: 'weapon',
+                rarity: 'rare',
+                name: null,
+                modifiers: [
+                  { kind: 'stat', stat: 'atk', mode: 'flat', value: 5 },
+                ],
+              },
+            },
+          },
+          createdAt: '2025-10-17T01:59:00.000Z',
+        },
+      ],
+      nextCursor: null,
+    };
+    logsServiceMock.getLogs.mockResolvedValue(payload);
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(
+      createActiveSession(),
+    );
+
+    const server = app.getHttpServer() as Parameters<typeof request>[0];
+    const agent = request(server);
+
+    try {
+      const response = await agent.get('/api/logs');
+      const body = response.body as {
+        data?: { logs?: Array<{ action?: string; category?: string }> };
+      };
+      expect(response.status).toBe(200);
+      expect(body.data?.logs?.[0]?.action).toBe('EQUIP_ITEM');
+      expect(body.data?.logs?.[0]?.category).toBe('STATUS');
+    } finally {
+      await app.close();
+    }
+  });
+
   it('cursor/type/limit 쿼리를 적용해 로그를 조회해야 한다', async () => {
     const { app, logsServiceMock, authSessionServiceMock } = await setupApp();
     const payload = createSamplePayload();

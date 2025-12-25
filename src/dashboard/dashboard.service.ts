@@ -6,6 +6,11 @@ import {
 } from '@nestjs/common';
 import typia, { TypeGuardError } from 'typia';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  addEquipmentStats,
+  calculateEquipmentBonus,
+} from '../common/inventory/equipment-stats';
+import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import type {
   DashboardStateResponse,
   EquipmentItem,
@@ -35,16 +40,30 @@ export class DashboardService {
       });
     }
 
+    const baseStats = {
+      hp: state.maxHp,
+      atk: state.atk,
+      def: state.def,
+      luck: state.luck,
+    };
+    const equipmentBonus = calculateEquipmentBonus(
+      baseStats,
+      equippedItems.map((item) => parseInventoryModifiers(item.modifiers)),
+    );
+    const totalStats = addEquipmentStats(baseStats, equipmentBonus);
+    const maxHp = Math.max(0, totalStats.hp);
+    const currentHp = Math.max(0, Math.min(state.hp, maxHp));
+
     const response: DashboardStateResponse = {
       state: {
         userId: state.userId,
         level: state.level,
         exp: state.exp,
-        hp: state.hp,
-        maxHp: state.maxHp,
-        atk: state.atk,
-        def: state.def,
-        luck: state.luck,
+        hp: currentHp,
+        maxHp,
+        atk: totalStats.atk,
+        def: totalStats.def,
+        luck: totalStats.luck,
         floor: state.floor,
         maxFloor: state.maxFloor,
         floorProgress: state.floorProgress,
@@ -57,6 +76,11 @@ export class DashboardService {
         version: state.version,
         updatedAt: state.updatedAt.toISOString(),
         expToLevel: this.calculateExpToLevel(state.level),
+        stats: {
+          base: baseStats,
+          equipmentBonus,
+          total: totalStats,
+        },
         equippedItems: equippedItems.map((item) => this.mapEquippedItem(item)),
       },
     };
@@ -114,9 +138,7 @@ export class DashboardService {
       name: null,
       slot: item.slot.toLowerCase(),
       rarity: item.rarity.toLowerCase(),
-      modifiers: (Array.isArray(item.modifiers)
-        ? item.modifiers
-        : []) as EquipmentItem['modifiers'],
+      modifiers: parseInventoryModifiers(item.modifiers),
       effect: null,
       sprite: null,
       createdAt: item.obtainedAt.toISOString(),

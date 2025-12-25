@@ -7,14 +7,19 @@ import {
   PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, type InventoryItem } from '@prisma/client';
-import typia, { TypeGuardError } from 'typia';
 import {
-  INVENTORY_STATS,
-  normalizeInventoryModifier,
-  type InventoryModifier,
-  type InventoryStat,
-} from '../common/inventory/inventory-modifier';
+  DungeonLogAction,
+  DungeonLogCategory,
+  DungeonLogStatus,
+  Prisma,
+  type InventoryItem,
+} from '@prisma/client';
+import typia, { TypeGuardError } from 'typia';
+import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
+import {
+  addEquipmentStats,
+  calculateEquipmentBonus,
+} from '../common/inventory/equipment-stats';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   EquipmentItem,
@@ -24,6 +29,10 @@ import type {
   InventoryRarity,
   InventorySlot,
 } from './dto/inventory.response';
+import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
+import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
+
+type InventoryLogAction = 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
 
 const INVENTORY_SLOTS: InventorySlot[] = [
   'helmet',
@@ -97,6 +106,14 @@ export class InventoryService {
         });
       }
 
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.EQUIP_ITEM,
+        item: this.mapInventoryItem(target),
+        replaced: equippedInSlot
+          ? this.mapInventoryItem(equippedInSlot)
+          : undefined,
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
       });
@@ -149,6 +166,11 @@ export class InventoryService {
         });
       }
 
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.UNEQUIP_ITEM,
+        item: this.mapInventoryItem(target),
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
       });
@@ -193,6 +215,11 @@ export class InventoryService {
         });
       }
 
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.DISCARD_ITEM,
+        item: this.mapInventoryItem(target),
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
       });
@@ -224,10 +251,16 @@ export class InventoryService {
     const items = inventoryItems.map((item) => this.mapInventoryItem(item));
     const equipped = this.mapEquipped(items);
     const baseStats = this.getBaseStats(dungeonState);
-    const equipmentBonus = this.calculateEquipmentBonus(baseStats, equipped);
+    const equipmentBonus = calculateEquipmentBonus(
+      baseStats,
+      Object.values(equipped)
+        .filter((item): item is EquipmentItem => Boolean(item))
+        .map((item) => item.modifiers),
+    );
     const summary = {
+      base: baseStats,
       equipmentBonus,
-      total: this.addStats(baseStats, equipmentBonus),
+      total: addEquipmentStats(baseStats, equipmentBonus),
     };
 
     const version =
@@ -343,7 +376,7 @@ export class InventoryService {
   }
 
   private mapInventoryItem(item: InventoryItem): EquipmentItem {
-    const modifiers = this.toInventoryModifiers(item.modifiers);
+    const modifiers = parseInventoryModifiers(item.modifiers);
     const rarity = item.rarity.toLowerCase();
 
     return {
@@ -392,115 +425,147 @@ export class InventoryService {
   }
 
   private getBaseStats(dungeonState: {
-    hp: number;
+    maxHp: number;
     atk: number;
     def: number;
     luck: number;
   }): EquipmentStats {
     return {
-      hp: dungeonState.hp,
+      hp: dungeonState.maxHp,
       atk: dungeonState.atk,
       def: dungeonState.def,
       luck: dungeonState.luck,
     };
   }
 
-  private calculateEquipmentBonus(
-    baseStats: EquipmentStats,
-    equipped: EquippedItems,
-  ): EquipmentStats {
-    const flat = this.createEmptyStats();
-    const percent = this.createEmptyStats();
-
-    const equippedItems = Object.values(equipped).filter(
-      (item): item is EquipmentItem => Boolean(item),
-    );
-
-    equippedItems.forEach((item) => {
-      item.modifiers.forEach((modifier) => {
-        if (!this.isStatModifier(modifier)) {
-          return;
-        }
-
-        if (modifier.mode === 'percent') {
-          percent[modifier.stat] += modifier.value;
-          return;
-        }
-
-        flat[modifier.stat] += modifier.value;
-      });
-    });
-
-    const bonus = this.createEmptyStats();
-
-    INVENTORY_STATS.forEach((stat) => {
-      const flatValue = flat[stat];
-      const percentValue = percent[stat];
-      const base = baseStats[stat];
-
-      bonus[stat] = flatValue + Math.floor((base + flatValue) * percentValue);
-    });
-
-    return bonus;
-  }
-
-  private addStats(
-    base: EquipmentStats,
-    bonus: EquipmentStats,
-  ): EquipmentStats {
-    return {
-      hp: base.hp + bonus.hp,
-      atk: base.atk + bonus.atk,
-      def: base.def + bonus.def,
-      luck: base.luck + bonus.luck,
-    };
-  }
-
-  private toInventoryModifiers(modifiers: unknown): InventoryModifier[] {
-    if (!Array.isArray(modifiers)) {
-      return [];
-    }
-
-    const modifierArray: unknown[] = modifiers;
-
-    return modifierArray
-      .filter((modifier): modifier is InventoryModifier => {
-        if (!this.isPlainObject(modifier) || !('kind' in modifier)) {
-          return false;
-        }
-
-        if (modifier.kind === 'stat') {
-          return 'stat' in modifier && 'value' in modifier;
-        }
-
-        if (modifier.kind === 'effect') {
-          return 'effectCode' in modifier;
-        }
-
-        return false;
-      })
-      .map((modifier) => normalizeInventoryModifier(modifier));
-  }
-
-  private isPlainObject(value: unknown): value is Record<string, unknown> {
-    return Boolean(value) && typeof value === 'object';
-  }
-
-  private isStatModifier(
-    modifier: InventoryModifier,
-  ): modifier is Extract<InventoryModifier, { kind: 'stat' }> {
-    return modifier.kind === 'stat' && this.isInventoryStat(modifier.stat);
-  }
-
-  private isInventoryStat(stat: string): stat is InventoryStat {
-    return (INVENTORY_STATS as readonly string[]).includes(stat);
-  }
-
   private isInventorySlot(slot: string): slot is InventorySlot {
     return INVENTORY_SLOTS.includes(slot as InventorySlot);
   }
 
-  private createEmptyStats(): EquipmentStats {
-    return { hp: 0, atk: 0, def: 0, luck: 0 };
+  private async appendInventoryLog(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    input: {
+      action: InventoryLogAction;
+      item: EquipmentItem;
+      replaced?: EquipmentItem;
+    },
+  ): Promise<void> {
+    const delta: DungeonLogDelta = this.buildInventoryDelta(input);
+    const extra: DungeonLogDetails = this.buildInventoryDetails(input);
+
+    await tx.dungeonLog.create({
+      data: {
+        userId,
+        category: DungeonLogCategory.STATUS,
+        action: input.action,
+        status: DungeonLogStatus.COMPLETED,
+        floor: null,
+        turnNumber: null,
+        stateVersionBefore: null,
+        stateVersionAfter: null,
+        delta: delta as Prisma.InputJsonValue,
+        extra: extra as Prisma.InputJsonValue,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  private buildInventoryDelta(input: {
+    action: InventoryLogAction;
+    item: EquipmentItem;
+    replaced?: EquipmentItem;
+  }): DungeonLogDelta {
+    if (input.action === DungeonLogAction.EQUIP_ITEM) {
+      return {
+        type: 'EQUIP_ITEM',
+        detail: {
+          inventory: {
+            equipped: {
+              slot: input.item.slot,
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+            unequipped: input.replaced
+              ? {
+                  slot: input.replaced.slot,
+                  itemId: input.replaced.id,
+                  code: input.replaced.code,
+                }
+              : undefined,
+          },
+        },
+      };
+    }
+
+    if (input.action === DungeonLogAction.UNEQUIP_ITEM) {
+      return {
+        type: 'UNEQUIP_ITEM',
+        detail: {
+          inventory: {
+            unequipped: {
+              slot: input.item.slot,
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+          },
+        },
+      };
+    }
+
+    return {
+      type: 'DISCARD_ITEM',
+      detail: {
+        inventory: {
+          removed: [
+            {
+              itemId: input.item.id,
+              code: input.item.code,
+            },
+          ],
+          unequipped: input.item.isEquipped
+            ? {
+                slot: input.item.slot,
+                itemId: input.item.id,
+                code: input.item.code,
+              }
+            : undefined,
+        },
+      },
+    };
+  }
+
+  private buildInventoryDetails(input: {
+    action: InventoryLogAction;
+    item: EquipmentItem;
+    replaced?: EquipmentItem;
+  }): DungeonLogDetails {
+    return {
+      type:
+        input.action === DungeonLogAction.EQUIP_ITEM
+          ? 'EQUIP_ITEM'
+          : input.action === DungeonLogAction.UNEQUIP_ITEM
+            ? 'UNEQUIP_ITEM'
+            : 'DISCARD_ITEM',
+      details: {
+        item: {
+          id: input.item.id,
+          code: input.item.code,
+          slot: input.item.slot,
+          rarity: input.item.rarity,
+          name: input.item.name ?? null,
+          modifiers: input.item.modifiers,
+        },
+        replacedItem: input.replaced
+          ? {
+              id: input.replaced.id,
+              code: input.replaced.code,
+              slot: input.replaced.slot,
+              rarity: input.replaced.rarity,
+              name: input.replaced.name ?? null,
+            }
+          : undefined,
+      },
+    };
   }
 }

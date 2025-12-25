@@ -41,10 +41,10 @@ export const mapDropsToInventoryAdds = (
   if (!Array.isArray(drops)) return [];
   const catalog = loadCatalogItemMap();
   return drops.map((drop) => ({
-    itemId: deterministicUuidV5(`inventory:${drop.itemCode}`),
-    code: drop.itemCode,
-    slot: catalog.get(drop.itemCode)?.slot ?? 'unknown',
-    rarity: catalog.get(drop.itemCode)?.rarity ?? undefined,
+    itemId: deterministicUuidV5(`inventory:${drop.code}`),
+    code: drop.code,
+    slot: catalog.get(drop.code)?.slot ?? 'unknown',
+    rarity: catalog.get(drop.code)?.rarity ?? undefined,
     quantity: drop.quantity,
   }));
 };

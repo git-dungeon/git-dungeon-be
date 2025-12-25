@@ -37,7 +37,7 @@
           "type": "BATTLE",
           "details": {
             "monster": {
-              "id": "monster-giant-rat",
+              "code": "monster-giant-rat",
               "name": "Giant Rat",
               "hp": 8,
               "atk": 2,
@@ -81,7 +81,7 @@
                 "isElite": false,
                 "items": [
                   {
-                    "itemCode": "armor-knights-plate",
+                    "code": "armor-knights-plate",
                     "quantity": 1
                   }
                 ]

@@ -1,9 +1,9 @@
 {
-  "version": 8,
-  "updatedAt": "2025-12-11T12:41:06.744Z",
+  "version": 9,
+  "updatedAt": "2025-12-24T06:40:33.846Z",
   "monsters": [
     {
-      "id": "monster-giant-rat",
+      "code": "monster-giant-rat",
       "nameKey": "monster.giant-rat.name",
       "descriptionKey": "monster.giant-rat.desc",
       "name": "Giant Rat",
@@ -17,7 +17,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-cave-beetle",
+      "code": "monster-cave-beetle",
       "nameKey": "monster.cave-beetle.name",
       "descriptionKey": "monster.cave-beetle.desc",
       "name": "Cave Beetle",
@@ -31,7 +31,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-zombie",
+      "code": "monster-zombie",
       "nameKey": "monster.zombie.name",
       "descriptionKey": "monster.zombie.desc",
       "name": "Zombie",
@@ -45,7 +45,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-cave-spider",
+      "code": "monster-cave-spider",
       "nameKey": "monster.cave-spider.name",
       "descriptionKey": "monster.cave-spider.desc",
       "name": "Cave Spider",
@@ -59,7 +59,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-serpent",
+      "code": "monster-serpent",
       "nameKey": "monster.serpent.name",
       "descriptionKey": "monster.serpent.desc",
       "name": "Serpent",
@@ -73,7 +73,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-skeleton-warrior",
+      "code": "monster-skeleton-warrior",
       "nameKey": "monster.skeleton-warrior.name",
       "descriptionKey": "monster.skeleton-warrior.desc",
       "name": "Skeleton Warrior",
@@ -87,7 +87,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-slime",
+      "code": "monster-slime",
       "nameKey": "monster.slime.name",
       "descriptionKey": "monster.slime.desc",
       "name": "Slime",
@@ -101,7 +101,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-cave-bat",
+      "code": "monster-cave-bat",
       "nameKey": "monster.cave-bat.name",
       "descriptionKey": "monster.cave-bat.desc",
       "name": "Cave Bat",
@@ -115,7 +115,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-fire-imp",
+      "code": "monster-fire-imp",
       "nameKey": "monster.fire-imp.name",
       "descriptionKey": "monster.fire-imp.desc",
       "name": "Fire Imp",
@@ -129,7 +129,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-ancient-dragon",
+      "code": "monster-ancient-dragon",
       "nameKey": "monster.ancient-dragon.name",
       "descriptionKey": "monster.ancient-dragon.desc",
       "name": "Ancient Dragon",
@@ -143,7 +143,7 @@
       "variantOf": null
     },
     {
-      "id": "monster-giant-rat-elite",
+      "code": "monster-giant-rat-elite",
       "nameKey": "monster.giant-rat-elite.name",
       "descriptionKey": "monster.giant-rat-elite.desc",
       "name": "Giant Rat (Elite)",
@@ -157,7 +157,7 @@
       "variantOf": "monster-giant-rat"
     },
     {
-      "id": "monster-cave-beetle-elite",
+      "code": "monster-cave-beetle-elite",
       "nameKey": "monster.cave-beetle-elite.name",
       "descriptionKey": "monster.cave-beetle-elite.desc",
       "name": "Cave Beetle (Elite)",
@@ -171,7 +171,7 @@
       "variantOf": "monster-cave-beetle"
     },
     {
-      "id": "monster-zombie-elite",
+      "code": "monster-zombie-elite",
       "nameKey": "monster.zombie-elite.name",
       "descriptionKey": "monster.zombie-elite.desc",
       "name": "Zombie (Elite)",
@@ -185,7 +185,7 @@
       "variantOf": "monster-zombie"
     },
     {
-      "id": "monster-cave-spider-elite",
+      "code": "monster-cave-spider-elite",
       "nameKey": "monster.cave-spider-elite.name",
       "descriptionKey": "monster.cave-spider-elite.desc",
       "name": "Cave Spider (Elite)",
@@ -199,7 +199,7 @@
       "variantOf": "monster-cave-spider"
     },
     {
-      "id": "monster-serpent-elite",
+      "code": "monster-serpent-elite",
       "nameKey": "monster.serpent-elite.name",
       "descriptionKey": "monster.serpent-elite.desc",
       "name": "Serpent (Elite)",
@@ -213,7 +213,7 @@
       "variantOf": "monster-serpent"
     },
     {
-      "id": "monster-skeleton-warrior-elite",
+      "code": "monster-skeleton-warrior-elite",
       "nameKey": "monster.skeleton-warrior-elite.name",
       "descriptionKey": "monster.skeleton-warrior-elite.desc",
       "name": "Skeleton Warrior (Elite)",
@@ -227,7 +227,7 @@
       "variantOf": "monster-skeleton-warrior"
     },
     {
-      "id": "monster-slime-elite",
+      "code": "monster-slime-elite",
       "nameKey": "monster.slime-elite.name",
       "descriptionKey": "monster.slime-elite.desc",
       "name": "Slime (Elite)",
@@ -241,7 +241,7 @@
       "variantOf": "monster-slime"
     },
     {
-      "id": "monster-cave-bat-elite",
+      "code": "monster-cave-bat-elite",
       "nameKey": "monster.cave-bat-elite.name",
       "descriptionKey": "monster.cave-bat-elite.desc",
       "name": "Cave Bat (Elite)",
@@ -255,7 +255,7 @@
       "variantOf": "monster-cave-bat"
     },
     {
-      "id": "monster-fire-imp-elite",
+      "code": "monster-fire-imp-elite",
       "nameKey": "monster.fire-imp-elite.name",
       "descriptionKey": "monster.fire-imp-elite.desc",
       "name": "Fire Imp (Elite)",

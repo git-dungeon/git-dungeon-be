@@ -40,7 +40,7 @@ export interface CatalogBuff {
 }
 
 export interface CatalogMonster {
-  id: string & tags.MinLength<1>;
+  code: string & tags.MinLength<1>;
   nameKey: string & tags.MinLength<1>;
   descriptionKey?: string | null;
   name: string;
@@ -55,7 +55,7 @@ export interface CatalogMonster {
 }
 
 export interface CatalogDrop {
-  itemCode: string;
+  code: string;
   weight: number;
   minQuantity?: number;
   maxQuantity?: number;

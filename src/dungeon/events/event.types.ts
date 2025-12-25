@@ -7,6 +7,7 @@ import type {
 } from '@prisma/client';
 import type { DungeonLogDelta } from '../../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../../common/logs/dungeon-log-extra';
+import type { EquipmentStats } from '../../inventory/dto/inventory.response';
 import type { DropResult } from '../drops/drop-table';
 
 export enum DungeonEventType {
@@ -40,6 +41,7 @@ export type DungeonEventContext = {
   actionCounter?: number;
   apCost?: number;
   weights?: DungeonEventWeights;
+  equipmentBonus?: EquipmentStats;
   /**
    * 드랍 인벤토리(DB insert) 적용을 스킵하고 로그/델타만 생성한다.
    * - dry-run/commit 모두에서 동작하며, commit 시에도 inventoryItem은 적재되지 않는다.
@@ -54,6 +56,7 @@ export type DungeonEventLogStub = {
   extra?: DungeonLogDetails;
   actionOverride?: DungeonLogAction;
   categoryOverride?: DungeonLogCategory;
+  floor?: number;
 };
 
 export type DungeonLogPayload = {
@@ -99,12 +102,14 @@ export type DungeonEventSelector = {
 export type DungeonEventProcessorInput = {
   state: DungeonState;
   rngValue: number;
+  equipmentBonus?: EquipmentStats;
 };
 
 export type DungeonEventProcessorOutput = {
   state: DungeonState;
   delta?: DungeonLogDelta;
   extra?: DungeonLogDetails;
+  startedExtra?: DungeonLogDetails;
   expGained?: number;
   followUpLogs?: DungeonEventLogStub[];
   drops?: DropResult[];
@@ -112,7 +117,7 @@ export type DungeonEventProcessorOutput = {
     tableId?: string | null;
     isElite?: boolean;
     rolls?: number;
-    items?: Array<{ itemCode: string; quantity?: number }>;
+    items?: Array<{ code: string; quantity?: number }>;
     gold?: number;
   };
 };

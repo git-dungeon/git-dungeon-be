@@ -46,9 +46,9 @@ describe('rollTable', () => {
     const results = rollTable(table, rng, { rolls: 3 });
 
     expect(results).toEqual([
-      { itemCode: 'common-sword', quantity: 1 },
-      { itemCode: 'rare-helm', quantity: 2 },
-      { itemCode: 'epic-ring', quantity: 2 },
+      { code: 'common-sword', quantity: 1 },
+      { code: 'rare-helm', quantity: 2 },
+      { code: 'epic-ring', quantity: 2 },
     ]);
   });
 
@@ -62,10 +62,10 @@ describe('rollTable', () => {
 });
 
 function makeEntry(
-  itemCode: string,
+  code: string,
   weight: number,
   minQuantity: number,
   maxQuantity: number,
 ): DropEntry {
-  return { itemCode, weight, minQuantity, maxQuantity };
+  return { code, weight, minQuantity, maxQuantity };
 }

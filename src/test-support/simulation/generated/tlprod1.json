@@ -14,7 +14,16 @@
     "logs": [
       {
         "action": "BATTLE",
-        "status": "STARTED"
+        "status": "STARTED",
+        "delta": {
+          "type": "BATTLE",
+          "detail": {
+            "stats": {
+              "ap": -1
+            }
+          }
+        },
+        "floor": 120
       },
       {
         "action": "BATTLE",
@@ -24,6 +33,9 @@
           "detail": {
             "stats": {
               "hp": -34
+            },
+            "rewards": {
+              "items": []
             },
             "progress": {
               "previousProgress": 0,
@@ -36,7 +48,7 @@
           "type": "BATTLE",
           "details": {
             "monster": {
-              "id": "monster-ancient-dragon",
+              "code": "monster-ancient-dragon",
               "name": "Ancient Dragon",
               "hp": 110,
               "atk": 22,
@@ -50,7 +62,8 @@
             "damageDealt": 33,
             "damageTaken": 34
           }
-        }
+        },
+        "floor": 120
       }
     ]
   }

@@ -35,13 +35,21 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
 
     const baseGold = this.effect.rewards?.gold ?? 0;
     const goldDelta = baseGold;
-    const applied = applyEffectDelta(input.state, {
-      ...this.effect,
-      rewards: {
-        ...(this.effect.rewards ?? {}),
-        gold: goldDelta,
+    const maxHp = Math.max(
+      0,
+      input.state.maxHp + (input.equipmentBonus?.hp ?? 0),
+    );
+    const applied = applyEffectDelta(
+      input.state,
+      {
+        ...this.effect,
+        rewards: {
+          ...(this.effect.rewards ?? {}),
+          gold: goldDelta,
+        },
       },
-    });
+      { maxHp },
+    );
 
     const drops = this.rollDrops(rng);
     const dropMeta =
@@ -50,7 +58,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
             tableId: DEFAULT_DROP_TABLE_ID,
             isElite: false,
             items: drops.map((drop) => ({
-              itemCode: drop.itemCode,
+              code: drop.code,
               quantity: drop.quantity,
             })),
           }
@@ -59,7 +67,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
     const rewardItems = [
       ...this.toRewardItems(baseAdds),
       ...drops.map((drop) => ({
-        itemCode: drop.itemCode,
+        code: drop.code,
         quantity: drop.quantity,
       })),
     ];
@@ -107,10 +115,10 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
 
   private toRewardItems(
     adds: InventoryDelta['added'] | undefined,
-  ): Array<{ itemCode: string; quantity?: number }> {
+  ): Array<{ code: string; quantity?: number }> {
     if (!adds?.length) return [];
     return adds.map((it) => ({
-      itemCode: it.code,
+      code: it.code,
       quantity: it.quantity ?? 1,
     }));
   }

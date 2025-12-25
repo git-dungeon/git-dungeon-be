@@ -72,6 +72,9 @@ describe('DungeonBatchService 배치 동작', () => {
       updateMany: vi.fn(),
       findUnique: vi.fn(),
     },
+    inventoryItem: {
+      findMany: vi.fn(),
+    },
     dungeonLog: {
       createMany: vi.fn(),
     },
@@ -116,6 +119,7 @@ describe('DungeonBatchService 배치 동작', () => {
       (cb: (tx: typeof prismaMock) => unknown) => cb(prismaMock),
     );
     prismaMock.dungeonState.findUnique.mockResolvedValue(null);
+    prismaMock.inventoryItem.findMany.mockResolvedValue([]);
     queueMock.registerHandler.mockClear();
     queueMock.enqueue.mockClear();
     queueMock.resetHandler();
@@ -202,12 +206,15 @@ describe('DungeonBatchService 배치 동작', () => {
     await service.runBatchTick();
 
     expect(eventServiceMock.execute).toHaveBeenCalledTimes(1);
-    expect(eventServiceMock.execute).toHaveBeenCalledWith({
-      state,
-      seed: state.userId,
-      actionCounter: state.version,
-      apCost: 1,
-    });
+    expect(eventServiceMock.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state,
+        seed: state.userId,
+        actionCounter: state.version,
+        apCost: 1,
+        equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+      }),
+    );
     expect(prismaMock.dungeonState.updateMany).toHaveBeenCalledWith({
       where: { userId: state.userId, version: state.version },
       data: expect.objectContaining({

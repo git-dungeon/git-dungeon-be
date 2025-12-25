@@ -16,16 +16,18 @@ const clamp = (value: number, min: number, max: number) =>
 export const applyEffectDelta = (
   state: DungeonState,
   effect: EffectDelta,
+  options?: { maxHp?: number },
 ): ApplyEffectResult => {
   const stats: StatsDelta = {};
   const rewards: ApplyEffectResult['rewardsDelta'] = {};
   let nextState = { ...state };
+  const maxHp = options?.maxHp ?? state.maxHp;
 
   if (effect.stats?.hp !== undefined || effect.scaling?.hpRatio !== undefined) {
     const flat = effect.stats?.hp ?? 0;
     const ratio = effect.scaling?.hpRatio ?? 0;
-    const delta = flat + Math.floor(state.maxHp * ratio);
-    const nextHp = clamp(state.hp + delta, 0, state.maxHp);
+    const delta = flat + Math.floor(maxHp * ratio);
+    const nextHp = clamp(state.hp + delta, 0, maxHp);
     stats.hp = nextHp - state.hp;
     nextState = { ...nextState, hp: nextHp };
   }

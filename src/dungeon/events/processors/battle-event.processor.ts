@@ -1,7 +1,14 @@
 import type { DungeonState } from '@prisma/client';
 import type { StatsDelta } from '../../../common/logs/dungeon-log-delta';
-import type { DungeonLogDetails } from '../../../common/logs/dungeon-log-extra';
+import type {
+  BattlePlayerSnapshot,
+  DungeonLogDetails,
+} from '../../../common/logs/dungeon-log-extra';
 import type { CatalogMonster } from '../../../catalog';
+import {
+  addEquipmentStats,
+  createEmptyEquipmentStats,
+} from '../../../common/inventory/equipment-stats';
 import {
   DungeonEventProcessor,
   DungeonEventProcessorInput,
@@ -109,6 +116,14 @@ const computeDamage = (
   };
 };
 
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value));
+
+const calculateExpToLevel = (level: number): number | undefined => {
+  if (!Number.isFinite(level) || level <= 0) return undefined;
+  return Math.round(level * 10);
+};
+
 export class BattleEventProcessor implements DungeonEventProcessor {
   readonly type = DungeonEventType.BATTLE;
 
@@ -137,7 +152,22 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       this.options.scalingOptions,
     );
 
-    let playerHp = input.state.hp;
+    const equipmentBonus = input.equipmentBonus ?? createEmptyEquipmentStats();
+    const baseStats = {
+      hp: input.state.maxHp,
+      atk: input.state.atk,
+      def: input.state.def,
+      luck: input.state.luck,
+    };
+    const totalStats = addEquipmentStats(baseStats, equipmentBonus);
+    const effectiveStats = {
+      atk: totalStats.atk,
+      def: totalStats.def,
+      luck: totalStats.luck,
+    };
+    const effectiveMaxHp = Math.max(0, totalStats.hp);
+
+    let playerHp = clamp(input.state.hp, 0, effectiveMaxHp);
     let monsterHp = scaled.hp;
     let outcome: BattleOutcome = 'VICTORY';
     let cause: string | undefined;
@@ -151,9 +181,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       turn += 1;
 
       const playerHit = computeDamage(
-        input.state.atk,
+        effectiveStats.atk,
         scaled.def,
-        input.state.luck,
+        effectiveStats.luck,
         rng,
         { critBase, critLuckFactor },
       );
@@ -168,7 +198,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
 
       const monsterHit = computeDamage(
         scaled.atk,
-        input.state.def,
+        effectiveStats.def,
         0, // 몬스터 luck은 현재 모델링하지 않음
         rng,
         { critBase, critLuckFactor },
@@ -196,12 +226,30 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     const drops =
       outcome === 'VICTORY' ? this.rollDrops(monsterMeta, { next: rng }) : [];
 
+    const startedPlayer = this.buildPlayerSnapshot({
+      state: input.state,
+      baseStats,
+      equipmentBonus,
+      hp: input.state.hp,
+      exp: input.state.exp,
+    });
+    const completedPlayer = this.buildPlayerSnapshot({
+      state: input.state,
+      baseStats,
+      equipmentBonus,
+      hp: playerHp,
+      exp: input.state.exp + expGained,
+    });
+
     return this.buildResult({
       input,
       outcome,
       monsterMeta,
       scaled,
       playerHp: Math.max(0, playerHp),
+      effectiveMaxHp,
+      startedPlayer,
+      completedPlayer,
       cause,
       expGained,
       turns: turn,
@@ -217,6 +265,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     monsterMeta: CatalogMonster;
     scaled: ReturnType<typeof getScaledStats>;
     playerHp: number;
+    effectiveMaxHp: number;
+    startedPlayer: BattlePlayerSnapshot;
+    completedPlayer: BattlePlayerSnapshot;
     expGained: number;
     cause?: string;
     turns?: number;
@@ -230,6 +281,9 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       monsterMeta,
       scaled,
       playerHp,
+      effectiveMaxHp,
+      startedPlayer,
+      completedPlayer,
       cause,
       expGained,
       turns,
@@ -237,7 +291,12 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       damageTaken,
     } = params;
 
-    const nextState = this.buildNextState(input.state, outcome, playerHp);
+    const nextState = this.buildNextState(
+      input.state,
+      outcome,
+      playerHp,
+      effectiveMaxHp,
+    );
     const statsDelta: StatsDelta = {};
     if (nextState.hp !== input.state.hp) {
       statsDelta.hp = nextState.hp - input.state.hp;
@@ -252,7 +311,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
               DEFAULT_DROP_TABLE_ID,
             isElite: params.monsterMeta.rarity === 'elite',
             items: params.drops.map((drop) => ({
-              itemCode: drop.itemCode,
+              code: drop.code,
               quantity: drop.quantity,
             })),
           }
@@ -267,7 +326,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           rewards: {
             items:
               dropMeta?.items?.map((item) => ({
-                itemCode: item.itemCode,
+                code: item.code,
                 quantity: item.quantity,
               })) ?? [],
           },
@@ -298,6 +357,14 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           damageDealt,
           damageTaken,
         },
+        completedPlayer,
+      ),
+      startedExtra: this.buildBattleDetails(
+        monsterMeta,
+        scaled,
+        undefined,
+        {},
+        startedPlayer,
       ),
       expGained,
       drops: params.drops?.length ? params.drops : undefined,
@@ -309,15 +376,17 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     state: DungeonState,
     outcome: BattleOutcome,
     playerHp: number,
+    maxHpOverride?: number,
   ): DungeonState {
     const defeatedProgress =
       outcome === 'DEFEAT'
         ? Math.max(0, state.floorProgress - BATTLE_PROGRESS_INCREMENT)
         : state.floorProgress;
+    const maxHp = maxHpOverride !== undefined ? maxHpOverride : state.maxHp;
 
     return {
       ...state,
-      hp: Math.max(0, Math.min(playerHp, state.maxHp)),
+      hp: Math.max(0, Math.min(playerHp, maxHp)),
       floorProgress: defeatedProgress,
     };
   }
@@ -340,7 +409,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
   private buildBattleDetails(
     monster: CatalogMonster,
     scaled: ReturnType<typeof getScaledStats>,
-    result: 'VICTORY' | 'DEFEAT',
+    result: 'VICTORY' | 'DEFEAT' | undefined,
     options: {
       cause?: string;
       expGained?: number;
@@ -348,18 +417,20 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       damageDealt?: number;
       damageTaken?: number;
     },
+    player: BattlePlayerSnapshot,
   ): DungeonLogDetails {
     return {
       type: 'BATTLE',
       details: {
         monster: {
-          id: monster.id,
+          code: monster.code,
           name: monster.name,
           hp: scaled.hp,
           atk: scaled.atk,
           def: scaled.def,
           spriteId: monster.spriteId,
         },
+        player,
         result,
         cause: options.cause,
         expGained: options.expGained,
@@ -367,6 +438,43 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         damageDealt: options.damageDealt,
         damageTaken: options.damageTaken,
       },
+    };
+  }
+
+  private buildPlayerSnapshot(input: {
+    state: DungeonState;
+    baseStats: {
+      hp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    };
+    equipmentBonus: {
+      hp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    };
+    hp: number;
+    exp: number;
+  }): BattlePlayerSnapshot {
+    const totalStats = addEquipmentStats(input.baseStats, input.equipmentBonus);
+    const maxHp = Math.max(0, totalStats.hp);
+
+    return {
+      hp: clamp(input.hp, 0, maxHp),
+      maxHp,
+      atk: totalStats.atk,
+      def: totalStats.def,
+      luck: totalStats.luck,
+      stats: {
+        base: input.baseStats,
+        equipmentBonus: input.equipmentBonus,
+        total: totalStats,
+      },
+      level: input.state.level,
+      exp: input.exp,
+      expToLevel: calculateExpToLevel(input.state.level),
     };
   }
 }

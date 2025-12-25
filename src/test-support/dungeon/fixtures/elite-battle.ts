@@ -45,14 +45,58 @@ export const eliteBattleSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'BATTLE', status: 'STARTED' },
+      {
+        action: 'BATTLE',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 5,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-cave-spider-elite',
+              name: 'Cave Spider (Elite)',
+              hp: 14,
+              atk: 5,
+              def: 1,
+              spriteId: 'sprite/monster-cave-spider',
+            },
+            player: {
+              hp: 20,
+              maxHp: 20,
+              atk: 8,
+              def: 4,
+              luck: 5,
+              stats: {
+                base: { hp: 20, atk: 8, def: 4, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 20, atk: 8, def: 4, luck: 5 },
+              },
+              level: 5,
+              exp: 0,
+              expToLevel: 50,
+            },
+          },
+        },
+      },
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 5,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 10 },
+            rewards: {
+              items: [
+                { code: 'weapon-battle-axe', quantity: 1 },
+                { code: 'helmet-bronze-helm', quantity: 1 },
+              ],
+            },
             progress: {
               previousProgress: 0,
               floorProgress: 20,
@@ -64,12 +108,27 @@ export const eliteBattleSteps: SnapshotStep[] = [
           type: 'BATTLE',
           details: {
             monster: {
-              id: 'monster-cave-spider-elite',
+              code: 'monster-cave-spider-elite',
               name: 'Cave Spider (Elite)',
               hp: 14,
               atk: 5,
               def: 1,
               spriteId: 'sprite/monster-cave-spider',
+            },
+            player: {
+              hp: 19,
+              maxHp: 20,
+              atk: 8,
+              def: 4,
+              luck: 5,
+              stats: {
+                base: { hp: 20, atk: 8, def: 4, luck: 5 },
+                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+                total: { hp: 20, atk: 8, def: 4, luck: 5 },
+              },
+              level: 5,
+              exp: 10,
+              expToLevel: 50,
             },
             result: 'VICTORY',
             expGained: 10,
@@ -82,6 +141,9 @@ export const eliteBattleSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 5,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -114,8 +176,8 @@ export const eliteBattleSteps: SnapshotStep[] = [
                 tableId: 'drops-default',
                 isElite: true,
                 items: [
-                  { itemCode: 'weapon-battle-axe', quantity: 1 },
-                  { itemCode: 'helmet-bronze-helm', quantity: 1 },
+                  { code: 'weapon-battle-axe', quantity: 1 },
+                  { code: 'helmet-bronze-helm', quantity: 1 },
                 ],
               },
             },

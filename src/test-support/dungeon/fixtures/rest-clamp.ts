@@ -44,10 +44,20 @@ export const restClampSteps: SnapshotStep[] = [
       version: 2,
     },
     extra: [
-      { action: 'REST', status: 'STARTED' },
+      {
+        action: 'REST',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 2,
+        turnNumber: 0,
+        delta: { type: 'REST', detail: { stats: { ap: -1 } } },
+      },
       {
         action: 'REST',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 2,
+        turnNumber: 0,
         delta: {
           type: 'REST',
           detail: {
