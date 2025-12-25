@@ -315,6 +315,30 @@ export class SimulationRunner {
     snapshot: SimulationSnapshot,
   ) {
     const mismatches: string[] = [];
+    const normalizePayload = (value: unknown): unknown => {
+      if (value === null || value === undefined) {
+        return undefined;
+      }
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (Array.isArray(value)) {
+        return value.map((item) => normalizePayload(item));
+      }
+      if (typeof value === 'object') {
+        const entries = Object.entries(value as Record<string, unknown>)
+          .map(([key, val]) => [key, normalizePayload(val)] as const)
+          .filter(([, val]) => val !== undefined);
+        entries.sort(([a], [b]) => a.localeCompare(b));
+        return Object.fromEntries(entries);
+      }
+      return value;
+    };
+    const isEqualPayload = (a: unknown, b: unknown): boolean => {
+      const normalizedA = normalizePayload(a);
+      const normalizedB = normalizePayload(b);
+      return JSON.stringify(normalizedA) === JSON.stringify(normalizedB);
+    };
 
     snapshot.results.forEach((expectedStep, idx) => {
       const actualStep = actual[idx];
@@ -355,6 +379,44 @@ export class SimulationRunner {
           );
         }
       });
+
+      const expectedLogs = expectedStep.extra ?? [];
+      const actualLogs = actualStep.logs ?? [];
+      if (actualLogs.length !== expectedLogs.length) {
+        mismatches.push(
+          `step ${idx}: logs length expected ${expectedLogs.length} got ${actualLogs.length}`,
+        );
+      }
+
+      const compareCount = Math.min(actualLogs.length, expectedLogs.length);
+      for (let logIndex = 0; logIndex < compareCount; logIndex += 1) {
+        const expectedLog = expectedLogs[logIndex];
+        const actualLog = actualLogs[logIndex];
+        if (!actualLog) {
+          mismatches.push(`step ${idx}: log ${logIndex} missing in actual`);
+          continue;
+        }
+
+        if (actualLog.action !== expectedLog.action) {
+          mismatches.push(
+            `step ${idx}: log ${logIndex} action expected ${expectedLog.action} got ${actualLog.action}`,
+          );
+        }
+
+        if (actualLog.status !== expectedLog.status) {
+          mismatches.push(
+            `step ${idx}: log ${logIndex} status expected ${expectedLog.status} got ${actualLog.status}`,
+          );
+        }
+
+        if (!isEqualPayload(actualLog.delta, expectedLog.delta)) {
+          mismatches.push(`step ${idx}: log ${logIndex} delta mismatch`);
+        }
+
+        if (!isEqualPayload(actualLog.extra, expectedLog.extra)) {
+          mismatches.push(`step ${idx}: log ${logIndex} extra mismatch`);
+        }
+      }
     });
 
     if (actual.length > snapshot.results.length) {
