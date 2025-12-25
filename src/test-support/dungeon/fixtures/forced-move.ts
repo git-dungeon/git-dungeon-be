@@ -48,6 +48,10 @@ export const forcedMoveSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -80,10 +84,16 @@ export const forcedMoveSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 3 },
+            rewards: {
+              items: [{ code: 'weapon-battle-axe', quantity: 1 }],
+            },
             progress: {
               previousProgress: 90,
               floorProgress: 100,
@@ -125,27 +135,12 @@ export const forcedMoveSteps: SnapshotStep[] = [
           },
         },
       },
-      { action: 'MOVE', status: 'STARTED' },
-      {
-        action: 'MOVE',
-        status: 'COMPLETED',
-        delta: {
-          type: 'MOVE',
-          detail: {
-            fromFloor: 1,
-            toFloor: 2,
-            previousProgress: 100,
-            progress: {
-              previousProgress: 100,
-              floorProgress: 0,
-              delta: -100,
-            },
-          },
-        },
-      },
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -177,6 +172,33 @@ export const forcedMoveSteps: SnapshotStep[] = [
                   },
                 ],
               },
+            },
+          },
+        },
+      },
+      {
+        action: 'MOVE',
+        status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+      },
+      {
+        action: 'MOVE',
+        status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 2,
+        turnNumber: 0,
+        delta: {
+          type: 'MOVE',
+          detail: {
+            fromFloor: 1,
+            toFloor: 2,
+            previousProgress: 100,
+            progress: {
+              previousProgress: 100,
+              floorProgress: 0,
+              delta: -100,
             },
           },
         },

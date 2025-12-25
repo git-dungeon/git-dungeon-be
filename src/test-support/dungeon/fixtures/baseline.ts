@@ -39,6 +39,9 @@ export type SnapshotStep = {
   extra: Array<{
     action: string;
     status: string;
+    category?: string;
+    floor?: number | null;
+    turnNumber?: number | null;
     delta?: unknown;
     extra?: unknown;
   }>;
@@ -61,11 +64,17 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'TREASURE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: { type: 'TREASURE', detail: { stats: { ap: -1 } } },
       },
       {
         action: 'TREASURE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'TREASURE',
           detail: {
@@ -91,6 +100,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
@@ -144,11 +156,17 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'REST',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 1,
         delta: { type: 'REST', detail: { stats: { ap: -1 } } },
       },
       {
         action: 'REST',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 1,
         delta: {
           type: 'REST',
           detail: {
@@ -179,6 +197,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 2,
         delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
@@ -212,6 +233,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 2,
         delta: {
           type: 'BATTLE',
           detail: {
@@ -264,6 +288,9 @@ export const baselineSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 2,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {

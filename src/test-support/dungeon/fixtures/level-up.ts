@@ -48,6 +48,10 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -80,6 +84,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'LEVEL_UP',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'LEVEL_UP',
           detail: {
@@ -108,6 +115,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'LEVEL_UP',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'LEVEL_UP',
           detail: {
@@ -136,6 +146,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
@@ -146,6 +159,9 @@ export const levelUpSteps: SnapshotStep[] = [
               luck: 1,
               level: 2,
               exp: 39,
+            },
+            rewards: {
+              items: [{ code: 'angel-ring', quantity: 1 }],
             },
             progress: {
               previousProgress: 0,
@@ -191,6 +207,9 @@ export const levelUpSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 80,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {

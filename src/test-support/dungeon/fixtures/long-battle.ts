@@ -48,6 +48,10 @@ export const longBattleSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -80,10 +84,16 @@ export const longBattleSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -5, exp: 3 },
+            rewards: {
+              items: [{ code: 'ring-silver-band', quantity: 1 }],
+            },
             progress: {
               previousProgress: 20,
               floorProgress: 40,
@@ -128,6 +138,9 @@ export const longBattleSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {

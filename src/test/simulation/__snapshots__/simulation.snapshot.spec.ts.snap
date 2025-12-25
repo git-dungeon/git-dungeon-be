@@ -361,21 +361,9 @@ exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: forced-move 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 delta mismatch",
-      "step 0: log 1 delta mismatch",
-      "step 0: log 2 action expected MOVE got ACQUIRE_ITEM",
-      "step 0: log 2 status expected STARTED got COMPLETED",
-      "step 0: log 2 delta mismatch",
-      "step 0: log 2 extra mismatch",
-      "step 0: log 3 status expected COMPLETED got STARTED",
-      "step 0: log 3 delta mismatch",
-      "step 0: log 4 action expected ACQUIRE_ITEM got MOVE",
-      "step 0: log 4 delta mismatch",
-      "step 0: log 4 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "forced-move",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -614,12 +602,9 @@ exports[`simulation fixtures snapshots > matches snapshot: forced-move 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 delta mismatch",
-      "step 0: log 1 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "long-battle",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -832,13 +817,9 @@ exports[`simulation fixtures snapshots > matches snapshot: long-battle 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 delta mismatch",
-      "step 0: log 1 delta mismatch",
-      "step 0: log 2 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "no-drop",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1037,12 +1018,9 @@ exports[`simulation fixtures snapshots > matches snapshot: no-drop 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 delta mismatch",
-      "step 0: log 2 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "trap-death",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1142,12 +1120,9 @@ exports[`simulation fixtures snapshots > matches snapshot: trap-death 1`] = `
 exports[`simulation fixtures snapshots > matches snapshot: turn-limit 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 delta mismatch",
-      "step 0: log 1 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "turn-limit",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {

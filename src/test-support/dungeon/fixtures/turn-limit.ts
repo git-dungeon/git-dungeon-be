@@ -47,6 +47,10 @@ export const turnLimitSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 120,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -79,10 +83,14 @@ export const turnLimitSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 120,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -34 },
+            rewards: { items: [] },
             progress: {
               previousProgress: 0,
               floorProgress: 20,

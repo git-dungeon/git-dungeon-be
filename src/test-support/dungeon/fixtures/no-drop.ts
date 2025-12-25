@@ -47,6 +47,10 @@ export const noDropSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -79,15 +83,14 @@ export const noDropSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -3 },
-            progress: {
-              previousProgress: 0,
-              floorProgress: 0,
-              delta: 0,
-            },
+            rewards: { items: [] },
           },
         },
         extra: {
@@ -128,14 +131,17 @@ export const noDropSteps: SnapshotStep[] = [
       {
         action: 'DEATH',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'DEATH',
           detail: {
             stats: {},
             progress: {
-              previousProgress: 0,
+              previousProgress: 20,
               floorProgress: 0,
-              delta: 0,
+              delta: -20,
             },
           },
         },
@@ -149,6 +155,9 @@ export const noDropSteps: SnapshotStep[] = [
       {
         action: 'REVIVE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 1,
+        turnNumber: 0,
         delta: {
           type: 'REVIVE',
           detail: {

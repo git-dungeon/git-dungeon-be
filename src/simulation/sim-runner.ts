@@ -409,6 +409,24 @@ export class SimulationRunner {
           );
         }
 
+        if (actualLog.floor !== expectedLog.floor) {
+          mismatches.push(
+            `step ${idx}: log ${logIndex} floor expected ${expectedLog.floor} got ${actualLog.floor}`,
+          );
+        }
+
+        if (actualLog.turnNumber !== expectedLog.turnNumber) {
+          mismatches.push(
+            `step ${idx}: log ${logIndex} turnNumber expected ${expectedLog.turnNumber} got ${actualLog.turnNumber}`,
+          );
+        }
+
+        if (actualLog.category !== expectedLog.category) {
+          mismatches.push(
+            `step ${idx}: log ${logIndex} category expected ${expectedLog.category} got ${actualLog.category}`,
+          );
+        }
+
         if (!isEqualPayload(actualLog.delta, expectedLog.delta)) {
           mismatches.push(`step ${idx}: log ${logIndex} delta mismatch`);
         }

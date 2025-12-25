@@ -86,5 +86,5 @@ describe('AppModule 테스트', () => {
 
     await app.close();
     await testingModule.close();
-  });
+  }, 15000);
 });

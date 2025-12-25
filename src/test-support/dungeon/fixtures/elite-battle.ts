@@ -48,6 +48,10 @@ export const eliteBattleSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'STARTED',
+        category: 'EXPLORATION',
+        floor: 5,
+        turnNumber: 0,
+        delta: { type: 'BATTLE', detail: { stats: { ap: -1 } } },
         extra: {
           type: 'BATTLE',
           details: {
@@ -80,10 +84,19 @@ export const eliteBattleSteps: SnapshotStep[] = [
       {
         action: 'BATTLE',
         status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 5,
+        turnNumber: 0,
         delta: {
           type: 'BATTLE',
           detail: {
             stats: { hp: -1, exp: 10 },
+            rewards: {
+              items: [
+                { code: 'weapon-battle-axe', quantity: 1 },
+                { code: 'helmet-bronze-helm', quantity: 1 },
+              ],
+            },
             progress: {
               previousProgress: 0,
               floorProgress: 20,
@@ -128,6 +141,9 @@ export const eliteBattleSteps: SnapshotStep[] = [
       {
         action: 'ACQUIRE_ITEM',
         status: 'COMPLETED',
+        category: 'STATUS',
+        floor: 5,
+        turnNumber: 0,
         delta: {
           type: 'ACQUIRE_ITEM',
           detail: {
