@@ -28,6 +28,21 @@
 
 ## 실행/업데이트
 
+### npm 스크립트 (권장)
+
+```bash
+# 스냅샷 테스트 실행
+pnpm snapshot:test
+
+# 스냅샷 업데이트 (결과 변경 시)
+pnpm snapshot:update
+
+# 상세 결과 확인
+pnpm snapshot:check
+```
+
+### 직접 실행
+
 ```bash
 pnpm test -- --no-threads --testNamePattern "simulation fixtures"
 # 결과가 바뀌어 스냅샷이 실패하면 업데이트
