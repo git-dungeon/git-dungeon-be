@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -207,8 +208,23 @@ export const forcedMoveSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. forcedMoveFixture.steps 사용 권장 */
 export const forcedMoveSnapshot = {
   seed: forcedMoveSeed,
   initialState: forcedMoveInitialState,
   results: forcedMoveSteps,
 };
+
+export const forcedMoveFixture: FixtureDefinition = {
+  meta: {
+    name: 'forced-move',
+    description: '강제 MOVE 시나리오: progress 100 → floor 이동',
+    snapshotPhase: 'post',
+    tags: ['move', 'floor'],
+  },
+  seed: forcedMoveSeed,
+  initialState: forcedMoveInitialState,
+  steps: forcedMoveSteps,
+};
+
+FixtureRegistry.register(forcedMoveFixture);

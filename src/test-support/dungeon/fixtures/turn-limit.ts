@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 
 /**
  * 운영 설정(turnLimit=30) 기반 turn-limit 패배
@@ -137,8 +138,23 @@ export const turnLimitSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. turnLimitFixture.steps 사용 권장 */
 export const turnLimitSnapshot = {
   seed: turnLimitSeed,
   initialState: turnLimitInitialState,
   results: turnLimitSteps,
 };
+
+export const turnLimitFixture: FixtureDefinition = {
+  meta: {
+    name: 'turn-limit',
+    description: 'turn-limit 패배 시나리오: 30턴 후 TURN_LIMIT 패배',
+    snapshotPhase: 'post',
+    tags: ['battle', 'defeat'],
+  },
+  seed: turnLimitSeed,
+  initialState: turnLimitInitialState,
+  steps: turnLimitSteps,
+};
+
+FixtureRegistry.register(turnLimitFixture);

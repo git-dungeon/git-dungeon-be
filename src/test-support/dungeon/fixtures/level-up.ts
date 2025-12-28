@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -241,8 +242,23 @@ export const levelUpSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. levelUpFixture.steps 사용 권장 */
 export const levelUpSnapshot = {
   seed: levelUpSeed,
   initialState: levelUpInitialState,
   results: levelUpSteps,
 };
+
+export const levelUpFixture: FixtureDefinition = {
+  meta: {
+    name: 'level-up',
+    description: '연속 레벨업(2회) + 레전더리 드랍 시나리오',
+    snapshotPhase: 'post',
+    tags: ['battle', 'level-up', 'drop'],
+  },
+  seed: levelUpSeed,
+  initialState: levelUpInitialState,
+  steps: levelUpSteps,
+};
+
+FixtureRegistry.register(levelUpFixture);

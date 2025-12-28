@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 
 /**
  * TRAP 사망 시나리오
@@ -111,8 +112,23 @@ export const trapDeathSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. trapDeathFixture.steps 사용 권장 */
 export const trapDeathSnapshot = {
   seed: trapDeathSeed,
   initialState: trapDeathInitialState,
   results: trapDeathSteps,
 };
+
+export const trapDeathFixture: FixtureDefinition = {
+  meta: {
+    name: 'trap-death',
+    description: 'TRAP 사망 시나리오: TRAP 피해로 사망 → DEATH + REVIVE',
+    snapshotPhase: 'post',
+    tags: ['death', 'trap'],
+  },
+  seed: trapDeathSeed,
+  initialState: trapDeathInitialState,
+  steps: trapDeathSteps,
+};
+
+FixtureRegistry.register(trapDeathFixture);

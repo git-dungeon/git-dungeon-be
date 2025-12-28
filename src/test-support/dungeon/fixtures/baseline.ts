@@ -1,5 +1,7 @@
 import type { DungeonState } from '@prisma/client';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 
 /**
  * 기본 시나리오
@@ -29,23 +31,7 @@ export const baselineInitialState: DungeonState = {
   version: 1,
 };
 
-export type SnapshotStep = {
-  actionCounter: number;
-  selectedEvent: 'TREASURE' | 'REST' | 'BATTLE' | 'TRAP' | 'MOVE';
-  stateAfter: Pick<
-    DungeonState,
-    'hp' | 'ap' | 'floor' | 'floorProgress' | 'level' | 'exp' | 'version'
-  >;
-  extra: Array<{
-    action: string;
-    status: string;
-    category?: string;
-    floor?: number | null;
-    turnNumber?: number | null;
-    delta?: unknown;
-    extra?: unknown;
-  }>;
-};
+// SnapshotStep 타입은 fixture.types.ts에서 import
 
 export const baselineSteps: SnapshotStep[] = [
   {
@@ -330,8 +316,27 @@ export const baselineSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. baselineFixture.steps 사용 권장 */
 export const baselineSnapshot = {
   seed: baselineSeed,
   initialState: baselineInitialState,
   results: baselineSteps,
 };
+
+/**
+ * Baseline fixture 정의 (메타데이터 포함)
+ */
+export const baselineFixture: FixtureDefinition = {
+  meta: {
+    name: 'baseline',
+    description: '기본 시나리오: TREASURE → REST → BATTLE 승리, 진행도 0→40',
+    snapshotPhase: 'post',
+    tags: ['basic', 'drop'],
+  },
+  seed: baselineSeed,
+  initialState: baselineInitialState,
+  steps: baselineSteps,
+};
+
+// 레지스트리 자동 등록
+FixtureRegistry.register(baselineFixture);

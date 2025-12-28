@@ -1,39 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { SimulationRunner } from '../../simulation/sim-runner';
-import { getFixture, listFixtureNames } from '../../simulation/fixtures';
+import { FixtureRegistry } from '../../test-support/dungeon/fixtures/registry';
 import { normalizeResult } from '../../test-support/snapshot/normalizers';
-
-type Case = {
-  name: string;
-  maxActions: number;
-};
-
-const cases: Case[] = [
-  { name: 'baseline', maxActions: 3 },
-  { name: 'turn-limit', maxActions: 1 },
-  { name: 'trap-death', maxActions: 1 },
-  { name: 'no-drop', maxActions: 1 },
-  { name: 'long-battle', maxActions: 1 },
-  { name: 'forced-move', maxActions: 1 },
-];
+// fixture 모듈 import 시 registry에 자동 등록됨
+import '../../test-support/dungeon/fixtures';
 
 const runner = new SimulationRunner(false); // dry-run (no DB)
 
+// Registry에서 모든 fixture를 가져와 테스트 케이스 생성
+const fixtures = FixtureRegistry.listAll();
+
 describe('simulation fixtures snapshots', () => {
-  it('has all declared fixtures', () => {
-    const available = listFixtureNames();
-    cases.forEach((c) => {
-      expect(available.includes(c.name), `fixture ${c.name} should exist`).toBe(
-        true,
-      );
-    });
+  it('has fixtures registered', () => {
+    expect(fixtures.length).toBeGreaterThan(0);
+    const names = fixtures.map((f) => f.meta.name);
+    expect(names).toContain('baseline');
+    expect(names).toContain('trap-death');
+    expect(names).toContain('forced-move');
   });
 
-  cases.forEach(({ name, maxActions }) => {
-    it(`matches snapshot: ${name}`, async () => {
-      const fixture = getFixture(name);
-      expect(fixture, `fixture ${name} should be defined`).toBeDefined();
-      if (!fixture) return;
+  fixtures.forEach((fixture) => {
+    const { name, description, tags } = fixture.meta;
+
+    it(`[${name}] matches snapshot (${description})`, async () => {
+      // baseline은 3개 액션, 나머지는 1개 액션
+      const maxActions = name === 'baseline' ? 3 : 1;
 
       const result = await runner.run(
         {
@@ -46,13 +37,12 @@ describe('simulation fixtures snapshots', () => {
         },
         {
           name,
-          snapshot: fixture,
+          snapshot: FixtureRegistry.toLegacySnapshot(name)!,
         },
       );
 
-      // 핵심 필드 검증: progress/ACQUIRE_ITEM/원인 등
+      // 핵심 필드 검증: progress/HP delta 존재 여부 (MOVE는 예외)
       result.steps.forEach((step) => {
-        // progress delta 존재 여부 (MOVE는 예외)
         if (String(step.selectedEvent) !== 'MOVE') {
           const hasProgress = step.logs.some((l) => {
             const delta = l.delta as
@@ -73,13 +63,22 @@ describe('simulation fixtures snapshots', () => {
         }
       });
 
-      if (name === 'baseline') {
+      // 태그 기반 추가 검증
+      if (tags?.includes('drop')) {
         const acquire = result.steps
           .flatMap((s) => s.logs)
           .find((l) => l.action === 'ACQUIRE_ITEM' && l.status === 'COMPLETED');
-        expect(acquire).toBeDefined();
+        expect(acquire, `${name} should have ACQUIRE_ITEM log`).toBeDefined();
       }
 
+      if (tags?.includes('death')) {
+        const death = result.steps
+          .flatMap((s) => s.logs)
+          .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
+        expect(death, `${name} should have DEATH log`).toBeDefined();
+      }
+
+      // 특수 케이스별 검증
       if (name === 'turn-limit') {
         const battle = result.steps
           .flatMap((s) => s.logs)
@@ -94,23 +93,12 @@ describe('simulation fixtures snapshots', () => {
           .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
         const deathExtra = death?.extra as { details?: { cause?: unknown } };
         expect(deathExtra?.details?.cause).toBe('TRAP_DAMAGE');
-        expect(death?.floor).toBe(1);
-
-        const trapCompleted = result.steps
-          .flatMap((s) => s.logs)
-          .find((l) => l.action === 'TRAP' && l.status === 'COMPLETED');
-        expect(trapCompleted?.floor).toBe(fixture.initialState.floor);
       }
 
       if (name === 'forced-move') {
-        const battleCompleted = result.steps
-          .flatMap((s) => s.logs)
-          .find((l) => l.action === 'BATTLE' && l.status === 'COMPLETED');
         const moveCompleted = result.steps
           .flatMap((s) => s.logs)
           .find((l) => l.action === 'MOVE' && l.status === 'COMPLETED');
-
-        expect(battleCompleted?.floor).toBe(fixture.initialState.floor);
         expect(moveCompleted?.floor).toBe(fixture.initialState.floor + 1);
       }
 

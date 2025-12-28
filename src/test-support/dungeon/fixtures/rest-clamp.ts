@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 
 /**
  * REST 클램프 시나리오
@@ -74,8 +75,23 @@ export const restClampSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. restClampFixture.steps 사용 권장 */
 export const restClampSnapshot = {
   seed: restClampSeed,
   initialState: restClampInitialState,
   results: restClampSteps,
 };
+
+export const restClampFixture: FixtureDefinition = {
+  meta: {
+    name: 'rest-clamp',
+    description: 'REST 클램프 시나리오: hp full 상태에서 hp 변화 0',
+    snapshotPhase: 'post',
+    tags: ['rest'],
+  },
+  seed: restClampSeed,
+  initialState: restClampInitialState,
+  steps: restClampSteps,
+};
+
+FixtureRegistry.register(restClampFixture);

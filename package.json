@@ -39,7 +39,10 @@
     "sim": "ts-node scripts/simulate.ts",
     "sim:all": "pnpm ts-node scripts/simulate-all.ts",
     "sim:baseline": "pnpm ts-node scripts/simulate.ts --fixture baseline --user 00000000-0000-4000-8000-000000000101 --seed baseline --max-actions 3 --dry-run",
-    "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user 00000000-0000-4000-8000-000000000104 --seed tlprod1 --max-actions 1 --dry-run"
+    "sim:turn-limit": "pnpm ts-node scripts/simulate.ts --fixture turn-limit --user 00000000-0000-4000-8000-000000000104 --seed tlprod1 --max-actions 1 --dry-run",
+    "snapshot:test": "npx vitest run --testNamePattern \"simulation fixtures\"",
+    "snapshot:update": "npx vitest run --testNamePattern \"simulation fixtures\" --update",
+    "snapshot:check": "npx vitest run --testNamePattern \"simulation fixtures\" --reporter=verbose"
   },
   "lint-staged": {
     "config/**": [

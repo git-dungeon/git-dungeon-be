@@ -1,3 +1,8 @@
+// 타입 및 레지스트리 export
+export * from './fixture.types';
+export { FixtureRegistry } from './registry';
+
+// 개별 fixture export
 export * from './baseline';
 export * from './trap-death';
 export * from './forced-move';

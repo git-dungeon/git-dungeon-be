@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 
 /**
  * 패배(no-drop) 시나리오
@@ -169,8 +170,23 @@ export const noDropSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. noDropFixture.steps 사용 권장 */
 export const noDropSnapshot = {
   seed: noDropSeed,
   initialState: noDropInitialState,
   results: noDropSteps,
 };
+
+export const noDropFixture: FixtureDefinition = {
+  meta: {
+    name: 'no-drop',
+    description: '패배(no-drop) 시나리오: BATTLE 패배 → DEATH + REVIVE',
+    snapshotPhase: 'post',
+    tags: ['death', 'battle'],
+  },
+  seed: noDropSeed,
+  initialState: noDropInitialState,
+  steps: noDropSteps,
+};
+
+FixtureRegistry.register(noDropFixture);
