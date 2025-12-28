@@ -2,9 +2,8 @@
 /**
  * Rate Limit E2E 테스트
  *
- * Phase 3: 테스트 안정화
  * - 테스트 전용 한도 5로 고정 (vi.mock)
- * - 병렬 실행에서도 플래키 없이 재현 가능
+ * - 병렬 실행에서도 안정적으로 재현 가능
  *
  * 한도 변경 시: vi.mock의 DEFAULT_THROTTLE_LIMIT 값 수정
  */
