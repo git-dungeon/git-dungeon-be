@@ -1,5 +1,1879 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시나리오: TREASURE → REST → BATTLE 승리, 진행도 0→40) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "baseline",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "TREASURE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "TREASURE",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "TREASURE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 10,
+                "previousProgress": 0,
+              },
+              "rewards": {
+                "buffs": [],
+                "gold": 5,
+                "items": [
+                  {
+                    "code": "ring-topaz",
+                    "quantity": 1,
+                  },
+                ],
+                "unlocks": [],
+              },
+            },
+            "type": "TREASURE",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-topaz",
+                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "code": "ring-topaz",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "TREASURE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "TREASURE",
+      "stateAfter": {
+        "ap": 4,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 10,
+        "hp": 6,
+        "level": 1,
+        "version": 2,
+      },
+    },
+    {
+      "actionCounter": 1,
+      "logs": [
+        {
+          "action": "REST",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "REST",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "REST",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 20,
+                "previousProgress": 10,
+              },
+              "stats": {
+                "hp": 4,
+              },
+            },
+            "type": "REST",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "REST",
+      "stateAfter": {
+        "ap": 3,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 20,
+        "hp": 10,
+        "level": 1,
+        "version": 3,
+      },
+    },
+    {
+      "actionCounter": 2,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 3,
+                "def": 1,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 10,
+                "level": 1,
+                "luck": 1,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 40,
+                "previousProgress": 20,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "code": "ring-topaz",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "CRITICAL_HIT",
+              "damageDealt": 9,
+              "damageTaken": 1,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 3,
+                "def": 1,
+                "exp": 3,
+                "expToLevel": 10,
+                "hp": 9,
+                "level": 1,
+                "luck": 1,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                },
+              },
+              "result": "VICTORY",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-topaz",
+                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "code": "ring-topaz",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 2,
+        "exp": 3,
+        "floor": 1,
+        "floorProgress": 40,
+        "hp": 9,
+        "level": 1,
+        "version": 4,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 3,
+    "actionsCompleted": 3,
+    "apConsumed": 3,
+    "durationMs": 0,
+    "finalAp": 2,
+    "finalFloor": 1,
+    "finalProgress": 40,
+    "finalVersion": 4,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리트 전투 + 멀티 드랍 시나리오: Cave Spider (Elite) 승리) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "elite-battle",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 5,
+                "code": "monster-cave-spider-elite",
+                "def": 1,
+                "hp": 14,
+                "name": "Cave Spider (Elite)",
+                "spriteId": "sprite/monster-cave-spider",
+              },
+              "player": {
+                "atk": 8,
+                "def": 4,
+                "exp": 0,
+                "expToLevel": 50,
+                "hp": 20,
+                "level": 5,
+                "luck": 5,
+                "maxHp": 20,
+                "stats": {
+                  "base": {
+                    "atk": 8,
+                    "def": 4,
+                    "hp": 20,
+                    "luck": 5,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 8,
+                    "def": 4,
+                    "hp": 20,
+                    "luck": 5,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 5,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 20,
+                "previousProgress": 0,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "code": "weapon-battle-axe",
+                    "quantity": 1,
+                  },
+                  {
+                    "code": "helmet-bronze-helm",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 10,
+                "hp": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 15,
+              "damageTaken": 1,
+              "expGained": 10,
+              "monster": {
+                "atk": 5,
+                "code": "monster-cave-spider-elite",
+                "def": 1,
+                "hp": 14,
+                "name": "Cave Spider (Elite)",
+                "spriteId": "sprite/monster-cave-spider",
+              },
+              "player": {
+                "atk": 8,
+                "def": 4,
+                "exp": 10,
+                "expToLevel": 50,
+                "hp": 19,
+                "level": 5,
+                "luck": 5,
+                "maxHp": 20,
+                "stats": {
+                  "base": {
+                    "atk": 8,
+                    "def": 4,
+                    "hp": 20,
+                    "luck": 5,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 8,
+                    "def": 4,
+                    "hp": 20,
+                    "luck": 5,
+                  },
+                },
+              },
+              "result": "VICTORY",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 5,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "weapon-battle-axe",
+                    "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
+                    "quantity": 1,
+                    "rarity": "rare",
+                    "slot": "weapon",
+                  },
+                  {
+                    "code": "helmet-bronze-helm",
+                    "itemId": "fd2ad6b8-8b36-5b0e-ad9d-a973e643057a",
+                    "quantity": 1,
+                    "rarity": "uncommon",
+                    "slot": "helmet",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": true,
+                  "items": [
+                    {
+                      "code": "weapon-battle-axe",
+                      "quantity": 1,
+                    },
+                    {
+                      "code": "helmet-bronze-helm",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 5,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 10,
+        "floor": 5,
+        "floorProgress": 20,
+        "hp": 19,
+        "level": 5,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 5,
+    "finalProgress": 20,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 MOVE 시나리오: progress 100 → floor 이동) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "forced-move",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 3,
+                "def": 1,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 10,
+                "level": 1,
+                "luck": 1,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 100,
+                "previousProgress": 90,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "code": "weapon-battle-axe",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 9,
+              "damageTaken": 1,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 3,
+                "def": 1,
+                "exp": 3,
+                "expToLevel": 10,
+                "hp": 9,
+                "level": 1,
+                "luck": 1,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 3,
+                    "def": 1,
+                    "hp": 10,
+                    "luck": 1,
+                  },
+                },
+              },
+              "result": "VICTORY",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "weapon-battle-axe",
+                    "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
+                    "quantity": 1,
+                    "rarity": "rare",
+                    "slot": "weapon",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "code": "weapon-battle-axe",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "MOVE",
+          "delta": undefined,
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "MOVE",
+          "delta": {
+            "detail": {
+              "fromFloor": 1,
+              "previousProgress": 100,
+              "progress": {
+                "delta": -100,
+                "floorProgress": 0,
+                "previousProgress": 100,
+              },
+              "toFloor": 2,
+            },
+            "type": "MOVE",
+          },
+          "extra": undefined,
+          "floor": 2,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 2,
+        "exp": 3,
+        "floor": 2,
+        "floorProgress": 0,
+        "hp": 9,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 2,
+    "finalFloor": 2,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레벨업(2회) + 레전더리 드랍 시나리오) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [
+      "step 0: log 1 action expected LEVEL_UP got BATTLE",
+      "step 0: log 1 delta mismatch",
+      "step 0: log 1 extra mismatch",
+      "step 0: log 2 delta mismatch",
+      "step 0: log 2 extra mismatch",
+      "step 0: log 3 action expected BATTLE got LEVEL_UP",
+      "step 0: log 3 delta mismatch",
+      "step 0: log 3 extra mismatch",
+    ],
+    "name": "level-up",
+    "passed": false,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 18,
+                "code": "monster-ancient-dragon",
+                "def": 9,
+                "hp": 90,
+                "name": "Ancient Dragon",
+                "spriteId": "sprite/monster-ancient-dragon",
+              },
+              "player": {
+                "atk": 35,
+                "def": 12,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 60,
+                "level": 1,
+                "luck": 5,
+                "maxHp": 60,
+                "stats": {
+                  "base": {
+                    "atk": 35,
+                    "def": 12,
+                    "hp": 60,
+                    "luck": 5,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 35,
+                    "def": 12,
+                    "hp": 60,
+                    "luck": 5,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 80,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 20,
+                "previousProgress": 0,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "code": "angel-ring",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 39,
+                "hp": -19,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 101,
+              "damageTaken": 19,
+              "expGained": 39,
+              "monster": {
+                "atk": 18,
+                "code": "monster-ancient-dragon",
+                "def": 9,
+                "hp": 90,
+                "name": "Ancient Dragon",
+                "spriteId": "sprite/monster-ancient-dragon",
+              },
+              "player": {
+                "atk": 35,
+                "def": 12,
+                "exp": 39,
+                "expToLevel": 10,
+                "hp": 41,
+                "level": 1,
+                "luck": 5,
+                "maxHp": 60,
+                "stats": {
+                  "base": {
+                    "atk": 35,
+                    "def": 12,
+                    "hp": 60,
+                    "luck": 5,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 35,
+                    "def": 12,
+                    "hp": 60,
+                    "luck": 5,
+                  },
+                },
+              },
+              "result": "VICTORY",
+              "turns": 4,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 80,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "LEVEL_UP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 2,
+                "level": 1,
+                "luck": 1,
+                "maxHp": 2,
+              },
+            },
+            "type": "LEVEL_UP",
+          },
+          "extra": {
+            "details": {
+              "currentLevel": 2,
+              "previousLevel": 1,
+              "statsGained": {
+                "hp": 2,
+                "luck": 1,
+                "maxHp": 2,
+              },
+              "threshold": 10,
+            },
+            "type": "LEVEL_UP",
+          },
+          "floor": 80,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "LEVEL_UP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "atk": 1,
+                "hp": 2,
+                "level": 1,
+                "maxHp": 2,
+              },
+            },
+            "type": "LEVEL_UP",
+          },
+          "extra": {
+            "details": {
+              "currentLevel": 3,
+              "previousLevel": 2,
+              "statsGained": {
+                "atk": 1,
+                "hp": 2,
+                "maxHp": 2,
+              },
+              "threshold": 20,
+            },
+            "type": "LEVEL_UP",
+          },
+          "floor": 80,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "angel-ring",
+                    "itemId": "96500a2e-61e6-56ad-af16-e7b74e11ede9",
+                    "quantity": 1,
+                    "rarity": "legendary",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "code": "angel-ring",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-ancient-dragon",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 80,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 9,
+        "floor": 80,
+        "floorProgress": 20,
+        "hp": 45,
+        "level": 3,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 80,
+    "finalProgress": 20,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 전투(6턴) 시나리오: 승리, exp+3, 드랍 ring-silver-band) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "long-battle",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 1,
+                "def": 5,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 10,
+                "level": 1,
+                "luck": 0,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 1,
+                    "def": 5,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 1,
+                    "def": 5,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 40,
+                "previousProgress": 20,
+              },
+              "rewards": {
+                "items": [
+                  {
+                    "code": "ring-silver-band",
+                    "quantity": 1,
+                  },
+                ],
+              },
+              "stats": {
+                "exp": 3,
+                "hp": -5,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": 8,
+              "damageTaken": 5,
+              "expGained": 3,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 1,
+                "def": 5,
+                "exp": 3,
+                "expToLevel": 10,
+                "hp": 5,
+                "level": 1,
+                "luck": 0,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 1,
+                    "def": 5,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 1,
+                    "def": 5,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": "VICTORY",
+              "turns": 6,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "ACQUIRE_ITEM",
+          "delta": {
+            "detail": {
+              "inventory": {
+                "added": [
+                  {
+                    "code": "ring-silver-band",
+                    "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
+                    "quantity": 1,
+                    "rarity": "common",
+                    "slot": "ring",
+                  },
+                ],
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "extra": {
+            "details": {
+              "reward": {
+                "drop": {
+                  "isElite": false,
+                  "items": [
+                    {
+                      "code": "ring-silver-band",
+                      "quantity": 1,
+                    },
+                  ],
+                  "tableId": "drops-default",
+                },
+                "source": "BATTLE",
+              },
+            },
+            "type": "ACQUIRE_ITEM",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 3,
+        "floor": 1,
+        "floorProgress": 40,
+        "hp": 5,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 1,
+    "finalProgress": 40,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-drop) 시나리오: BATTLE 패배 → DEATH + REVIVE) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [
+      "step 0: log 2 delta mismatch",
+    ],
+    "name": "no-drop",
+    "passed": false,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 1,
+                "def": 0,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 3,
+                "level": 1,
+                "luck": 0,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 1,
+                    "def": 0,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 1,
+                    "def": 0,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "rewards": {
+                "items": [],
+              },
+              "stats": {
+                "hp": -3,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+              "damageDealt": 2,
+              "damageTaken": 4,
+              "expGained": 0,
+              "monster": {
+                "atk": 2,
+                "code": "monster-giant-rat",
+                "def": 0,
+                "hp": 8,
+                "name": "Giant Rat",
+                "spriteId": "sprite/monster-giant-rat",
+              },
+              "player": {
+                "atk": 1,
+                "def": 0,
+                "exp": 0,
+                "expToLevel": 10,
+                "hp": 0,
+                "level": 1,
+                "luck": 0,
+                "maxHp": 10,
+                "stats": {
+                  "base": {
+                    "atk": 1,
+                    "def": 0,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 1,
+                    "def": 0,
+                    "hp": 10,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": "DEFEAT",
+              "turns": 2,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -20,
+                "floorProgress": 0,
+                "previousProgress": 20,
+              },
+              "stats": {},
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "PLAYER_DEFEATED",
+            },
+            "type": "DEATH",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "REVIVE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "REVIVE",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 0,
+        "hp": 10,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 1,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [rest-clamp] matches snapshot (REST 클램프 시나리오: hp full 상태에서 hp 변화 0) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "rest-clamp",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "REST",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "REST",
+          },
+          "extra": undefined,
+          "floor": 2,
+          "status": "STARTED",
+        },
+        {
+          "action": "REST",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 10,
+                "floorProgress": 20,
+                "previousProgress": 10,
+              },
+              "stats": {
+                "hp": 0,
+              },
+            },
+            "type": "REST",
+          },
+          "extra": undefined,
+          "floor": 2,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "REST",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 0,
+        "floor": 2,
+        "floorProgress": 20,
+        "hp": 20,
+        "level": 3,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 2,
+    "finalProgress": 20,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [trap-death] matches snapshot (TRAP 사망 시나리오: TRAP 피해로 사망 → DEATH + REVIVE) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [
+      "step 0: log 1 delta mismatch",
+    ],
+    "name": "trap-death",
+    "passed": false,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "TRAP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "TRAP",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "STARTED",
+        },
+        {
+          "action": "TRAP",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": -3,
+              },
+            },
+            "type": "TRAP",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "DEATH",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": -10,
+                "floorProgress": 0,
+                "previousProgress": 10,
+              },
+              "stats": {},
+            },
+            "type": "DEATH",
+          },
+          "extra": {
+            "details": {
+              "cause": "TRAP_DAMAGE",
+            },
+            "type": "DEATH",
+          },
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+        {
+          "action": "REVIVE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "hp": 10,
+              },
+            },
+            "type": "REVIVE",
+          },
+          "extra": undefined,
+          "floor": 1,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "TRAP",
+      "stateAfter": {
+        "ap": 1,
+        "exp": 0,
+        "floor": 1,
+        "floorProgress": 0,
+        "hp": 10,
+        "level": 1,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 1,
+    "finalFloor": 1,
+    "finalProgress": 0,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
+exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-limit 패배 시나리오: 30턴 후 TURN_LIMIT 패배) 1`] = `
+{
+  "fixtureCheck": {
+    "mismatches": [],
+    "name": "turn-limit",
+    "passed": true,
+  },
+  "steps": [
+    {
+      "actionCounter": 0,
+      "logs": [
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "stats": {
+                "ap": -1,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": undefined,
+              "damageDealt": undefined,
+              "damageTaken": undefined,
+              "expGained": undefined,
+              "monster": {
+                "atk": 22,
+                "code": "monster-ancient-dragon",
+                "def": 11,
+                "hp": 110,
+                "name": "Ancient Dragon",
+                "spriteId": "sprite/monster-ancient-dragon",
+              },
+              "player": {
+                "atk": 2,
+                "def": 60,
+                "exp": 0,
+                "expToLevel": 300,
+                "hp": 150,
+                "level": 30,
+                "luck": 0,
+                "maxHp": 150,
+                "stats": {
+                  "base": {
+                    "atk": 2,
+                    "def": 60,
+                    "hp": 150,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 2,
+                    "def": 60,
+                    "hp": 150,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": undefined,
+              "turns": undefined,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 120,
+          "status": "STARTED",
+        },
+        {
+          "action": "BATTLE",
+          "delta": {
+            "detail": {
+              "progress": {
+                "delta": 20,
+                "floorProgress": 20,
+                "previousProgress": 0,
+              },
+              "rewards": {
+                "items": [],
+              },
+              "stats": {
+                "hp": -34,
+              },
+            },
+            "type": "BATTLE",
+          },
+          "extra": {
+            "details": {
+              "cause": "TURN_LIMIT",
+              "damageDealt": 33,
+              "damageTaken": 34,
+              "expGained": 0,
+              "monster": {
+                "atk": 22,
+                "code": "monster-ancient-dragon",
+                "def": 11,
+                "hp": 110,
+                "name": "Ancient Dragon",
+                "spriteId": "sprite/monster-ancient-dragon",
+              },
+              "player": {
+                "atk": 2,
+                "def": 60,
+                "exp": 0,
+                "expToLevel": 300,
+                "hp": 116,
+                "level": 30,
+                "luck": 0,
+                "maxHp": 150,
+                "stats": {
+                  "base": {
+                    "atk": 2,
+                    "def": 60,
+                    "hp": 150,
+                    "luck": 0,
+                  },
+                  "equipmentBonus": {
+                    "atk": 0,
+                    "def": 0,
+                    "hp": 0,
+                    "luck": 0,
+                  },
+                  "total": {
+                    "atk": 2,
+                    "def": 60,
+                    "hp": 150,
+                    "luck": 0,
+                  },
+                },
+              },
+              "result": "DEFEAT",
+              "turns": 30,
+            },
+            "type": "BATTLE",
+          },
+          "floor": 120,
+          "status": "COMPLETED",
+        },
+      ],
+      "selectedEvent": "BATTLE",
+      "stateAfter": {
+        "ap": 0,
+        "exp": 0,
+        "floor": 120,
+        "floorProgress": 20,
+        "hp": 116,
+        "level": 30,
+        "version": 2,
+      },
+    },
+  ],
+  "summary": {
+    "actionsAttempted": 1,
+    "actionsCompleted": 1,
+    "apConsumed": 1,
+    "durationMs": 0,
+    "finalAp": 0,
+    "finalFloor": 120,
+    "finalProgress": 20,
+    "finalVersion": 2,
+    "initialVersion": 1,
+  },
+}
+`;
+
 exports[`simulation fixtures snapshots > matches snapshot: baseline 1`] = `
 {
   "fixtureCheck": {

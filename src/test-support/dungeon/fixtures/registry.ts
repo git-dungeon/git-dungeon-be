@@ -36,6 +36,15 @@ class FixtureRegistryImpl {
   }
 
   /**
+   * 모든 fixture 정의 반환 (정렬)
+   */
+  listAll(): FixtureDefinition[] {
+    return Array.from(this.fixtures.values()).sort((a, b) =>
+      a.meta.name.localeCompare(b.meta.name),
+    );
+  }
+
+  /**
    * 특정 phase의 fixture 목록
    */
   getByPhase(phase: SnapshotPhase): FixtureDefinition[] {
