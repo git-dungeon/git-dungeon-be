@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './fixture.types';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -188,8 +189,23 @@ export const eliteBattleSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. eliteBattleFixture.steps 사용 권장 */
 export const eliteBattleSnapshot = {
   seed: eliteBattleSeed,
   initialState: eliteBattleInitialState,
   results: eliteBattleSteps,
 };
+
+export const eliteBattleFixture: FixtureDefinition = {
+  meta: {
+    name: 'elite-battle',
+    description: '엘리트 전투 + 멀티 드랍 시나리오: Cave Spider (Elite) 승리',
+    snapshotPhase: 'post',
+    tags: ['battle', 'elite', 'drop'],
+  },
+  seed: eliteBattleSeed,
+  initialState: eliteBattleInitialState,
+  steps: eliteBattleSteps,
+};
+
+FixtureRegistry.register(eliteBattleFixture);

@@ -1,5 +1,6 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './fixture.types';
+import type { FixtureDefinition, SnapshotStep } from './fixture.types';
+import { FixtureRegistry } from './registry';
 import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
@@ -180,8 +181,23 @@ export const longBattleSteps: SnapshotStep[] = [
   },
 ];
 
+/** @deprecated 하위 호환용. longBattleFixture.steps 사용 권장 */
 export const longBattleSnapshot = {
   seed: longBattleSeed,
   initialState: longBattleInitialState,
   results: longBattleSteps,
 };
+
+export const longBattleFixture: FixtureDefinition = {
+  meta: {
+    name: 'long-battle',
+    description: '장기 전투(6턴) 시나리오: 승리, exp+3, 드랍 ring-silver-band',
+    snapshotPhase: 'post',
+    tags: ['battle', 'drop'],
+  },
+  seed: longBattleSeed,
+  initialState: longBattleInitialState,
+  steps: longBattleSteps,
+};
+
+FixtureRegistry.register(longBattleFixture);
