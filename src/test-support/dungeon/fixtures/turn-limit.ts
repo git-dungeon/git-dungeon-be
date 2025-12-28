@@ -1,5 +1,5 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { SnapshotStep } from './fixture.types';
 
 /**
  * 운영 설정(turnLimit=30) 기반 turn-limit 패배

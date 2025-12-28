@@ -1,5 +1,5 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { SnapshotStep } from './fixture.types';
 
 /**
  * REST 클램프 시나리오

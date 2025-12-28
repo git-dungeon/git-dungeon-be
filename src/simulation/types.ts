@@ -1,6 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { DungeonEventType } from '../dungeon/events/event.types';
-import type { SnapshotStep } from '../test-support/dungeon/fixtures/baseline';
+import type { SnapshotStep } from '../test-support/dungeon/fixtures/fixture.types';
 
 export type SimulationLog = {
   action: string;

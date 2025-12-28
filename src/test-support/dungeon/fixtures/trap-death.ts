@@ -1,5 +1,5 @@
 import type { DungeonState } from '@prisma/client';
-import type { SnapshotStep } from './baseline';
+import type { SnapshotStep } from './fixture.types';
 
 /**
  * TRAP 사망 시나리오
