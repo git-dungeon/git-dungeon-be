@@ -20,6 +20,11 @@ import {
   addEquipmentStats,
   calculateEquipmentBonus,
 } from '../common/inventory/equipment-stats';
+import {
+  extractFlatStatModifiers,
+  calculateStatsDiff,
+  isEmptyStatsDelta,
+} from '../common/stats/stat-delta.util';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   EquipmentItem,
@@ -477,6 +482,12 @@ export class InventoryService {
     replaced?: EquipmentItem;
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
+      const equipStats = extractFlatStatModifiers(input.item.modifiers);
+      const unequipStats = input.replaced
+        ? extractFlatStatModifiers(input.replaced.modifiers)
+        : {};
+      const statsDiff = calculateStatsDiff(equipStats, unequipStats);
+
       return {
         type: 'EQUIP_ITEM',
         detail: {
@@ -494,11 +505,21 @@ export class InventoryService {
                 }
               : undefined,
           },
+          stats: isEmptyStatsDelta(statsDiff) ? undefined : statsDiff,
         },
       };
     }
 
     if (input.action === DungeonLogAction.UNEQUIP_ITEM) {
+      const unequipStats = extractFlatStatModifiers(input.item.modifiers);
+      // 해제 시 스탯은 감소 (음수)
+      const statsDiff: Record<string, number> = {};
+      for (const [key, value] of Object.entries(unequipStats)) {
+        if (value !== 0) {
+          statsDiff[key] = -value;
+        }
+      }
+
       return {
         type: 'UNEQUIP_ITEM',
         detail: {
@@ -509,6 +530,7 @@ export class InventoryService {
               code: input.item.code,
             },
           },
+          stats: Object.keys(statsDiff).length > 0 ? statsDiff : undefined,
         },
       };
     }
