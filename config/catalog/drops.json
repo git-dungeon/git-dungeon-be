@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "updatedAt": "2025-12-24T05:42:25.477Z",
+  "version": 7,
+  "updatedAt": "2025-12-29T10:32:49.465Z",
   "dropTables": [
     {
       "tableId": "drops-default",
@@ -72,7 +72,7 @@
           "maxQuantity": 1
         },
         {
-          "code": "armor-iron-shield",
+          "code": "armor-studded-leather-armor",
           "weight": 12,
           "minQuantity": 1,
           "maxQuantity": 1
@@ -96,7 +96,7 @@
           "maxQuantity": 1
         },
         {
-          "code": "armor-tower-shield",
+          "code": "armor-bastion-armor",
           "weight": 6,
           "minQuantity": 1,
           "maxQuantity": 1
