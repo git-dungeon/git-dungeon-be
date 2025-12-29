@@ -1,6 +1,6 @@
 {
-  "version": 7,
-  "updatedAt": "2025-12-11T12:41:06.744Z",
+  "version": 8,
+  "updatedAt": "2025-12-29T10:32:49.465Z",
   "items": [
     {
       "code": "weapon-wooden-sword",
@@ -248,10 +248,10 @@
       "description": "Basic leather protection."
     },
     {
-      "code": "armor-iron-shield",
-      "nameKey": "item.armor-iron-shield.name",
-      "descriptionKey": "item.armor-iron-shield.desc",
-      "name": "Iron Shield",
+      "code": "armor-studded-leather-armor",
+      "nameKey": "item.armor-studded-leather-armor.name",
+      "descriptionKey": "item.armor-studded-leather-armor.desc",
+      "name": "Studded Leather Armor",
       "slot": "armor",
       "rarity": "common",
       "modifiers": [
@@ -263,8 +263,8 @@
         }
       ],
       "effectCode": null,
-      "spriteId": "sprite/armor-iron-shield",
-      "description": "Sturdy iron shield."
+      "spriteId": "sprite/armor-studded-leather-armor",
+      "description": "Leather armor reinforced with metal studs."
     },
     {
       "code": "armor-chainmail",
@@ -330,10 +330,10 @@
       "description": "Plate armor fit for a knight."
     },
     {
-      "code": "armor-tower-shield",
-      "nameKey": "item.armor-tower-shield.name",
-      "descriptionKey": "item.armor-tower-shield.desc",
-      "name": "Tower Shield",
+      "code": "armor-bastion-armor",
+      "nameKey": "item.armor-bastion-armor.name",
+      "descriptionKey": "item.armor-bastion-armor.desc",
+      "name": "Bastion Armor",
       "slot": "armor",
       "rarity": "rare",
       "modifiers": [
@@ -345,8 +345,8 @@
         }
       ],
       "effectCode": null,
-      "spriteId": "sprite/armor-tower-shield",
-      "description": "Massive shield for maximum coverage."
+      "spriteId": "sprite/armor-bastion-armor",
+      "description": "Heavy armor built for steadfast defense."
     },
     {
       "code": "armor-guardian-armor",
