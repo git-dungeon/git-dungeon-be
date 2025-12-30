@@ -456,7 +456,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'DEATH',
-      floor: deadState.floor,
+      floor: preState.floor,
       delta: {
         type: 'DEATH',
         detail: {

@@ -377,7 +377,7 @@ describe('DungeonEventService', () => {
         'number',
       );
     }
-    expect(deathLog?.floor).toBe(1);
+    expect(deathLog?.floor).toBe(state.floor);
 
     const trapCompleted = result.logs.find(
       (log) =>
