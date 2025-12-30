@@ -119,6 +119,7 @@ export class DungeonEventService {
       progressedState.state,
       selectedEvent,
       processorResult.extra,
+      context.equipmentBonus,
     );
 
     const expApplied = this.applyExpAndLevelUp(
@@ -423,6 +424,7 @@ export class DungeonEventService {
     state: DungeonState,
     eventType: DungeonEventType,
     extra: DungeonEventProcessorOutput['extra'],
+    equipmentBonus?: DungeonEventContext['equipmentBonus'],
   ): {
     state: DungeonState;
     alive: boolean;
@@ -440,9 +442,13 @@ export class DungeonEventService {
       floor: 1,
       floorProgress: 0,
     };
+    const reviveMaxHp = Math.max(
+      0,
+      deadState.maxHp + (equipmentBonus?.hp ?? 0),
+    );
     const revivedState: DungeonState = {
       ...deadState,
-      hp: deadState.maxHp,
+      hp: reviveMaxHp,
     };
 
     const cause =
@@ -456,7 +462,7 @@ export class DungeonEventService {
       type: eventType,
       status: 'COMPLETED',
       actionOverride: 'DEATH',
-      floor: deadState.floor,
+      floor: preState.floor,
       delta: {
         type: 'DEATH',
         detail: {

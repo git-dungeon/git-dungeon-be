@@ -354,10 +354,12 @@ describe('DungeonEventService', () => {
       floor: 3,
       floorProgress: 70,
     });
+    const equipmentBonus = { hp: 2, atk: 0, def: 0, luck: 0 };
 
     const result = await service.execute({
       state,
       seed: 'death-seed',
+      equipmentBonus,
       weights: {
         [DungeonEventType.BATTLE]: 0,
         [DungeonEventType.TREASURE]: 0,
@@ -377,7 +379,7 @@ describe('DungeonEventService', () => {
         'number',
       );
     }
-    expect(deathLog?.floor).toBe(1);
+    expect(deathLog?.floor).toBe(state.floor);
 
     const trapCompleted = result.logs.find(
       (log) =>
@@ -413,9 +415,22 @@ describe('DungeonEventService', () => {
     expect(deathIndex).toBeGreaterThanOrEqual(0);
     expect(trapCompletedIndex).toBeLessThan(deathIndex);
 
+    const reviveLog = result.logs.find(
+      (log) => log.action === DungeonLogAction.REVIVE,
+    );
+    expect(reviveLog).toBeDefined();
+    expect(reviveLog?.delta?.type).toBe('REVIVE');
+    if (reviveLog?.delta?.type === 'REVIVE') {
+      expect(reviveLog.delta.detail.stats.hp).toBe(
+        state.maxHp + equipmentBonus.hp,
+      );
+    }
+
     expect(result.stateAfter.floor).toBe(1);
     expect(result.stateAfter.floorProgress).toBe(0);
-    expect(result.stateAfter.hp).toBe(result.stateAfter.maxHp);
+    expect(result.stateAfter.hp).toBe(
+      result.stateAfter.maxHp + equipmentBonus.hp,
+    );
   });
 
   it('승리 시 전투 EXP는 BATTLE에 기록하고, 레벨업 스탯은 LEVEL_UP에만 기록한다', async () => {
