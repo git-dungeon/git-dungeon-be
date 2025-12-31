@@ -457,6 +457,8 @@ export class DungeonEventService {
         : eventType === DungeonEventType.TRAP
           ? 'TRAP_DAMAGE'
           : 'HP_DEPLETED';
+    const handledBy =
+      extra?.type === 'BATTLE' ? extra.details.monster?.code : undefined;
 
     const deathLog: DungeonEventLogStub = {
       type: eventType,
@@ -478,6 +480,7 @@ export class DungeonEventService {
         type: 'DEATH',
         details: {
           cause,
+          ...(handledBy ? { handledBy } : {}),
         },
       },
     };
