@@ -1,5 +1,7 @@
 import type { InventoryModifier } from '../inventory/inventory-modifier';
 
+// DEATH 로그 원인 코드(OpenAPI enum과 일치)
+// PLAYER_DEFEATED: 전투 패배 사망, TRAP_DAMAGE: 함정 사망, HP_DEPLETED: 기타 체력 소진
 export const DEATH_CAUSE_VALUES = [
   'PLAYER_DEFEATED',
   'TRAP_DAMAGE',
