@@ -95,6 +95,16 @@ describe('simulation fixtures snapshots', () => {
         expect(deathExtra?.details?.cause).toBe('TRAP_DAMAGE');
       }
 
+      if (name === 'no-drop') {
+        const death = result.steps
+          .flatMap((s) => s.logs)
+          .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
+        const deathExtra = death?.extra as {
+          details?: { handledBy?: unknown };
+        };
+        expect(deathExtra?.details?.handledBy).toBe('monster-giant-rat');
+      }
+
       if (name === 'forced-move') {
         const moveCompleted = result.steps
           .flatMap((s) => s.logs)
