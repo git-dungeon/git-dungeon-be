@@ -380,6 +380,8 @@ describe('DungeonEventService', () => {
       );
     }
     expect(deathLog?.floor).toBe(state.floor);
+    const deathExtra = deathLog?.extra as { details?: { handledBy?: unknown } };
+    expect(deathExtra?.details?.handledBy).toBeUndefined();
 
     const trapCompleted = result.logs.find(
       (log) =>

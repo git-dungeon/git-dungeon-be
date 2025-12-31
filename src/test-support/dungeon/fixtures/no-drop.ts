@@ -150,6 +150,7 @@ export const noDropSteps: SnapshotStep[] = [
           type: 'DEATH',
           details: {
             cause: 'PLAYER_DEFEATED',
+            handledBy: 'monster-giant-rat',
           },
         },
       },

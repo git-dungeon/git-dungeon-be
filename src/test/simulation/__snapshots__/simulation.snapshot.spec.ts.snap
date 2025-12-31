@@ -1482,6 +1482,7 @@ exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-d
           "extra": {
             "details": {
               "cause": "PLAYER_DEFEATED",
+              "handledBy": "monster-giant-rat",
             },
             "type": "DEATH",
           },
