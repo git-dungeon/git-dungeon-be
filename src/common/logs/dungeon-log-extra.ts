@@ -1,5 +1,12 @@
 import type { InventoryModifier } from '../inventory/inventory-modifier';
 
+export const DEATH_CAUSE_VALUES = [
+  'PLAYER_DEFEATED',
+  'TRAP_DAMAGE',
+  'HP_DEPLETED',
+] as const;
+export type DeathCause = (typeof DEATH_CAUSE_VALUES)[number];
+
 type BattleResult = 'VICTORY' | 'DEFEAT';
 
 type BattlePlayerStatBlock = {
@@ -51,7 +58,7 @@ export type BattleDetails = {
 export type DeathDetails = {
   type: 'DEATH';
   details: {
-    cause: string;
+    cause: DeathCause;
     handledBy?: string;
   };
 };

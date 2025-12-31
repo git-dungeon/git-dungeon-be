@@ -29,6 +29,7 @@ import type {
   StatsDelta,
   InventoryDelta,
 } from '../../common/logs/dungeon-log-delta';
+import type { DeathCause } from '../../common/logs/dungeon-log-extra';
 import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
@@ -451,9 +452,9 @@ export class DungeonEventService {
       hp: reviveMaxHp,
     };
 
-    const cause =
+    const cause: DeathCause =
       extra?.type === 'BATTLE'
-        ? (extra.details.cause ?? 'PLAYER_DEFEATED')
+        ? 'PLAYER_DEFEATED'
         : eventType === DungeonEventType.TRAP
           ? 'TRAP_DAMAGE'
           : 'HP_DEPLETED';
