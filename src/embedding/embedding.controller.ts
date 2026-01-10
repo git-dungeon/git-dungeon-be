@@ -11,6 +11,11 @@ import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
 import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
 import { EmbeddingService } from './embedding.service';
 
+const SVG_RAW_STRINGIFY = {
+  type: 'stringify' as const,
+  stringify: (value: string) => value,
+};
+
 @ApiTags('Embedding')
 @Controller('api/embedding')
 export class EmbeddingController {
@@ -35,7 +40,7 @@ export class EmbeddingController {
     });
   }
 
-  @TypedRoute.Get<string>('preview.svg')
+  @TypedRoute.Get<string>('preview.svg', SVG_RAW_STRINGIFY)
   @UseGuards(AuthenticatedThrottlerGuard)
   async getPreviewSvg(
     @Req() _request: Request & { id?: string },
