@@ -7,6 +7,7 @@ import { DashboardModule } from '../dashboard/dashboard.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmbeddingController } from './embedding.controller';
+import { EmbedRendererService } from './embed-renderer.service';
 import { EmbeddingService } from './embedding.service';
 
 @Module({
@@ -14,6 +15,7 @@ import { EmbeddingService } from './embedding.service';
   controllers: [EmbeddingController],
   providers: [
     EmbeddingService,
+    EmbedRendererService,
     {
       provide: RATE_LIMIT_CONFIG,
       useValue: {

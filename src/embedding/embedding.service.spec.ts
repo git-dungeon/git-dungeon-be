@@ -14,6 +14,7 @@ import {
 } from '../test-support/mocks/typia';
 import { EmbeddingService } from './embedding.service';
 import { loadCatalogData } from '../catalog';
+import type { EmbedRendererService } from './embed-renderer.service';
 
 vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
@@ -36,18 +37,23 @@ describe('EmbeddingService', () => {
   const inventoryServiceMock = {
     getInventory: vi.fn(),
   };
+  const embedRendererServiceMock = {
+    renderPreviewSvg: vi.fn(),
+  };
   const loadCatalogDataMock = vi.mocked(loadCatalogData);
 
   const service = new EmbeddingService(
     prismaMock as unknown as PrismaService,
     dashboardServiceMock as unknown as DashboardService,
     inventoryServiceMock as unknown as InventoryService,
+    embedRendererServiceMock as unknown as EmbedRendererService,
   );
 
   beforeEach(() => {
     prismaMock.user.findUnique.mockReset();
     dashboardServiceMock.getState.mockReset();
     inventoryServiceMock.getInventory.mockReset();
+    embedRendererServiceMock.renderPreviewSvg.mockReset();
     loadCatalogDataMock.mockReset();
     resetTypiaAssertMock();
   });
@@ -231,5 +237,45 @@ describe('EmbeddingService', () => {
     expect(result.theme).toBe('dark');
     expect(result.size).toBe('wide');
     expect(result.language).toBe('ko');
+  });
+
+  it('SVG 프리뷰 렌더링을 호출해야 한다', async () => {
+    loadCatalogDataMock.mockResolvedValue({
+      version: 1,
+      updatedAt: '2025-10-30T10:00:00.000Z',
+      items: [],
+      buffs: [],
+      monsters: [],
+      dropTables: [],
+      assetsBaseUrl: null,
+      spriteMap: {},
+    });
+
+    dashboardServiceMock.getState.mockResolvedValue(
+      createDashboardStateResponse(),
+    );
+    inventoryServiceMock.getInventory.mockResolvedValue(
+      createInventoryResponse(),
+    );
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: TEST_USER_ID_1,
+      name: 'Mock User',
+      image: 'https://example.com/avatar.png',
+    });
+    embedRendererServiceMock.renderPreviewSvg.mockResolvedValue(
+      '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+    );
+
+    const result = await service.getPreviewSvg({ userId: TEST_USER_ID_1 });
+
+    expect(embedRendererServiceMock.renderPreviewSvg).toHaveBeenCalledWith(
+      expect.objectContaining({
+        theme: 'dark',
+        size: 'wide',
+        language: 'ko',
+        overview: expect.any(Object),
+      }),
+    );
+    expect(result).toBe('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
   });
 });

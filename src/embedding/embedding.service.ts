@@ -19,6 +19,7 @@ import type {
   EmbeddingPreviewStatSummary,
 } from './dto/embedding-preview.response';
 import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
+import { EmbedRendererService } from './embed-renderer.service';
 
 @Injectable()
 export class EmbeddingService {
@@ -26,6 +27,7 @@ export class EmbeddingService {
     private readonly prisma: PrismaService,
     private readonly dashboardService: DashboardService,
     private readonly inventoryService: InventoryService,
+    private readonly embedRendererService: EmbedRendererService,
   ) {}
 
   async getPreview(
@@ -63,6 +65,11 @@ export class EmbeddingService {
     };
 
     return typia.assert<EmbeddingPreviewPayload>(payload);
+  }
+
+  async getPreviewSvg(query: EmbeddingPreviewQueryDto): Promise<string> {
+    const preview = await this.getPreview(query);
+    return this.embedRendererService.renderPreviewSvg(preview);
   }
 
   private async loadCatalog(

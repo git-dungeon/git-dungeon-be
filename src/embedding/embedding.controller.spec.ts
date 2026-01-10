@@ -14,6 +14,7 @@ describe('EmbeddingController', () => {
 
   const serviceMock = {
     getPreview: vi.fn(),
+    getPreviewSvg: vi.fn(),
   };
 
   const createResponse = () => {
@@ -33,6 +34,7 @@ describe('EmbeddingController', () => {
 
   beforeEach(() => {
     serviceMock.getPreview.mockReset();
+    serviceMock.getPreviewSvg.mockReset();
   });
 
   it('cache 헤더와 ApiResponse 구조를 반환해야 한다', async () => {
@@ -86,5 +88,36 @@ describe('EmbeddingController', () => {
     expect(result.data).toEqual(payload);
     expect(result.meta.requestId).toBe(REQUEST_ID);
     expect(result.meta.generatedAt).toEqual(expect.any(String));
+  });
+
+  it('SVG 프리뷰를 반환해야 한다', async () => {
+    const controller = new EmbeddingController(
+      serviceMock as unknown as EmbeddingService,
+    );
+
+    const svgMarkup = '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
+    serviceMock.getPreviewSvg.mockResolvedValue(svgMarkup);
+
+    const response = createResponse();
+    const request = createRequest() as Request & { id?: string };
+
+    const result = await controller.getPreviewSvg(
+      request,
+      response as unknown as Response,
+      { userId: '00000000-0000-4000-8000-000000000001' },
+    );
+
+    expect(serviceMock.getPreviewSvg).toHaveBeenCalledWith({
+      userId: '00000000-0000-4000-8000-000000000001',
+    });
+    expect(response.setHeader).toHaveBeenCalledWith(
+      'Cache-Control',
+      'public, max-age=60, stale-while-revalidate=300',
+    );
+    expect(response.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'image/svg+xml; charset=utf-8',
+    );
+    expect(result).toBe(svgMarkup);
   });
 });

@@ -60,6 +60,7 @@
     "@nestjs/schedule": "^5.0.0",
     "@nestjs/swagger": "^11.2.1",
     "@nestjs/throttler": "^6.4.0",
+    "@git-dungeon/embed-renderer": "file:../git-dungeon-fe/packages/embed-renderer",
     "@octokit/core": "^7.0.0",
     "@octokit/plugin-throttling": "^11.0.3",
     "@prisma/client": "^6.17.1",
@@ -72,9 +73,11 @@
     "pino-http": "^10.4.0",
     "pino-pretty": "^11.2.2",
     "prisma": "^6.17.1",
+    "react": "^19.1.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "seedrandom": "^3.0.5",
+    "satori": "^0.18.3",
     "typia": "^9.7.2"
   },
   "devDependencies": {

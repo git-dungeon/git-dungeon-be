@@ -34,4 +34,20 @@ export class EmbeddingController {
       requestId: request.id,
     });
   }
+
+  @TypedRoute.Get<string>('preview.svg')
+  @UseGuards(AuthenticatedThrottlerGuard)
+  async getPreviewSvg(
+    @Req() _request: Request & { id?: string },
+    @Res({ passthrough: true }) response: Response,
+    @TypedQuery() query: EmbeddingPreviewQueryDto,
+  ): Promise<string> {
+    response.setHeader(
+      'Cache-Control',
+      'public, max-age=60, stale-while-revalidate=300',
+    );
+    response.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+
+    return this.embeddingService.getPreviewSvg(query);
+  }
 }
