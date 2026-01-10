@@ -23,6 +23,11 @@ export class EmbeddingController {
     @Res({ passthrough: true }) response: Response,
     @TypedQuery() query: EmbeddingPreviewQueryDto,
   ): Promise<ApiSuccessResponse<EmbeddingPreviewPayload>> {
+    response.setHeader(
+      'Cache-Control',
+      'public, max-age=60, stale-while-revalidate=300',
+    );
+
     const preview = await this.embeddingService.getPreview(query);
 
     return successResponseWithGeneratedAt(preview, {
