@@ -10,8 +10,11 @@ import { InventoryService } from '../inventory/inventory.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type {
   EmbeddingPreviewEffect,
+  EmbeddingPreviewEquipmentItem,
   EmbeddingPreviewModifier,
+  EmbeddingPreviewOverview,
   EmbeddingPreviewPayload,
+  EmbeddingPreviewSlot,
   EmbeddingPreviewStatBlock,
   EmbeddingPreviewStatSummary,
 } from './dto/embedding-preview.response';
@@ -78,7 +81,7 @@ export class EmbeddingService {
     catalog: CatalogData;
     displayName: string | null;
     avatarUrl: string | null;
-  }) {
+  }): EmbeddingPreviewOverview {
     const { dashboard, inventory, catalog, displayName, avatarUrl } = params;
     const state = dashboard.state;
     const stats = this.buildStatSummary(state);
@@ -154,22 +157,28 @@ export class EmbeddingService {
   private buildEquipment(
     inventory: InventoryResponse,
     catalog: CatalogData,
-  ) {
+  ): EmbeddingPreviewEquipmentItem[] {
     const catalogMap = new Map(
       catalog.items.map((item) => [item.code, item]),
     );
 
     return Object.values(inventory.equipped)
       .filter((item): item is NonNullable<typeof item> => Boolean(item))
-      .filter((item) => item.slot !== 'consumable')
+      .filter(
+        (
+          item,
+        ): item is InventoryResponse['items'][number] & {
+          slot: EmbeddingPreviewSlot;
+        } => this.isEmbeddingSlot(item.slot),
+      )
       .map((item) => this.mapEquipmentItem(item, catalogMap, catalog));
   }
 
   private mapEquipmentItem(
-    item: InventoryResponse['items'][number],
+    item: InventoryResponse['items'][number] & { slot: EmbeddingPreviewSlot },
     catalogMap: Map<string, CatalogItem>,
     catalog: CatalogData,
-  ) {
+  ): EmbeddingPreviewEquipmentItem {
     const catalogItem = catalogMap.get(item.code);
     const name = catalogItem?.name ?? item.name ?? item.code;
     const spriteKey = this.resolveSpriteKey(item, catalogItem);
@@ -258,5 +267,11 @@ export class EmbeddingService {
       value.startsWith('https://') ||
       value.startsWith('/')
     );
+  }
+
+  private isEmbeddingSlot(
+    slot: InventoryResponse['items'][number]['slot'],
+  ): slot is EmbeddingPreviewSlot {
+    return slot !== 'consumable';
   }
 }
