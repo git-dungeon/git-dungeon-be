@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import path from 'node:path';
 import type { EmbedFontConfig } from '@git-dungeon/embed-renderer';
 import {
@@ -18,6 +18,7 @@ import type {
 
 @Injectable()
 export class EmbedRendererService {
+  private readonly logger = new Logger(EmbedRendererService.name);
   private cachedFonts: EmbedFontConfig[] | null = null;
   private pendingFonts: Promise<EmbedFontConfig[]> | null = null;
 
@@ -66,6 +67,14 @@ export class EmbedRendererService {
         .then((fonts) => {
           this.cachedFonts = fonts;
           return fonts;
+        })
+        .catch((error) => {
+          this.cachedFonts = [];
+          this.logger.error(
+            'Embed font loading failed; falling back to system fonts.',
+            error instanceof Error ? error.stack : String(error),
+          );
+          return [];
         })
         .finally(() => {
           this.pendingFonts = null;
