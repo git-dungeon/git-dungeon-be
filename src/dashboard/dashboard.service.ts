@@ -53,6 +53,11 @@ export class DashboardService {
     const totalStats = addEquipmentStats(baseStats, equipmentBonus);
     const maxHp = Math.max(0, totalStats.hp);
     const currentHp = Math.max(0, Math.min(state.hp, maxHp));
+    const stats = {
+      base: { ...baseStats, maxHp: baseStats.hp },
+      equipmentBonus: { ...equipmentBonus, maxHp: equipmentBonus.hp },
+      total: { ...totalStats, maxHp: totalStats.hp },
+    };
 
     const response: DashboardStateResponse = {
       state: {
@@ -76,11 +81,7 @@ export class DashboardService {
         version: state.version,
         updatedAt: state.updatedAt.toISOString(),
         expToLevel: this.calculateExpToLevel(state.level),
-        stats: {
-          base: baseStats,
-          equipmentBonus,
-          total: totalStats,
-        },
+        stats,
         equippedItems: equippedItems.map((item) => this.mapEquippedItem(item)),
       },
     };

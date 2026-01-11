@@ -117,7 +117,7 @@ export class EmbeddingService {
   private buildStatSummary(state: DashboardStateResponse['state']): EmbeddingPreviewStatSummary {
     const equipmentBonus = {
       hp: state.stats.equipmentBonus.hp,
-      maxHp: state.stats.equipmentBonus.hp,
+      maxHp: state.stats.equipmentBonus.maxHp,
       atk: state.stats.equipmentBonus.atk,
       def: state.stats.equipmentBonus.def,
       luck: state.stats.equipmentBonus.luck,

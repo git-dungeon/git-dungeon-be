@@ -104,9 +104,9 @@ describe('EmbeddingService', () => {
       maxFloor: 15,
       floorProgress: 60,
       stats: {
-        base: { hp: 28, atk: 16, def: 13, luck: 6 },
-        equipmentBonus: { hp: 4, atk: 2, def: 1, luck: 0 },
-        total: { hp: 32, atk: 18, def: 14, luck: 6 },
+        base: { hp: 28, maxHp: 36, atk: 16, def: 13, luck: 6 },
+        equipmentBonus: { hp: 4, maxHp: 4, atk: 2, def: 1, luck: 0 },
+        total: { hp: 32, maxHp: 40, atk: 18, def: 14, luck: 6 },
       },
     });
 

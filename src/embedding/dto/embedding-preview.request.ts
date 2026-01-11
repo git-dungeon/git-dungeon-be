@@ -1,8 +1,15 @@
 import { tags } from 'typia';
+import type {
+  EmbeddingPreviewLanguage,
+  EmbeddingPreviewSize,
+  EmbeddingPreviewTheme,
+} from './embedding-preview.response';
 
-export type EmbeddingPreviewTheme = 'light' | 'dark';
-export type EmbeddingPreviewSize = 'compact' | 'wide';
-export type EmbeddingPreviewLanguage = 'ko' | 'en';
+export type {
+  EmbeddingPreviewLanguage,
+  EmbeddingPreviewSize,
+  EmbeddingPreviewTheme,
+} from './embedding-preview.response';
 
 export interface EmbeddingPreviewQueryDto {
   userId: string & tags.Format<'uuid'>;

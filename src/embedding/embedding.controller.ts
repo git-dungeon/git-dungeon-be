@@ -1,4 +1,4 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Inject, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { TypedQuery, TypedRoute } from '@nestia/core';
@@ -19,7 +19,10 @@ const SVG_RAW_STRINGIFY = {
 @ApiTags('Embedding')
 @Controller('api/embedding')
 export class EmbeddingController {
-  constructor(private readonly embeddingService: EmbeddingService) {}
+  constructor(
+    @Inject(EmbeddingService)
+    private readonly embeddingService: EmbeddingService,
+  ) {}
 
   @TypedRoute.Get<ApiSuccessResponse<EmbeddingPreviewPayload>>('preview')
   @UseGuards(AuthenticatedThrottlerGuard)

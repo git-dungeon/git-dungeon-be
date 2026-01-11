@@ -32,18 +32,25 @@ describe('EmbeddingController SVG (E2E)', () => {
       ],
     });
 
-    const controller = app.get(EmbeddingController);
-    (
-      controller as unknown as { embeddingService: EmbeddingService }
-    ).embeddingService = embeddingServiceMock as unknown as EmbeddingService;
+    app.get(EmbeddingController);
+    const embeddingService = app.get(EmbeddingService);
 
-    return { app, embeddingServiceMock };
+    return {
+      app,
+      embeddingServiceMock: embeddingService as typeof embeddingServiceMock,
+    };
   };
 
   it('SVG 응답과 Content-Type을 반환해야 한다', async () => {
     const { app, embeddingServiceMock } = await setupApp();
     const svgMarkup = '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
-    embeddingServiceMock.getPreviewSvg.mockResolvedValue(svgMarkup);
+    const getPreviewSvgMock = vi.isMockFunction(
+      embeddingServiceMock.getPreviewSvg,
+    )
+      ? embeddingServiceMock.getPreviewSvg
+      : vi.spyOn(embeddingServiceMock, 'getPreviewSvg');
+
+    getPreviewSvgMock.mockResolvedValue(svgMarkup);
 
     const server = app.getHttpServer() as Parameters<typeof request>[0];
     const agent = request(server);
