@@ -52,9 +52,9 @@ export const createDashboardStateResponse = (
     updatedAt: '2025-10-27T07:00:00.000Z',
     expToLevel: 50,
     stats: {
-      base: { hp: 120, atk: 25, def: 10, luck: 7 },
-      equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-      total: { hp: 120, atk: 25, def: 10, luck: 7 },
+      base: { hp: 120, maxHp: 120, atk: 25, def: 10, luck: 7 },
+      equipmentBonus: { hp: 0, maxHp: 0, atk: 0, def: 0, luck: 0 },
+      total: { hp: 120, maxHp: 120, atk: 25, def: 10, luck: 7 },
     },
     equippedItems: [
       {

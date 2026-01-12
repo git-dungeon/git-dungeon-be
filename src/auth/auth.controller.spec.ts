@@ -123,12 +123,6 @@ const expectErrorBody = (response: SupertestResponse): ApiErrorResponse => {
 };
 
 describe('AuthController (E2E)', () => {
-  const originalEnv = Object.entries(process.env).reduce<
-    Record<string, string | undefined>
-  >((acc, [key, value]) => {
-    acc[key] = value;
-    return acc;
-  }, {});
   let app: INestApplication;
   let signInSocialMock: ReturnType<typeof vi.fn>;
   let handlerMock: ReturnType<typeof vi.fn>;
@@ -233,11 +227,6 @@ describe('AuthController (E2E)', () => {
 
   afterAll(async () => {
     await app?.close();
-
-    for (const key of Object.keys(process.env)) {
-      delete process.env[key as keyof NodeJS.ProcessEnv];
-    }
-    Object.assign(process.env, originalEnv);
   });
 
   it('GET /auth/github 요청 시 better-auth 기본 리다이렉트 플로우로 GitHub OAuth로 이동해야 한다', async () => {

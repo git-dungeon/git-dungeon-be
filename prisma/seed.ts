@@ -444,7 +444,7 @@ async function main() {
       extra: toJsonDetails({
         type: 'DEATH',
         details: {
-          cause: 'TRAP_SPIKE',
+          cause: 'TRAP_DAMAGE',
           handledBy: 'resurrection',
         },
       }) as Prisma.InputJsonValue,
