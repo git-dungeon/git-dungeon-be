@@ -120,7 +120,7 @@ describe('BattleEventProcessor', () => {
     const withBonus = processor.process({
       state,
       rngValue: 0,
-      equipmentBonus: { hp: 0, atk: 3, def: 0, luck: 0 },
+      equipmentBonus: { hp: 0, maxHp: 0, atk: 3, def: 0, luck: 0 },
     });
 
     const withoutExtra = withoutBonus.extra;

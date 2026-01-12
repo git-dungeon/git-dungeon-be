@@ -212,7 +212,7 @@ describe('DungeonBatchService 배치 동작', () => {
         seed: state.userId,
         actionCounter: state.version,
         apCost: 1,
-        equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
+        equipmentBonus: { hp: 0, maxHp: 0, atk: 0, def: 0, luck: 0 },
       }),
     );
     expect(prismaMock.dungeonState.updateMany).toHaveBeenCalledWith({

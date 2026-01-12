@@ -353,6 +353,7 @@ export class DungeonBatchService implements OnModuleInit {
 
     const baseStats: EquipmentStats = {
       hp: state.maxHp,
+      maxHp: state.maxHp,
       atk: state.atk,
       def: state.def,
       luck: state.luck,

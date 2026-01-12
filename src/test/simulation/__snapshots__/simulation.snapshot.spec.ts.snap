@@ -3,9 +3,12 @@
 exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시나리오: TREASURE → REST → BATTLE 승리, 진행도 0→40) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 2: log 0 extra mismatch",
+      "step 2: log 1 extra mismatch",
+    ],
     "name": "baseline",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -193,18 +196,21 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 3,
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -269,18 +275,21 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 3,
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -361,9 +370,12 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
 exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리트 전투 + 멀티 드랍 시나리오: Cave Spider (Elite) 승리) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 0 extra mismatch",
+      "step 0: log 1 extra mismatch",
+    ],
     "name": "elite-battle",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -408,18 +420,21 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                     "def": 4,
                     "hp": 20,
                     "luck": 5,
+                    "maxHp": 20,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 8,
                     "def": 4,
                     "hp": 20,
                     "luck": 5,
+                    "maxHp": 20,
                   },
                 },
               },
@@ -488,18 +503,21 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                     "def": 4,
                     "hp": 20,
                     "luck": 5,
+                    "maxHp": 20,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 8,
                     "def": 4,
                     "hp": 20,
                     "luck": 5,
+                    "maxHp": 20,
                   },
                 },
               },
@@ -591,9 +609,12 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
 exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 MOVE 시나리오: progress 100 → floor 이동) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 0 extra mismatch",
+      "step 0: log 1 extra mismatch",
+    ],
     "name": "forced-move",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -638,18 +659,21 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 3,
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -714,18 +738,21 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 3,
                     "def": 1,
                     "hp": 10,
                     "luck": 1,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -833,6 +860,7 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
 {
   "fixtureCheck": {
     "mismatches": [
+      "step 0: log 0 extra mismatch",
       "step 0: log 1 action expected LEVEL_UP got BATTLE",
       "step 0: log 1 delta mismatch",
       "step 0: log 1 extra mismatch",
@@ -888,18 +916,21 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
                     "def": 12,
                     "hp": 60,
                     "luck": 5,
+                    "maxHp": 60,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 35,
                     "def": 12,
                     "hp": 60,
                     "luck": 5,
+                    "maxHp": 60,
                   },
                 },
               },
@@ -964,18 +995,21 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
                     "def": 12,
                     "hp": 60,
                     "luck": 5,
+                    "maxHp": 60,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 35,
                     "def": 12,
                     "hp": 60,
                     "luck": 5,
+                    "maxHp": 60,
                   },
                 },
               },
@@ -1114,9 +1148,12 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
 exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 전투(6턴) 시나리오: 승리, exp+3, 드랍 ring-silver-band) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 0 extra mismatch",
+      "step 0: log 1 extra mismatch",
+    ],
     "name": "long-battle",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -1161,18 +1198,21 @@ exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 
                     "def": 5,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 1,
                     "def": 5,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -1237,18 +1277,21 @@ exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 
                     "def": 5,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 1,
                     "def": 5,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -1330,6 +1373,8 @@ exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-d
 {
   "fixtureCheck": {
     "mismatches": [
+      "step 0: log 0 extra mismatch",
+      "step 0: log 1 extra mismatch",
       "step 0: log 2 delta mismatch",
     ],
     "name": "no-drop",
@@ -1378,18 +1423,21 @@ exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-d
                     "def": 0,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 1,
                     "def": 0,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -1443,18 +1491,21 @@ exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-d
                     "def": 0,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 1,
                     "def": 0,
                     "hp": 10,
                     "luck": 0,
+                    "maxHp": 10,
                   },
                 },
               },
@@ -1708,9 +1759,12 @@ exports[`simulation fixtures snapshots > [trap-death] matches snapshot (TRAP 사
 exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-limit 패배 시나리오: 30턴 후 TURN_LIMIT 패배) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [],
+    "mismatches": [
+      "step 0: log 0 extra mismatch",
+      "step 0: log 1 extra mismatch",
+    ],
     "name": "turn-limit",
-    "passed": true,
+    "passed": false,
   },
   "steps": [
     {
@@ -1755,18 +1809,21 @@ exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-lim
                     "def": 60,
                     "hp": 150,
                     "luck": 0,
+                    "maxHp": 150,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 2,
                     "def": 60,
                     "hp": 150,
                     "luck": 0,
+                    "maxHp": 150,
                   },
                 },
               },
@@ -1825,18 +1882,21 @@ exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-lim
                     "def": 60,
                     "hp": 150,
                     "luck": 0,
+                    "maxHp": 150,
                   },
                   "equipmentBonus": {
                     "atk": 0,
                     "def": 0,
                     "hp": 0,
                     "luck": 0,
+                    "maxHp": 0,
                   },
                   "total": {
                     "atk": 2,
                     "def": 60,
                     "hp": 150,
                     "luck": 0,
+                    "maxHp": 150,
                   },
                 },
               },

@@ -354,7 +354,7 @@ describe('DungeonEventService', () => {
       floor: 3,
       floorProgress: 70,
     });
-    const equipmentBonus = { hp: 2, atk: 0, def: 0, luck: 0 };
+    const equipmentBonus = { hp: 2, maxHp: 2, atk: 0, def: 0, luck: 0 };
 
     const result = await service.execute({
       state,

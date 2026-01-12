@@ -117,9 +117,9 @@ export const createInventoryResponse = (
     },
   },
   summary: {
-    base: { hp: 10, atk: 5, def: 3, luck: 1 },
-    total: { hp: 10, atk: 10, def: 5, luck: 1 },
-    equipmentBonus: { hp: 0, atk: 5, def: 2, luck: 0 },
+    base: { hp: 10, maxHp: 10, atk: 5, def: 3, luck: 1 },
+    total: { hp: 10, maxHp: 10, atk: 10, def: 5, luck: 1 },
+    equipmentBonus: { hp: 0, maxHp: 0, atk: 5, def: 2, luck: 0 },
   },
   ...overrides,
 });

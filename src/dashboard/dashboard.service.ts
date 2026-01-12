@@ -14,6 +14,7 @@ import { parseInventoryModifiers } from '../common/inventory/inventory-modifier'
 import type {
   DashboardStateResponse,
   EquipmentItem,
+  StatBlock,
 } from './dto/dashboard-state.response';
 
 @Injectable()
@@ -42,6 +43,7 @@ export class DashboardService {
 
     const baseStats = {
       hp: state.maxHp,
+      maxHp: state.maxHp,
       atk: state.atk,
       def: state.def,
       luck: state.luck,
@@ -51,12 +53,26 @@ export class DashboardService {
       equippedItems.map((item) => parseInventoryModifiers(item.modifiers)),
     );
     const totalStats = addEquipmentStats(baseStats, equipmentBonus);
-    const maxHp = Math.max(0, totalStats.hp);
+    const maxHp = Math.max(0, totalStats.maxHp);
     const currentHp = Math.max(0, Math.min(state.hp, maxHp));
+    const toStatBlock = (stats: {
+      hp: number;
+      maxHp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    }): StatBlock => ({
+      hp: stats.hp as StatBlock['hp'],
+      maxHp: stats.maxHp as StatBlock['maxHp'],
+      atk: stats.atk as StatBlock['atk'],
+      def: stats.def as StatBlock['def'],
+      luck: stats.luck as StatBlock['luck'],
+    });
+
     const stats = {
-      base: { ...baseStats, maxHp: baseStats.hp },
-      equipmentBonus: { ...equipmentBonus, maxHp: equipmentBonus.hp },
-      total: { ...totalStats, maxHp: totalStats.hp },
+      base: toStatBlock(baseStats),
+      equipmentBonus: toStatBlock(equipmentBonus),
+      total: toStatBlock(totalStats),
     };
 
     const response: DashboardStateResponse = {

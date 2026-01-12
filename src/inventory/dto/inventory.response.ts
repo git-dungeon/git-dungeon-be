@@ -33,6 +33,7 @@ export interface EquipmentItem {
 
 export interface EquipmentStats {
   hp: number & tags.Example<32>;
+  maxHp: number & tags.Example<40>;
   atk: number & tags.Example<18>;
   def: number & tags.Example<14>;
   luck: number & tags.Example<6>;

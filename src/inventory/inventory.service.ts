@@ -437,6 +437,7 @@ export class InventoryService {
   }): EquipmentStats {
     return {
       hp: dungeonState.maxHp,
+      maxHp: dungeonState.maxHp,
       atk: dungeonState.atk,
       def: dungeonState.def,
       luck: dungeonState.luck,

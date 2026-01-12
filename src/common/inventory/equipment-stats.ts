@@ -3,6 +3,7 @@ import { INVENTORY_STATS, type InventoryModifier } from './inventory-modifier';
 
 export const createEmptyEquipmentStats = (): EquipmentStats => ({
   hp: 0,
+  maxHp: 0,
   atk: 0,
   def: 0,
   luck: 0,
@@ -13,6 +14,7 @@ export const addEquipmentStats = (
   bonus: EquipmentStats,
 ): EquipmentStats => ({
   hp: base.hp + bonus.hp,
+  maxHp: base.maxHp + bonus.maxHp,
   atk: base.atk + bonus.atk,
   def: base.def + bonus.def,
   luck: base.luck + bonus.luck,
@@ -48,6 +50,8 @@ export const calculateEquipmentBonus = (
 
     bonus[stat] = flatValue + Math.floor((base + flatValue) * percentValue);
   });
+
+  bonus.maxHp = bonus.hp as EquipmentStats['maxHp'];
 
   return bonus;
 };
