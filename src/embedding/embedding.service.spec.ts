@@ -2,6 +2,7 @@
 import type { PrismaService } from '../prisma/prisma.service';
 import type { DashboardService } from '../dashboard/dashboard.service';
 import type { InventoryService } from '../inventory/inventory.service';
+import type { InventoryResponse } from '../inventory/dto/inventory.response';
 import {
   createDashboardStateResponse,
   createInventoryResponse,
@@ -74,7 +75,7 @@ describe('EmbeddingService', () => {
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
       version: 3,
-    };
+    } as InventoryResponse['items'][number];
     const consumableItem = {
       id: '22222222-2222-4222-8222-222222222222',
       code: 'consumable-potion',
@@ -87,7 +88,7 @@ describe('EmbeddingService', () => {
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
       version: 1,
-    };
+    } as InventoryResponse['items'][number];
 
     const dashboardResponse = createDashboardStateResponse({
       level: 8,

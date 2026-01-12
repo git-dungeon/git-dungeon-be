@@ -19,6 +19,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node --enable-source-maps dist/main.js",
     "lint": "pnpm exec tsc --project tsconfig.eslint.json --noEmit && eslint \"{src,prisma,scripts}/**/*.ts\" --fix",
+    "typecheck": "pnpm exec tsc --project tsconfig.eslint.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "test:cov": "vitest run --coverage",

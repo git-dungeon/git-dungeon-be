@@ -17,7 +17,10 @@ vi.mock('@nestia/core', async () => {
 
 describe('EmbeddingController SVG (E2E)', () => {
   const setupApp = async () => {
-    const embeddingServiceMock = {
+    const embeddingServiceMock: Pick<
+      EmbeddingService,
+      'getPreviewSvg' | 'getPreview'
+    > = {
       getPreviewSvg: vi.fn(),
       getPreview: vi.fn(),
     };
@@ -33,11 +36,10 @@ describe('EmbeddingController SVG (E2E)', () => {
     });
 
     app.get(EmbeddingController);
-    const embeddingService = app.get(EmbeddingService);
 
     return {
       app,
-      embeddingServiceMock: embeddingService as typeof embeddingServiceMock,
+      embeddingServiceMock,
     };
   };
 
