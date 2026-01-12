@@ -233,6 +233,7 @@ describe('InventoryService mutations', () => {
     dungeonState: {
       userId: string;
       hp: number;
+      maxHp: number;
       atk: number;
       def: number;
       luck: number;
@@ -368,6 +369,7 @@ describe('InventoryService mutations', () => {
   const baseDungeonState = {
     userId: USER_ID_1,
     hp: 8,
+    maxHp: 8,
     atk: 3,
     def: 2,
     luck: 1,
