@@ -41,6 +41,7 @@ describe('GithubSyncController (E2E)', () => {
       lastSyncAt: '2025-12-15T00:00:00.000Z',
       nextAvailableAt: '2025-12-15T06:00:00.000Z',
       retryAfterMs: 1234,
+      lastManualSyncAt: '2025-12-15T00:00:00.000Z',
     });
     authSessionServiceMock.requireActiveSession.mockResolvedValue(
       createActiveSession({

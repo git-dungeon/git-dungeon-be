@@ -25,4 +25,5 @@ export interface GithubSyncStatusDto {
   lastSyncAt: (string & tags.Format<'date-time'>) | null;
   nextAvailableAt: (string & tags.Format<'date-time'>) | null;
   retryAfterMs: (number & tags.Minimum<0>) | null;
+  lastManualSyncAt: (string & tags.Format<'date-time'>) | null;
 }

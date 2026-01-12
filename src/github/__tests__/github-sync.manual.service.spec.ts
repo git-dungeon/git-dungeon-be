@@ -46,6 +46,7 @@ describe('GithubManualSyncService', () => {
       lastSyncAt: null,
       nextAvailableAt: null,
       retryAfterMs: null,
+      lastManualSyncAt: null,
     });
   });
 
@@ -73,6 +74,7 @@ describe('GithubManualSyncService', () => {
     expect(status.lastSyncAt).toBe('2025-12-15T05:00:00.000Z');
     expect(status.retryAfterMs).toBe(5 * 60 * 60 * 1000);
     expect(status.nextAvailableAt).toBe('2025-12-15T11:00:00.000Z');
+    expect(status.lastManualSyncAt).toBe('2025-12-15T05:00:00.000Z');
   });
 
   it('최근 6시간 내 실행 이력이 있으면 막는다', async () => {

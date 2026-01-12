@@ -114,4 +114,5 @@ export interface GithubSyncStatus {
   lastSyncAt: string | null;
   nextAvailableAt: string | null;
   retryAfterMs: number | null;
+  lastManualSyncAt: string | null;
 }
