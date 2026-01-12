@@ -9,6 +9,7 @@ import {
   addEquipmentStats,
   createEmptyEquipmentStats,
 } from '../../../common/inventory/equipment-stats';
+import type { EquipmentStats } from '../../../inventory/dto/inventory.response';
 import {
   DungeonEventProcessor,
   DungeonEventProcessorInput,
@@ -155,6 +156,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     const equipmentBonus = input.equipmentBonus ?? createEmptyEquipmentStats();
     const baseStats = {
       hp: input.state.maxHp,
+      maxHp: input.state.maxHp,
       atk: input.state.atk,
       def: input.state.def,
       luck: input.state.luck,
@@ -443,18 +445,8 @@ export class BattleEventProcessor implements DungeonEventProcessor {
 
   private buildPlayerSnapshot(input: {
     state: DungeonState;
-    baseStats: {
-      hp: number;
-      atk: number;
-      def: number;
-      luck: number;
-    };
-    equipmentBonus: {
-      hp: number;
-      atk: number;
-      def: number;
-      luck: number;
-    };
+    baseStats: EquipmentStats;
+    equipmentBonus: EquipmentStats;
     hp: number;
     exp: number;
   }): BattlePlayerSnapshot {

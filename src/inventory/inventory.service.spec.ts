@@ -89,18 +89,21 @@ describe('InventoryService', () => {
     expect(response.equipped.weapon?.id).toBe(ITEM_ID_WEAPON);
     expect(response.summary.base).toEqual({
       hp: 10,
+      maxHp: 10,
       atk: 5,
       def: 3,
       luck: 1,
     });
     expect(response.summary.equipmentBonus).toEqual({
       hp: 0,
+      maxHp: 0,
       atk: 5,
       def: 1,
       luck: 0,
     });
     expect(response.summary.total).toEqual({
       hp: 10,
+      maxHp: 10,
       atk: 10,
       def: 4,
       luck: 1,
@@ -124,10 +127,23 @@ describe('InventoryService', () => {
     expect(response.version).toBe(0);
     expect(response.items).toEqual([]);
     expect(response.equipped).toEqual({});
-    expect(response.summary.base).toEqual({ hp: 8, atk: 3, def: 2, luck: 1 });
-    expect(response.summary.total).toEqual({ hp: 8, atk: 3, def: 2, luck: 1 });
+    expect(response.summary.base).toEqual({
+      hp: 8,
+      maxHp: 8,
+      atk: 3,
+      def: 2,
+      luck: 1,
+    });
+    expect(response.summary.total).toEqual({
+      hp: 8,
+      maxHp: 8,
+      atk: 3,
+      def: 2,
+      luck: 1,
+    });
     expect(response.summary.equipmentBonus).toEqual({
       hp: 0,
+      maxHp: 0,
       atk: 0,
       def: 0,
       luck: 0,
