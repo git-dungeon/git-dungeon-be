@@ -169,6 +169,28 @@ describe('DungeonBatchService 배치 동작', () => {
     expect(prismaMock.dungeonLog.createMany).not.toHaveBeenCalled();
   });
 
+  it('온보딩 미완료 사용자는 배치 대상에서 제외되도록 필터 조건을 포함한다', async () => {
+    const configService = createConfigService();
+    prismaMock.dungeonState.findMany.mockResolvedValue([]);
+
+    const service = buildService(configService);
+
+    await service.runBatchTick();
+
+    expect(prismaMock.dungeonState.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          ap: { gte: 1 },
+          user: {
+            githubSyncState: {
+              is: { lastManualSuccessfulSyncAt: { not: null } },
+            },
+          },
+        }),
+      }),
+    );
+  });
+
   it('하나의 행동을 실행하고 상태/로그를 저장한다', async () => {
     const configService = createConfigService({
       'dungeon.batch.maxActionsPerUser': 1,

@@ -74,6 +74,7 @@ export class GithubManualSyncService {
         lastSyncAt: null,
         nextAvailableAt: null,
         retryAfterMs: null,
+        lastManualSyncAt: null,
       };
     }
 
@@ -113,6 +114,7 @@ export class GithubManualSyncService {
       lastSyncAt: lastSuccessfulSyncAt?.toISOString() ?? null,
       nextAvailableAt: cooldown.nextAvailableAt?.toISOString() ?? null,
       retryAfterMs: cooldown.retryAfterMs,
+      lastManualSyncAt: lastManualSuccessfulSyncAt?.toISOString() ?? null,
     };
   }
 

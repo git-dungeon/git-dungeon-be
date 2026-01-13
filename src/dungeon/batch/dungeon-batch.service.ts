@@ -144,6 +144,11 @@ export class DungeonBatchService implements OnModuleInit {
   private async fetchEligibleUsers(): Promise<string[]> {
     const where: Prisma.DungeonStateWhereInput = {
       ap: { gte: this.config.minAp },
+      user: {
+        githubSyncState: {
+          is: { lastManualSuccessfulSyncAt: { not: null } },
+        },
+      },
     };
 
     if (this.config.inactiveDays > 0) {
