@@ -48,6 +48,7 @@ export class DungeonEventService {
     [DungeonEventType.TREASURE]: 'TREASURE',
     [DungeonEventType.REST]: 'REST',
     [DungeonEventType.TRAP]: 'TRAP',
+    [DungeonEventType.EMPTY]: 'EMPTY',
     [DungeonEventType.MOVE]: 'EXPLORING',
   } as const satisfies DungeonActionMapping;
 
@@ -544,6 +545,8 @@ export class DungeonEventService {
         return { type: 'TRAP', detail: { stats } };
       case DungeonEventType.TREASURE:
         return { type: 'TREASURE', detail: { stats } };
+      case DungeonEventType.EMPTY:
+        return { type: 'EMPTY', detail: { stats } };
       default:
         return undefined;
     }
@@ -558,7 +561,8 @@ export class DungeonEventService {
       case 'REST':
       case 'TRAP':
       case 'TREASURE':
-      case 'BATTLE': {
+      case 'BATTLE':
+      case 'EMPTY': {
         // undefined로 덮어쓰면 snapshot/serialization에서 `progress: undefined`가 남을 수 있어 키 자체를 제거한다.
         const { progress: removedProgress, ...detailWithoutProgress } =
           delta.detail;
@@ -621,6 +625,7 @@ export class DungeonEventService {
       case 'TRAP':
       case 'TREASURE':
       case 'BATTLE':
+      case 'EMPTY':
         return {
           ...delta,
           detail: {

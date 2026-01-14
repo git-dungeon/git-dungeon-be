@@ -11,6 +11,7 @@ import { RestEventProcessor } from './events/processors/rest-event.processor';
 import { TreasureEventProcessor } from './events/processors/treasure-event.processor';
 import { TrapEventProcessor } from './events/processors/trap-event.processor';
 import { MoveEventProcessor } from './events/processors/move-event.processor';
+import { EmptyEventProcessor } from './events/processors/empty-event.processor';
 import { DungeonLogBuilder } from './events/dungeon-log.builder';
 import { loadEventConfig } from './events/config/event-config.loader';
 import { readFileSync } from 'fs';
@@ -58,12 +59,14 @@ import { DropInventoryService } from './drops/drop-inventory.service';
         );
         const trap = new TrapEventProcessor(effects.TRAP);
         const move = new MoveEventProcessor();
+        const empty = new EmptyEventProcessor();
 
         return {
           [DungeonEventType.BATTLE]: battle,
           [DungeonEventType.REST]: rest,
           [DungeonEventType.TREASURE]: treasure,
           [DungeonEventType.TRAP]: trap,
+          [DungeonEventType.EMPTY]: empty,
           [DungeonEventType.MOVE]: move,
         };
       },

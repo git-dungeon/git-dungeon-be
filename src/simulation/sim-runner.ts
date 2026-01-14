@@ -9,6 +9,7 @@ import { RestEventProcessor } from '../dungeon/events/processors/rest-event.proc
 import { TrapEventProcessor } from '../dungeon/events/processors/trap-event.processor';
 import { TreasureEventProcessor } from '../dungeon/events/processors/treasure-event.processor';
 import { MoveEventProcessor } from '../dungeon/events/processors/move-event.processor';
+import { EmptyEventProcessor } from '../dungeon/events/processors/empty-event.processor';
 import { MonsterRegistry } from '../dungeon/monsters';
 import { DropService } from '../dungeon/drops/drop.service';
 import { DungeonEventType } from '../dungeon/events/event.types';
@@ -71,6 +72,7 @@ const processors: Record<DungeonEventType, DungeonEventProcessor> = {
   ),
   [DungeonEventType.REST]: new RestEventProcessor(eventConfig.effects.REST),
   [DungeonEventType.TRAP]: new TrapEventProcessor(eventConfig.effects.TRAP),
+  [DungeonEventType.EMPTY]: new EmptyEventProcessor(),
   [DungeonEventType.MOVE]: new MoveEventProcessor(),
 };
 

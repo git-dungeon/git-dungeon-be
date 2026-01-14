@@ -15,6 +15,7 @@ export enum DungeonEventType {
   TREASURE = 'TREASURE',
   REST = 'REST',
   TRAP = 'TRAP',
+  EMPTY = 'EMPTY',
   MOVE = 'MOVE',
 }
 
@@ -23,16 +24,18 @@ export type DungeonEventWeights = {
   [DungeonEventType.TREASURE]: number;
   [DungeonEventType.REST]: number;
   [DungeonEventType.TRAP]: number;
+  [DungeonEventType.EMPTY]: number;
 };
 
 export const BASE_PROGRESS_INCREMENT = 10;
 export const BATTLE_PROGRESS_INCREMENT = 20;
 export const MAX_FLOOR_PROGRESS = 100;
 export const DEFAULT_EVENT_WEIGHTS: DungeonEventWeights = {
-  [DungeonEventType.BATTLE]: 50,
+  [DungeonEventType.BATTLE]: 40,
   [DungeonEventType.TREASURE]: 5,
-  [DungeonEventType.REST]: 40,
-  [DungeonEventType.TRAP]: 5,
+  [DungeonEventType.REST]: 30,
+  [DungeonEventType.TRAP]: 10,
+  [DungeonEventType.EMPTY]: 15,
 };
 
 export type DungeonEventContext = {
