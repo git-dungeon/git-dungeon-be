@@ -1,15 +1,23 @@
 {
   "weights": {
-    "BATTLE": 50,
+    "BATTLE": 40,
     "TREASURE": 5,
-    "REST": 40,
-    "TRAP": 5
+    "REST": 30,
+    "TRAP": 10,
+    "EMPTY": 15
   },
   "battle": {
     "eliteRate": 0.05,
+    "dropChance": 0.3,
+    "eliteDropMultiplier": 2,
     "critBase": 0.05,
     "critLuckFactor": 0.01,
     "turnLimit": 30,
+    "gold": {
+      "base": 1,
+      "floorFactor": 0.2,
+      "statDiv": 20
+    },
     "exp": {
       "eliteBonus": 1.5
     }
