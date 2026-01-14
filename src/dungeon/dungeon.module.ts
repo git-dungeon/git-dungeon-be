@@ -47,8 +47,17 @@ import { DropInventoryService } from './drops/drop-inventory.service';
       ) => {
         const config = loadEventConfig();
         const effects = config.effects ?? {};
+        const battleConfig = config.battle;
 
         const battle = new BattleEventProcessor(monsterRegistry, {
+          eliteRate: battleConfig.eliteRate,
+          dropChance: battleConfig.dropChance,
+          eliteDropMultiplier: battleConfig.eliteDropMultiplier,
+          critBase: battleConfig.critBase,
+          critLuckFactor: battleConfig.critLuckFactor,
+          turnLimit: battleConfig.turnLimit,
+          eliteExpBonus: battleConfig.exp.eliteBonus,
+          gold: battleConfig.gold,
           dropService,
         });
         const rest = new RestEventProcessor(effects.REST);

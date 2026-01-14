@@ -145,6 +145,7 @@ describe('BattleEventProcessor', () => {
     };
     const processor = new BattleEventProcessor(registry, {
       rngFactory: fixedRngFactory([0.9, 0.0]), // normal monster
+      dropChance: 1,
       dropService: dropService as DropService,
     });
 
@@ -155,6 +156,25 @@ describe('BattleEventProcessor', () => {
 
     expect(dropService.roll).toHaveBeenCalled();
     expect(result.drops).toEqual([{ code: 'angel-ring', quantity: 1 }]);
+  });
+
+  it('dropChance가 0이면 드랍을 시도하지 않는다', () => {
+    const dropService: Pick<DropService, 'roll'> = {
+      roll: vi.fn().mockReturnValue([{ code: 'angel-ring', quantity: 1 }]),
+    };
+    const processor = new BattleEventProcessor(registry, {
+      rngFactory: fixedRngFactory([0.9, 0.0]),
+      dropChance: 0,
+      dropService: dropService as DropService,
+    });
+
+    const result = processor.process({
+      state: createState({ atk: 10, def: 0, hp: 10, maxHp: 10 }),
+      rngValue: 0,
+    });
+
+    expect(dropService.roll).not.toHaveBeenCalled();
+    expect(result.drops).toBeUndefined();
   });
 
   it('패배 시 floor를 1로 리셋하고 HP를 초기화한다', () => {
@@ -230,5 +250,38 @@ describe('BattleEventProcessor', () => {
       throw new Error('battle extra가 없습니다');
     }
     expect(extra.details.expGained).toBeGreaterThan(0);
+  });
+
+  it('승리 시 전투 골드를 계산해 상태/델타에 반영한다', () => {
+    const processor = new BattleEventProcessor(registry, {
+      rngFactory: fixedRngFactory([0.9, 0.0]),
+      dropChance: 0,
+      gold: { base: 1, floorFactor: 0.2, statDiv: 20 },
+      scalingOptions: {
+        floorScaleRate: 0,
+        eliteMultiplier: 1,
+        roundFn: (value) => value,
+      },
+    });
+
+    const state = createState({
+      atk: 20,
+      def: 0,
+      hp: 10,
+      maxHp: 10,
+      floor: 1,
+      gold: 0,
+    });
+
+    const result = processor.process({
+      state,
+      rngValue: 0,
+    });
+
+    expect(result.state.gold).toBe(2);
+    expect(result.delta?.type).toBe('BATTLE');
+    if (result.delta?.type === 'BATTLE') {
+      expect(result.delta.detail.rewards?.gold).toBe(2);
+    }
   });
 });
