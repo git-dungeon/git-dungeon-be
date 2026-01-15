@@ -1,13 +1,11 @@
 import type { DungeonState } from '@prisma/client';
 import type { FixtureDefinition, SnapshotStep } from './fixture.types';
 import { FixtureRegistry } from './registry';
-import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
-
 /**
- * 연속 레벨업(2회) + 레전더리 드랍 시나리오
+ * 연속 레벨업(2회) 시나리오
  * seed: lvlup18
  * 초기: level1, hp60/60, atk35, def12, luck5, floor80, progress0, ap1
- * 결과: exp 39 → 레벨업 2회(→3), 스탯/HP 증가, progress +20, 레전더리 angel-ring 드랍
+ * 결과: exp 39 → 레벨업 2회(→3), 스탯/HP 증가, progress +20
  */
 export const levelUpSeed = 'lvlup18';
 
@@ -71,14 +69,83 @@ export const levelUpSteps: SnapshotStep[] = [
               def: 12,
               luck: 5,
               stats: {
-                base: { hp: 60, atk: 35, def: 12, luck: 5 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 60, atk: 35, def: 12, luck: 5 },
+                base: { hp: 60, maxHp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 60, maxHp: 60, atk: 35, def: 12, luck: 5 },
               },
               level: 1,
               exp: 0,
               expToLevel: 10,
             },
+          },
+        },
+      },
+      {
+        action: 'BATTLE',
+        status: 'COMPLETED',
+        category: 'EXPLORATION',
+        floor: 80,
+        turnNumber: 0,
+        delta: {
+          type: 'BATTLE',
+          detail: {
+            stats: {
+              hp: -19,
+              exp: 39,
+            },
+            rewards: {
+              gold: 23,
+            },
+            progress: {
+              previousProgress: 0,
+              floorProgress: 20,
+              delta: 20,
+            },
+          },
+        },
+        extra: {
+          type: 'BATTLE',
+          details: {
+            monster: {
+              code: 'monster-ancient-dragon',
+              name: 'Ancient Dragon',
+              hp: 90,
+              atk: 18,
+              def: 9,
+              spriteId: 'sprite/monster-ancient-dragon',
+            },
+            player: {
+              hp: 41,
+              maxHp: 60,
+              atk: 35,
+              def: 12,
+              luck: 5,
+              stats: {
+                base: { hp: 60, maxHp: 60, atk: 35, def: 12, luck: 5 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 60, maxHp: 60, atk: 35, def: 12, luck: 5 },
+              },
+              level: 1,
+              exp: 39,
+              expToLevel: 10,
+            },
+            result: 'VICTORY',
+            expGained: 39,
+            turns: 4,
+            damageDealt: 101,
+            damageTaken: 19,
           },
         },
       },
@@ -144,100 +211,6 @@ export const levelUpSteps: SnapshotStep[] = [
           },
         },
       },
-      {
-        action: 'BATTLE',
-        status: 'COMPLETED',
-        category: 'EXPLORATION',
-        floor: 80,
-        turnNumber: 0,
-        // 레벨업 로그는 이후에 기록되므로 전투 로그의 스냅샷은 레벨업 이전 상태를 유지한다.
-        delta: {
-          type: 'BATTLE',
-          detail: {
-            stats: {
-              hp: -15,
-              exp: 39,
-            },
-            rewards: {
-              items: [{ code: 'angel-ring', quantity: 1 }],
-            },
-            progress: {
-              previousProgress: 0,
-              floorProgress: 20,
-              delta: 20,
-            },
-          },
-        },
-        extra: {
-          type: 'BATTLE',
-          details: {
-            monster: {
-              code: 'monster-ancient-dragon',
-              name: 'Ancient Dragon',
-              hp: 90,
-              atk: 18,
-              def: 9,
-              spriteId: 'sprite/monster-ancient-dragon',
-            },
-            player: {
-              hp: 45,
-              maxHp: 60,
-              atk: 35,
-              def: 12,
-              luck: 5,
-              stats: {
-                base: { hp: 60, atk: 35, def: 12, luck: 5 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 60, atk: 35, def: 12, luck: 5 },
-              },
-              level: 1,
-              exp: 39,
-              expToLevel: 10,
-            },
-            result: 'VICTORY',
-            expGained: 39,
-            turns: 4,
-            damageDealt: 101,
-            damageTaken: 19,
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 80,
-        turnNumber: 0,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:angel-ring'),
-                  code: 'angel-ring',
-                  slot: 'ring',
-                  rarity: 'legendary',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'BATTLE',
-              drop: {
-                tableId: 'drops-ancient-dragon',
-                isElite: false,
-                items: [{ code: 'angel-ring', quantity: 1 }],
-              },
-            },
-          },
-        },
-      },
     ],
   },
 ];
@@ -252,9 +225,9 @@ export const levelUpSnapshot = {
 export const levelUpFixture: FixtureDefinition = {
   meta: {
     name: 'level-up',
-    description: '연속 레벨업(2회) + 레전더리 드랍 시나리오',
+    description: '연속 레벨업(2회) 시나리오',
     snapshotPhase: 'post',
-    tags: ['battle', 'level-up', 'drop'],
+    tags: ['battle', 'level-up'],
   },
   seed: levelUpSeed,
   initialState: levelUpInitialState,

@@ -1,9 +1,9 @@
 [
   {
     "actionCounter": 0,
-    "selectedEvent": "TREASURE",
+    "selectedEvent": "REST",
     "stateAfter": {
-      "hp": 6,
+      "hp": 10,
       "ap": 4,
       "floor": 1,
       "floorProgress": 10,
@@ -13,10 +13,10 @@
     },
     "logs": [
       {
-        "action": "TREASURE",
+        "action": "REST",
         "status": "STARTED",
         "delta": {
-          "type": "TREASURE",
+          "type": "REST",
           "detail": {
             "stats": {
               "ap": -1
@@ -26,65 +26,18 @@
         "floor": 1
       },
       {
-        "action": "TREASURE",
+        "action": "REST",
         "status": "COMPLETED",
         "delta": {
-          "type": "TREASURE",
+          "type": "REST",
           "detail": {
-            "rewards": {
-              "gold": 5,
-              "items": [
-                {
-                  "code": "ring-topaz",
-                  "quantity": 1
-                }
-              ],
-              "buffs": [],
-              "unlocks": []
+            "stats": {
+              "hp": 4
             },
             "progress": {
               "previousProgress": 0,
               "floorProgress": 10,
               "delta": 10
-            }
-          }
-        },
-        "floor": 1
-      },
-      {
-        "action": "ACQUIRE_ITEM",
-        "status": "COMPLETED",
-        "delta": {
-          "type": "ACQUIRE_ITEM",
-          "detail": {
-            "inventory": {
-              "added": [
-                {
-                  "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
-                  "code": "ring-topaz",
-                  "slot": "ring",
-                  "rarity": "uncommon",
-                  "quantity": 1
-                }
-              ]
-            }
-          }
-        },
-        "extra": {
-          "type": "ACQUIRE_ITEM",
-          "details": {
-            "reward": {
-              "source": "TREASURE",
-              "drop": {
-                "tableId": "drops-default",
-                "isElite": false,
-                "items": [
-                  {
-                    "code": "ring-topaz",
-                    "quantity": 1
-                  }
-                ]
-              }
             }
           }
         },
@@ -125,7 +78,7 @@
           "type": "REST",
           "detail": {
             "stats": {
-              "hp": 4
+              "hp": 0
             },
             "progress": {
               "previousProgress": 10,
@@ -162,6 +115,52 @@
             }
           }
         },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-giant-rat",
+              "name": "Giant Rat",
+              "hp": 8,
+              "atk": 2,
+              "def": 0,
+              "spriteId": "sprite/monster-giant-rat"
+            },
+            "player": {
+              "hp": 10,
+              "maxHp": 10,
+              "atk": 3,
+              "def": 1,
+              "luck": 1,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                }
+              },
+              "level": 1,
+              "exp": 0,
+              "expToLevel": 10
+            }
+          }
+        },
         "floor": 1
       },
       {
@@ -175,12 +174,7 @@
               "exp": 3
             },
             "rewards": {
-              "items": [
-                {
-                  "code": "ring-topaz",
-                  "quantity": 1
-                }
-              ]
+              "gold": 2
             },
             "progress": {
               "previousProgress": 20,
@@ -200,51 +194,45 @@
               "def": 0,
               "spriteId": "sprite/monster-giant-rat"
             },
+            "player": {
+              "hp": 9,
+              "maxHp": 10,
+              "atk": 3,
+              "def": 1,
+              "luck": 1,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                }
+              },
+              "level": 1,
+              "exp": 3,
+              "expToLevel": 10
+            },
             "result": "VICTORY",
             "cause": "CRITICAL_HIT",
             "expGained": 3,
             "turns": 2,
             "damageDealt": 9,
             "damageTaken": 1
-          }
-        },
-        "floor": 1
-      },
-      {
-        "action": "ACQUIRE_ITEM",
-        "status": "COMPLETED",
-        "delta": {
-          "type": "ACQUIRE_ITEM",
-          "detail": {
-            "inventory": {
-              "added": [
-                {
-                  "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
-                  "code": "ring-topaz",
-                  "slot": "ring",
-                  "rarity": "uncommon",
-                  "quantity": 1
-                }
-              ]
-            }
-          }
-        },
-        "extra": {
-          "type": "ACQUIRE_ITEM",
-          "details": {
-            "reward": {
-              "source": "BATTLE",
-              "drop": {
-                "tableId": "drops-default",
-                "isElite": false,
-                "items": [
-                  {
-                    "code": "ring-topaz",
-                    "quantity": 1
-                  }
-                ]
-              }
-            }
           }
         },
         "floor": 1

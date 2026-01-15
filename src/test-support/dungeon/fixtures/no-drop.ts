@@ -70,9 +70,15 @@ export const noDropSteps: SnapshotStep[] = [
               def: 0,
               luck: 0,
               stats: {
-                base: { hp: 10, atk: 1, def: 0, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 1, def: 0, luck: 0 },
+                base: { hp: 10, maxHp: 10, atk: 1, def: 0, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 1, def: 0, luck: 0 },
               },
               level: 1,
               exp: 0,
@@ -91,7 +97,6 @@ export const noDropSteps: SnapshotStep[] = [
           type: 'BATTLE',
           detail: {
             stats: { hp: -3 },
-            rewards: { items: [] },
           },
         },
         extra: {
@@ -112,9 +117,15 @@ export const noDropSteps: SnapshotStep[] = [
               def: 0,
               luck: 0,
               stats: {
-                base: { hp: 10, atk: 1, def: 0, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 1, def: 0, luck: 0 },
+                base: { hp: 10, maxHp: 10, atk: 1, def: 0, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 1, def: 0, luck: 0 },
               },
               level: 1,
               exp: 0,
@@ -140,9 +151,9 @@ export const noDropSteps: SnapshotStep[] = [
           detail: {
             stats: {},
             progress: {
-              previousProgress: 0,
+              previousProgress: 20,
               floorProgress: 0,
-              delta: 0,
+              delta: -20,
             },
           },
         },

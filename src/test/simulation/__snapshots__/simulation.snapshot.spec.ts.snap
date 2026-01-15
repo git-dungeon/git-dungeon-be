@@ -1,35 +1,32 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시나리오: TREASURE → REST → BATTLE 승리, 진행도 0→40) 1`] = `
+exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시나리오: REST → REST → BATTLE 승리, 진행도 0→40) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 2: log 0 extra mismatch",
-      "step 2: log 1 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "baseline",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
       "actionCounter": 0,
       "logs": [
         {
-          "action": "TREASURE",
+          "action": "REST",
           "delta": {
             "detail": {
               "stats": {
                 "ap": -1,
               },
             },
-            "type": "TREASURE",
+            "type": "REST",
           },
           "extra": undefined,
           "floor": 1,
           "status": "STARTED",
         },
         {
-          "action": "TREASURE",
+          "action": "REST",
           "delta": {
             "detail": {
               "progress": {
@@ -37,71 +34,24 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
                 "floorProgress": 10,
                 "previousProgress": 0,
               },
-              "rewards": {
-                "buffs": [],
-                "gold": 5,
-                "items": [
-                  {
-                    "code": "ring-topaz",
-                    "quantity": 1,
-                  },
-                ],
-                "unlocks": [],
+              "stats": {
+                "hp": 4,
               },
             },
-            "type": "TREASURE",
+            "type": "REST",
           },
           "extra": undefined,
           "floor": 1,
           "status": "COMPLETED",
         },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "ring-topaz",
-                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
-                    "quantity": 1,
-                    "rarity": "uncommon",
-                    "slot": "ring",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": false,
-                  "items": [
-                    {
-                      "code": "ring-topaz",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-default",
-                },
-                "source": "TREASURE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "floor": 1,
-          "status": "COMPLETED",
-        },
       ],
-      "selectedEvent": "TREASURE",
+      "selectedEvent": "REST",
       "stateAfter": {
         "ap": 4,
         "exp": 0,
         "floor": 1,
         "floorProgress": 10,
-        "hp": 6,
+        "hp": 10,
         "level": 1,
         "version": 2,
       },
@@ -133,7 +83,7 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
                 "previousProgress": 10,
               },
               "stats": {
-                "hp": 4,
+                "hp": 0,
               },
             },
             "type": "REST",
@@ -232,12 +182,7 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
                 "previousProgress": 20,
               },
               "rewards": {
-                "items": [
-                  {
-                    "code": "ring-topaz",
-                    "quantity": 1,
-                  },
-                ],
+                "gold": 2,
               },
               "stats": {
                 "exp": 3,
@@ -301,45 +246,6 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
           "floor": 1,
           "status": "COMPLETED",
         },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "ring-topaz",
-                    "itemId": "e77dd579-5d6b-5169-903d-c4df0eacefb5",
-                    "quantity": 1,
-                    "rarity": "uncommon",
-                    "slot": "ring",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": false,
-                  "items": [
-                    {
-                      "code": "ring-topaz",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-default",
-                },
-                "source": "BATTLE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "floor": 1,
-          "status": "COMPLETED",
-        },
       ],
       "selectedEvent": "BATTLE",
       "stateAfter": {
@@ -370,12 +276,9 @@ exports[`simulation fixtures snapshots > [baseline] matches snapshot (기본 시
 exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리트 전투 + 멀티 드랍 시나리오: Cave Spider (Elite) 승리) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "elite-battle",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -456,13 +359,14 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                 "previousProgress": 0,
               },
               "rewards": {
+                "gold": 3,
                 "items": [
                   {
                     "code": "weapon-battle-axe",
                     "quantity": 1,
                   },
                   {
-                    "code": "helmet-bronze-helm",
+                    "code": "armor-steel-armor",
                     "quantity": 1,
                   },
                 ],
@@ -543,11 +447,11 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                     "slot": "weapon",
                   },
                   {
-                    "code": "helmet-bronze-helm",
-                    "itemId": "fd2ad6b8-8b36-5b0e-ad9d-a973e643057a",
+                    "code": "armor-steel-armor",
+                    "itemId": "7dff3c25-8905-5ad6-aab7-cf9003c17a7e",
                     "quantity": 1,
                     "rarity": "uncommon",
-                    "slot": "helmet",
+                    "slot": "armor",
                   },
                 ],
               },
@@ -565,7 +469,7 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                       "quantity": 1,
                     },
                     {
-                      "code": "helmet-bronze-helm",
+                      "code": "armor-steel-armor",
                       "quantity": 1,
                     },
                   ],
@@ -609,12 +513,9 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
 exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 MOVE 시나리오: progress 100 → floor 이동) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "forced-move",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -695,9 +596,10 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
                 "previousProgress": 90,
               },
               "rewards": {
+                "gold": 2,
                 "items": [
                   {
-                    "code": "weapon-battle-axe",
+                    "code": "ring-silver-band",
                     "quantity": 1,
                   },
                 ],
@@ -771,11 +673,11 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
               "inventory": {
                 "added": [
                   {
-                    "code": "weapon-battle-axe",
-                    "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
+                    "code": "ring-silver-band",
+                    "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
                     "quantity": 1,
-                    "rarity": "rare",
-                    "slot": "weapon",
+                    "rarity": "common",
+                    "slot": "ring",
                   },
                 ],
               },
@@ -789,7 +691,7 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
                   "isElite": false,
                   "items": [
                     {
-                      "code": "weapon-battle-axe",
+                      "code": "ring-silver-band",
                       "quantity": 1,
                     },
                   ],
@@ -856,22 +758,12 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
 }
 `;
 
-exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레벨업(2회) + 레전더리 드랍 시나리오) 1`] = `
+exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레벨업(2회) 시나리오) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 action expected LEVEL_UP got BATTLE",
-      "step 0: log 1 delta mismatch",
-      "step 0: log 1 extra mismatch",
-      "step 0: log 2 delta mismatch",
-      "step 0: log 2 extra mismatch",
-      "step 0: log 3 action expected BATTLE got LEVEL_UP",
-      "step 0: log 3 delta mismatch",
-      "step 0: log 3 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "level-up",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -952,12 +844,7 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
                 "previousProgress": 0,
               },
               "rewards": {
-                "items": [
-                  {
-                    "code": "angel-ring",
-                    "quantity": 1,
-                  },
-                ],
+                "gold": 23,
               },
               "stats": {
                 "exp": 39,
@@ -1079,45 +966,6 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
           "floor": 80,
           "status": "COMPLETED",
         },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "angel-ring",
-                    "itemId": "96500a2e-61e6-56ad-af16-e7b74e11ede9",
-                    "quantity": 1,
-                    "rarity": "legendary",
-                    "slot": "ring",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": false,
-                  "items": [
-                    {
-                      "code": "angel-ring",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-ancient-dragon",
-                },
-                "source": "BATTLE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "floor": 80,
-          "status": "COMPLETED",
-        },
       ],
       "selectedEvent": "BATTLE",
       "stateAfter": {
@@ -1145,15 +993,12 @@ exports[`simulation fixtures snapshots > [level-up] matches snapshot (연속 레
 }
 `;
 
-exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 전투(6턴) 시나리오: 승리, exp+3, 드랍 ring-silver-band) 1`] = `
+exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 전투(6턴) 시나리오: 승리, exp+3, progress +20 → 40) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "long-battle",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1234,12 +1079,7 @@ exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 
                 "previousProgress": 20,
               },
               "rewards": {
-                "items": [
-                  {
-                    "code": "ring-silver-band",
-                    "quantity": 1,
-                  },
-                ],
+                "gold": 2,
               },
               "stats": {
                 "exp": 3,
@@ -1303,45 +1143,6 @@ exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 
           "floor": 1,
           "status": "COMPLETED",
         },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "ring-silver-band",
-                    "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
-                    "quantity": 1,
-                    "rarity": "common",
-                    "slot": "ring",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": false,
-                  "items": [
-                    {
-                      "code": "ring-silver-band",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-default",
-                },
-                "source": "BATTLE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "floor": 1,
-          "status": "COMPLETED",
-        },
       ],
       "selectedEvent": "BATTLE",
       "stateAfter": {
@@ -1372,13 +1173,9 @@ exports[`simulation fixtures snapshots > [long-battle] matches snapshot (장기 
 exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-drop) 시나리오: BATTLE 패배 → DEATH + REVIVE) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 extra mismatch",
-      "step 0: log 2 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "no-drop",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1453,9 +1250,7 @@ exports[`simulation fixtures snapshots > [no-drop] matches snapshot (패배(no-d
           "action": "BATTLE",
           "delta": {
             "detail": {
-              "rewards": {
-                "items": [],
-              },
+              "rewards": undefined,
               "stats": {
                 "hp": -3,
               },
@@ -1655,11 +1450,9 @@ exports[`simulation fixtures snapshots > [rest-clamp] matches snapshot (REST 클
 exports[`simulation fixtures snapshots > [trap-death] matches snapshot (TRAP 사망 시나리오: TRAP 피해로 사망 → DEATH + REVIVE) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 1 delta mismatch",
-    ],
+    "mismatches": [],
     "name": "trap-death",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1759,12 +1552,9 @@ exports[`simulation fixtures snapshots > [trap-death] matches snapshot (TRAP 사
 exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-limit 패배 시나리오: 30턴 후 TURN_LIMIT 패배) 1`] = `
 {
   "fixtureCheck": {
-    "mismatches": [
-      "step 0: log 0 extra mismatch",
-      "step 0: log 1 extra mismatch",
-    ],
+    "mismatches": [],
     "name": "turn-limit",
-    "passed": false,
+    "passed": true,
   },
   "steps": [
     {
@@ -1844,9 +1634,7 @@ exports[`simulation fixtures snapshots > [turn-limit] matches snapshot (turn-lim
                 "floorProgress": 20,
                 "previousProgress": 0,
               },
-              "rewards": {
-                "items": [],
-              },
+              "rewards": undefined,
               "stats": {
                 "hp": -34,
               },

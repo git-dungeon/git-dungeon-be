@@ -7,7 +7,7 @@ import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
  * 엘리트 전투 + 멀티 드랍 시나리오
  * seed: elite15
  * 초기: hp20/20, atk8, def4, luck5, floor5, progress0, ap1, level5
- * 결과: Cave Spider (Elite) 승리, exp+10, progress +20, 드랍 2개(weapon-battle-axe, helmet-bronze-helm)
+ * 결과: Cave Spider (Elite) 승리, exp+10, progress +20, 드랍 2개(weapon-battle-axe, armor-steel-armor)
  */
 export const eliteBattleSeed = 'elite15';
 
@@ -71,9 +71,15 @@ export const eliteBattleSteps: SnapshotStep[] = [
               def: 4,
               luck: 5,
               stats: {
-                base: { hp: 20, atk: 8, def: 4, luck: 5 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 20, atk: 8, def: 4, luck: 5 },
+                base: { hp: 20, maxHp: 20, atk: 8, def: 4, luck: 5 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 20, maxHp: 20, atk: 8, def: 4, luck: 5 },
               },
               level: 5,
               exp: 0,
@@ -93,9 +99,10 @@ export const eliteBattleSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: -1, exp: 10 },
             rewards: {
+              gold: 3,
               items: [
                 { code: 'weapon-battle-axe', quantity: 1 },
-                { code: 'helmet-bronze-helm', quantity: 1 },
+                { code: 'armor-steel-armor', quantity: 1 },
               ],
             },
             progress: {
@@ -123,9 +130,15 @@ export const eliteBattleSteps: SnapshotStep[] = [
               def: 4,
               luck: 5,
               stats: {
-                base: { hp: 20, atk: 8, def: 4, luck: 5 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 20, atk: 8, def: 4, luck: 5 },
+                base: { hp: 20, maxHp: 20, atk: 8, def: 4, luck: 5 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 20, maxHp: 20, atk: 8, def: 4, luck: 5 },
               },
               level: 5,
               exp: 10,
@@ -158,9 +171,9 @@ export const eliteBattleSteps: SnapshotStep[] = [
                   quantity: 1,
                 },
                 {
-                  itemId: deterministicUuidV5('inventory:helmet-bronze-helm'),
-                  code: 'helmet-bronze-helm',
-                  slot: 'helmet',
+                  itemId: deterministicUuidV5('inventory:armor-steel-armor'),
+                  code: 'armor-steel-armor',
+                  slot: 'armor',
                   rarity: 'uncommon',
                   quantity: 1,
                 },
@@ -178,7 +191,7 @@ export const eliteBattleSteps: SnapshotStep[] = [
                 isElite: true,
                 items: [
                   { code: 'weapon-battle-axe', quantity: 1 },
-                  { code: 'helmet-bronze-helm', quantity: 1 },
+                  { code: 'armor-steel-armor', quantity: 1 },
                 ],
               },
             },

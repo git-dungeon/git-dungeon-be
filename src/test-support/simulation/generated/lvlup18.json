@@ -23,6 +23,52 @@
             }
           }
         },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-ancient-dragon",
+              "name": "Ancient Dragon",
+              "hp": 90,
+              "atk": 18,
+              "def": 9,
+              "spriteId": "sprite/monster-ancient-dragon"
+            },
+            "player": {
+              "hp": 60,
+              "maxHp": 60,
+              "atk": 35,
+              "def": 12,
+              "luck": 5,
+              "stats": {
+                "base": {
+                  "hp": 60,
+                  "maxHp": 60,
+                  "atk": 35,
+                  "def": 12,
+                  "luck": 5
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 60,
+                  "maxHp": 60,
+                  "atk": 35,
+                  "def": 12,
+                  "luck": 5
+                }
+              },
+              "level": 1,
+              "exp": 0,
+              "expToLevel": 10
+            }
+          }
+        },
         "floor": 80
       },
       {
@@ -36,12 +82,7 @@
               "exp": 39
             },
             "rewards": {
-              "items": [
-                {
-                  "code": "angel-ring",
-                  "quantity": 1
-                }
-              ]
+              "gold": 23
             },
             "progress": {
               "previousProgress": 0,
@@ -60,6 +101,39 @@
               "atk": 18,
               "def": 9,
               "spriteId": "sprite/monster-ancient-dragon"
+            },
+            "player": {
+              "hp": 41,
+              "maxHp": 60,
+              "atk": 35,
+              "def": 12,
+              "luck": 5,
+              "stats": {
+                "base": {
+                  "hp": 60,
+                  "maxHp": 60,
+                  "atk": 35,
+                  "def": 12,
+                  "luck": 5
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 60,
+                  "maxHp": 60,
+                  "atk": 35,
+                  "def": 12,
+                  "luck": 5
+                }
+              },
+              "level": 1,
+              "exp": 39,
+              "expToLevel": 10
             },
             "result": "VICTORY",
             "expGained": 39,
@@ -123,45 +197,6 @@
               "atk": 1,
               "maxHp": 2,
               "hp": 2
-            }
-          }
-        },
-        "floor": 80
-      },
-      {
-        "action": "ACQUIRE_ITEM",
-        "status": "COMPLETED",
-        "delta": {
-          "type": "ACQUIRE_ITEM",
-          "detail": {
-            "inventory": {
-              "added": [
-                {
-                  "itemId": "96500a2e-61e6-56ad-af16-e7b74e11ede9",
-                  "code": "angel-ring",
-                  "slot": "ring",
-                  "rarity": "legendary",
-                  "quantity": 1
-                }
-              ]
-            }
-          }
-        },
-        "extra": {
-          "type": "ACQUIRE_ITEM",
-          "details": {
-            "reward": {
-              "source": "BATTLE",
-              "drop": {
-                "tableId": "drops-ancient-dragon",
-                "isElite": false,
-                "items": [
-                  {
-                    "code": "angel-ring",
-                    "quantity": 1
-                  }
-                ]
-              }
             }
           }
         },
