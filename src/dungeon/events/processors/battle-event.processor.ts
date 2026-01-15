@@ -25,6 +25,7 @@ import {
 import type { DropService } from '../../drops/drop.service';
 import { DEFAULT_DROP_TABLE_ID } from '../../drops/drop.service';
 import { rollDrops } from '../../drops/drop.utils';
+import type { BattleGoldConfig } from '../config/event-config.loader';
 
 type BattleOutcome = 'VICTORY' | 'DEFEAT';
 
@@ -45,12 +46,6 @@ type BattleEngineOptions = {
   gold?: BattleGoldConfig;
   dropService?: DropService;
   defaultDropTableId?: string;
-};
-
-type BattleGoldConfig = {
-  base: number;
-  floorFactor: number;
-  statDiv: number;
 };
 
 const DEFAULT_ELITE_RATE = 0.05; // 5%
