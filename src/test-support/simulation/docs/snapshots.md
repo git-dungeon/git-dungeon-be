@@ -40,6 +40,13 @@ pnpm snapshot:update
 pnpm snapshot:check
 ```
 
+### 지표 기반 테스트
+
+```bash
+# 이벤트 분포/드랍 확률 지표 테스트
+pnpm test -- --testNamePattern "simulation metrics"
+```
+
 ### 직접 실행
 
 ```bash
