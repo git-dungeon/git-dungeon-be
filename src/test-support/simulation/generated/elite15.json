@@ -23,6 +23,52 @@
             }
           }
         },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-cave-spider-elite",
+              "name": "Cave Spider (Elite)",
+              "hp": 14,
+              "atk": 5,
+              "def": 1,
+              "spriteId": "sprite/monster-cave-spider"
+            },
+            "player": {
+              "hp": 20,
+              "maxHp": 20,
+              "atk": 8,
+              "def": 4,
+              "luck": 5,
+              "stats": {
+                "base": {
+                  "hp": 20,
+                  "maxHp": 20,
+                  "atk": 8,
+                  "def": 4,
+                  "luck": 5
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 20,
+                  "maxHp": 20,
+                  "atk": 8,
+                  "def": 4,
+                  "luck": 5
+                }
+              },
+              "level": 5,
+              "exp": 0,
+              "expToLevel": 50
+            }
+          }
+        },
         "floor": 5
       },
       {
@@ -36,13 +82,14 @@
               "exp": 10
             },
             "rewards": {
+              "gold": 3,
               "items": [
                 {
                   "code": "weapon-battle-axe",
                   "quantity": 1
                 },
                 {
-                  "code": "helmet-bronze-helm",
+                  "code": "armor-steel-armor",
                   "quantity": 1
                 }
               ]
@@ -64,6 +111,39 @@
               "atk": 5,
               "def": 1,
               "spriteId": "sprite/monster-cave-spider"
+            },
+            "player": {
+              "hp": 19,
+              "maxHp": 20,
+              "atk": 8,
+              "def": 4,
+              "luck": 5,
+              "stats": {
+                "base": {
+                  "hp": 20,
+                  "maxHp": 20,
+                  "atk": 8,
+                  "def": 4,
+                  "luck": 5
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 20,
+                  "maxHp": 20,
+                  "atk": 8,
+                  "def": 4,
+                  "luck": 5
+                }
+              },
+              "level": 5,
+              "exp": 10,
+              "expToLevel": 50
             },
             "result": "VICTORY",
             "expGained": 10,
@@ -90,9 +170,9 @@
                   "quantity": 1
                 },
                 {
-                  "itemId": "fd2ad6b8-8b36-5b0e-ad9d-a973e643057a",
-                  "code": "helmet-bronze-helm",
-                  "slot": "helmet",
+                  "itemId": "7dff3c25-8905-5ad6-aab7-cf9003c17a7e",
+                  "code": "armor-steel-armor",
+                  "slot": "armor",
                   "rarity": "uncommon",
                   "quantity": 1
                 }
@@ -114,7 +194,7 @@
                     "quantity": 1
                   },
                   {
-                    "code": "helmet-bronze-helm",
+                    "code": "armor-steel-armor",
                     "quantity": 1
                   }
                 ]

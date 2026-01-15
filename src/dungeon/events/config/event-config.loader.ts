@@ -7,13 +7,23 @@ export type EventWeightsConfig = {
   TREASURE: number;
   REST: number;
   TRAP: number;
+  EMPTY: number;
+};
+
+export type BattleGoldConfig = {
+  base: number;
+  floorFactor: number;
+  statDiv: number;
 };
 
 export type BattleConfig = {
   eliteRate: number;
+  dropChance: number;
+  eliteDropMultiplier: number;
   critBase: number;
   critLuckFactor: number;
   turnLimit: number;
+  gold: BattleGoldConfig;
   exp: {
     eliteBonus: number;
   };
@@ -96,7 +106,8 @@ const validateEventConfig = (config: unknown): EventConfig => {
     !isNumber(weights.BATTLE) ||
     !isNumber(weights.TREASURE) ||
     !isNumber(weights.REST) ||
-    !isNumber(weights.TRAP)
+    !isNumber(weights.TRAP) ||
+    !isNumber(weights.EMPTY)
   ) {
     throw new Error('Invalid weights in event config');
   }
@@ -126,9 +137,16 @@ const validateEffect = (effect: EffectDelta | undefined) => {
 
 const defaultBattleConfig = (): BattleConfig => ({
   eliteRate: 0.05,
+  dropChance: 0.3,
+  eliteDropMultiplier: 2,
   critBase: 0.05,
   critLuckFactor: 0.01,
   turnLimit: 30,
+  gold: {
+    base: 1,
+    floorFactor: 0.2,
+    statDiv: 20,
+  },
   exp: {
     eliteBonus: 1.5,
   },
@@ -138,14 +156,20 @@ const validateBattleConfig = (battle: BattleConfig): BattleConfig => {
   const cfg = {
     ...defaultBattleConfig(),
     ...battle,
+    gold: { ...defaultBattleConfig().gold, ...(battle?.gold ?? {}) },
     exp: { ...defaultBattleConfig().exp, ...(battle?.exp ?? {}) },
   };
 
   if (
     !isNumber(cfg.eliteRate) ||
+    !isNumber(cfg.dropChance) ||
+    !isNumber(cfg.eliteDropMultiplier) ||
     !isNumber(cfg.critBase) ||
     !isNumber(cfg.critLuckFactor) ||
     !isNumber(cfg.turnLimit) ||
+    !isNumber(cfg.gold?.base) ||
+    !isNumber(cfg.gold?.floorFactor) ||
+    !isNumber(cfg.gold?.statDiv) ||
     !isNumber(cfg.exp.eliteBonus)
   ) {
     throw new Error('Invalid battle config');

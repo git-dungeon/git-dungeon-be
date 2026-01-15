@@ -25,6 +25,7 @@ import {
 import type { DropService } from '../../drops/drop.service';
 import { DEFAULT_DROP_TABLE_ID } from '../../drops/drop.service';
 import { rollDrops } from '../../drops/drop.utils';
+import type { BattleGoldConfig } from '../config/event-config.loader';
 
 type BattleOutcome = 'VICTORY' | 'DEFEAT';
 
@@ -34,20 +35,30 @@ type RngFactory = (seed: number) => DeterministicRng;
 
 type BattleEngineOptions = {
   eliteRate?: number;
+  dropChance?: number;
+  eliteDropMultiplier?: number;
   turnLimit?: number;
   rngFactory?: RngFactory;
   scalingOptions?: MonsterScalingOptions;
   critBase?: number;
   critLuckFactor?: number;
   eliteExpBonus?: number;
+  gold?: BattleGoldConfig;
   dropService?: DropService;
   defaultDropTableId?: string;
 };
 
 const DEFAULT_ELITE_RATE = 0.05; // 5%
+const DEFAULT_DROP_CHANCE = 0.3;
+const DEFAULT_ELITE_DROP_MULTIPLIER = 2;
 const DEFAULT_CRIT_BASE = 0.05;
 const DEFAULT_CRIT_LUCK_FACTOR = 0.01;
 const DEFAULT_TURN_LIMIT = 30;
+const DEFAULT_GOLD_CONFIG: BattleGoldConfig = {
+  base: 1,
+  floorFactor: 0.2,
+  statDiv: 20,
+};
 
 const clamp01 = (value: number, max = 1): number =>
   Math.min(Math.max(value, 0), max);
@@ -95,6 +106,17 @@ const computeExpReward = (
   return Math.max(1, Math.round(base * rarityBonus));
 };
 
+const computeGoldReward = (
+  floor: number,
+  scaled: ReturnType<typeof getScaledStats>,
+  config: BattleGoldConfig,
+): number => {
+  const monsterScore = scaled.hp + scaled.atk + scaled.def;
+  const raw =
+    config.base + floor * config.floorFactor + monsterScore / config.statDiv;
+  return Math.max(0, Math.round(raw));
+};
+
 const computeDamage = (
   attackerAtk: number,
   defenderDef: number,
@@ -137,10 +159,14 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     const rngFactory = this.options.rngFactory ?? createDeterministicRng;
     const rng = rngFactory(input.rngValue);
     const eliteRate = this.options.eliteRate ?? DEFAULT_ELITE_RATE;
+    const dropChance = this.options.dropChance ?? DEFAULT_DROP_CHANCE;
+    const eliteDropMultiplier =
+      this.options.eliteDropMultiplier ?? DEFAULT_ELITE_DROP_MULTIPLIER;
     const critBase = this.options.critBase ?? DEFAULT_CRIT_BASE;
     const critLuckFactor =
       this.options.critLuckFactor ?? DEFAULT_CRIT_LUCK_FACTOR;
     const eliteExpBonus = this.options.eliteExpBonus ?? 1.5;
+    const goldConfig = { ...DEFAULT_GOLD_CONFIG, ...this.options.gold };
     const monsterMeta = pickMonster(
       this.registry,
       rng,
@@ -225,8 +251,16 @@ export class BattleEventProcessor implements DungeonEventProcessor {
         ? computeExpReward(monsterMeta, scaled, eliteExpBonus)
         : 0;
 
+    const goldReward =
+      outcome === 'VICTORY'
+        ? computeGoldReward(input.state.floor, scaled, goldConfig)
+        : 0;
+
     const drops =
-      outcome === 'VICTORY' ? this.rollDrops(monsterMeta, { next: rng }) : [];
+      outcome === 'VICTORY' &&
+      this.shouldDrop(monsterMeta, { next: rng }, dropChance, eliteDropMultiplier)
+        ? this.rollDrops(monsterMeta, { next: rng })
+        : [];
 
     const startedPlayer = this.buildPlayerSnapshot({
       state: input.state,
@@ -254,6 +288,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       completedPlayer,
       cause,
       expGained,
+      goldReward,
       turns: turn,
       damageDealt,
       damageTaken,
@@ -271,6 +306,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     startedPlayer: BattlePlayerSnapshot;
     completedPlayer: BattlePlayerSnapshot;
     expGained: number;
+    goldReward: number;
     cause?: string;
     turns?: number;
     damageDealt?: number;
@@ -288,6 +324,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       completedPlayer,
       cause,
       expGained,
+      goldReward,
       turns,
       damageDealt,
       damageTaken,
@@ -298,6 +335,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       outcome,
       playerHp,
       effectiveMaxHp,
+      goldReward,
     );
     const statsDelta: StatsDelta = {};
     if (nextState.hp !== input.state.hp) {
@@ -319,19 +357,25 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           }
         : undefined;
 
+    const rewardItems =
+      dropMeta?.items?.map((item) => ({
+        code: item.code,
+        quantity: item.quantity,
+      })) ?? [];
+    const hasRewards = rewardItems.length > 0 || goldReward > 0;
+
     return {
       state: nextState,
       delta: {
         type: 'BATTLE',
         detail: {
           stats: Object.keys(statsDelta).length ? statsDelta : undefined,
-          rewards: {
-            items:
-              dropMeta?.items?.map((item) => ({
-                code: item.code,
-                quantity: item.quantity,
-              })) ?? [],
-          },
+          rewards: hasRewards
+            ? {
+                ...(goldReward > 0 ? { gold: goldReward } : {}),
+                ...(rewardItems.length ? { items: rewardItems } : {}),
+              }
+            : undefined,
           progress:
             outcome === 'DEFEAT'
               ? {
@@ -379,17 +423,20 @@ export class BattleEventProcessor implements DungeonEventProcessor {
     outcome: BattleOutcome,
     playerHp: number,
     maxHpOverride?: number,
+    goldReward: number = 0,
   ): DungeonState {
     const defeatedProgress =
       outcome === 'DEFEAT'
         ? Math.max(0, state.floorProgress - BATTLE_PROGRESS_INCREMENT)
         : state.floorProgress;
     const maxHp = maxHpOverride !== undefined ? maxHpOverride : state.maxHp;
+    const nextGold = goldReward > 0 ? state.gold + goldReward : state.gold;
 
     return {
       ...state,
       hp: Math.max(0, Math.min(playerHp, maxHp)),
       floorProgress: defeatedProgress,
+      gold: nextGold,
     };
   }
 
@@ -406,6 +453,20 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       rng,
       isElite: monster.rarity === 'elite',
     });
+  }
+
+  private shouldDrop(
+    monster: CatalogMonster,
+    rng: { next: () => number },
+    dropChance: number,
+    eliteDropMultiplier: number,
+  ): boolean {
+    if (dropChance <= 0) return false;
+    const chance =
+      monster.rarity === 'elite'
+        ? dropChance * eliteDropMultiplier
+        : dropChance;
+    return rng.next() < clamp01(chance);
   }
 
   private buildBattleDetails(

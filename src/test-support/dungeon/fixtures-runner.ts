@@ -8,6 +8,7 @@ import { RestEventProcessor } from '../../dungeon/events/processors/rest-event.p
 import { TrapEventProcessor } from '../../dungeon/events/processors/trap-event.processor';
 import { TreasureEventProcessor } from '../../dungeon/events/processors/treasure-event.processor';
 import { MoveEventProcessor } from '../../dungeon/events/processors/move-event.processor';
+import { EmptyEventProcessor } from '../../dungeon/events/processors/empty-event.processor';
 import { MonsterRegistry } from '../../dungeon/monsters';
 import { DropService } from '../../dungeon/drops/drop.service';
 import { DungeonEventType } from '../../dungeon/events/event.types';
@@ -44,10 +45,13 @@ const rngFactory = new SeedrandomFactory();
 const processors: Record<DungeonEventType, DungeonEventProcessor> = {
   [DungeonEventType.BATTLE]: new BattleEventProcessor(registry, {
     eliteRate: eventConfig.battle.eliteRate,
+    dropChance: eventConfig.battle.dropChance,
+    eliteDropMultiplier: eventConfig.battle.eliteDropMultiplier,
     critBase: eventConfig.battle.critBase,
     critLuckFactor: eventConfig.battle.critLuckFactor,
     turnLimit: TEST_TURN_LIMIT,
     eliteExpBonus: eventConfig.battle.exp.eliteBonus,
+    gold: eventConfig.battle.gold,
     dropService,
   }),
   [DungeonEventType.TREASURE]: new TreasureEventProcessor(
@@ -57,6 +61,7 @@ const processors: Record<DungeonEventType, DungeonEventProcessor> = {
   ),
   [DungeonEventType.REST]: new RestEventProcessor(eventConfig.effects.REST),
   [DungeonEventType.TRAP]: new TrapEventProcessor(eventConfig.effects.TRAP),
+  [DungeonEventType.EMPTY]: new EmptyEventProcessor(),
   [DungeonEventType.MOVE]: new MoveEventProcessor(),
 };
 

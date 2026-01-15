@@ -39,6 +39,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 1,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -87,6 +88,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 1,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -160,6 +162,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -175,6 +178,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 1,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -194,6 +198,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.BATTLE]: 0,
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -207,6 +212,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.BATTLE]: 0,
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -224,6 +230,7 @@ describe('DungeonEventService', () => {
       [DungeonEventType.TREASURE]: 5,
       [DungeonEventType.REST]: 40,
       [DungeonEventType.TRAP]: 5,
+      [DungeonEventType.EMPTY]: 0,
     };
 
     const counts: Record<DungeonEventType, number> = {
@@ -231,6 +238,7 @@ describe('DungeonEventService', () => {
       [DungeonEventType.TREASURE]: 0,
       [DungeonEventType.REST]: 0,
       [DungeonEventType.TRAP]: 0,
+      [DungeonEventType.EMPTY]: 0,
       [DungeonEventType.MOVE]: 0,
     };
 
@@ -268,6 +276,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 1,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -317,6 +326,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -365,6 +375,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 1,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -453,6 +464,7 @@ describe('DungeonEventService', () => {
         [DungeonEventType.TREASURE]: 0,
         [DungeonEventType.REST]: 0,
         [DungeonEventType.TRAP]: 0,
+        [DungeonEventType.EMPTY]: 0,
       },
     });
 
@@ -565,6 +577,7 @@ describe('DungeonEventService', () => {
             [DungeonEventType.TREASURE]: 1,
             [DungeonEventType.REST]: 0,
             [DungeonEventType.TRAP]: 0,
+            [DungeonEventType.EMPTY]: 0,
           },
         });
 
@@ -638,6 +651,7 @@ describe('DungeonEventService', () => {
             [DungeonEventType.TREASURE]: 1,
             [DungeonEventType.REST]: 0,
             [DungeonEventType.TRAP]: 0,
+            [DungeonEventType.EMPTY]: 0,
           },
         });
 
@@ -696,6 +710,7 @@ describe('DungeonEventService', () => {
             [DungeonEventType.TREASURE]: 1,
             [DungeonEventType.REST]: 0,
             [DungeonEventType.TRAP]: 0,
+            [DungeonEventType.EMPTY]: 0,
           },
         });
 
@@ -759,6 +774,7 @@ describe('DungeonEventService', () => {
             [DungeonEventType.TREASURE]: 1,
             [DungeonEventType.REST]: 0,
             [DungeonEventType.TRAP]: 0,
+            [DungeonEventType.EMPTY]: 0,
           },
         });
 

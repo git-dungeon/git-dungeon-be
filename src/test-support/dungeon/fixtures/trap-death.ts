@@ -4,11 +4,11 @@ import { FixtureRegistry } from './registry';
 
 /**
  * TRAP 사망 시나리오
- * seed: s15
+ * seed: s2
  * 초기: hp3/10, progress0, ap2
  * 결과: TRAP 피해로 사망 → DEATH + REVIVE 로그, progress 리셋, hp 회복은 REVIVE에서 표현
  */
-export const trapDeathSeed = 's15';
+export const trapDeathSeed = 's2';
 
 export const trapDeathInitialState: DungeonState = {
   userId: '00000000-0000-4000-8000-000000000103',
@@ -63,11 +63,6 @@ export const trapDeathSteps: SnapshotStep[] = [
           type: 'TRAP',
           detail: {
             stats: { hp: -3 },
-            progress: {
-              previousProgress: 0,
-              floorProgress: 10,
-              delta: 10,
-            },
           },
         },
       },

@@ -105,6 +105,14 @@ export type TrapDelta = {
   };
 };
 
+export type EmptyDelta = {
+  type: 'EMPTY';
+  detail: {
+    stats?: StatsDelta;
+    progress?: ProgressDelta;
+  };
+};
+
 export type TreasureDelta = {
   type: 'TREASURE';
   detail: {
@@ -167,6 +175,7 @@ export type DungeonLogDelta =
   | BuffDelta
   | RestDelta
   | TrapDelta
+  | EmptyDelta
   | TreasureDelta
   | MoveDelta;
 

@@ -16,6 +16,7 @@ const actionMapping: Record<DungeonEventType, DungeonLogAction> = {
   TREASURE: DungeonLogAction.TREASURE,
   REST: DungeonLogAction.REST,
   TRAP: DungeonLogAction.TRAP,
+  EMPTY: DungeonLogAction.EMPTY,
   MOVE: DungeonLogAction.MOVE,
 };
 

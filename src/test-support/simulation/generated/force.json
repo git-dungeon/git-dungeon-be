@@ -23,6 +23,52 @@
             }
           }
         },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-giant-rat",
+              "name": "Giant Rat",
+              "hp": 8,
+              "atk": 2,
+              "def": 0,
+              "spriteId": "sprite/monster-giant-rat"
+            },
+            "player": {
+              "hp": 10,
+              "maxHp": 10,
+              "atk": 3,
+              "def": 1,
+              "luck": 1,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                }
+              },
+              "level": 1,
+              "exp": 0,
+              "expToLevel": 10
+            }
+          }
+        },
         "floor": 1
       },
       {
@@ -36,9 +82,10 @@
               "exp": 3
             },
             "rewards": {
+              "gold": 2,
               "items": [
                 {
-                  "code": "weapon-battle-axe",
+                  "code": "ring-silver-band",
                   "quantity": 1
                 }
               ]
@@ -61,11 +108,83 @@
               "def": 0,
               "spriteId": "sprite/monster-giant-rat"
             },
+            "player": {
+              "hp": 9,
+              "maxHp": 10,
+              "atk": 3,
+              "def": 1,
+              "luck": 1,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 3,
+                  "def": 1,
+                  "luck": 1
+                }
+              },
+              "level": 1,
+              "exp": 3,
+              "expToLevel": 10
+            },
             "result": "VICTORY",
             "expGained": 3,
             "turns": 2,
             "damageDealt": 9,
             "damageTaken": 1
+          }
+        },
+        "floor": 1
+      },
+      {
+        "action": "ACQUIRE_ITEM",
+        "status": "COMPLETED",
+        "delta": {
+          "type": "ACQUIRE_ITEM",
+          "detail": {
+            "inventory": {
+              "added": [
+                {
+                  "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
+                  "code": "ring-silver-band",
+                  "slot": "ring",
+                  "rarity": "common",
+                  "quantity": 1
+                }
+              ]
+            }
+          }
+        },
+        "extra": {
+          "type": "ACQUIRE_ITEM",
+          "details": {
+            "reward": {
+              "source": "BATTLE",
+              "drop": {
+                "tableId": "drops-default",
+                "isElite": false,
+                "items": [
+                  {
+                    "code": "ring-silver-band",
+                    "quantity": 1
+                  }
+                ]
+              }
+            }
           }
         },
         "floor": 1
@@ -88,45 +207,6 @@
               "previousProgress": 100,
               "floorProgress": 0,
               "delta": -100
-            }
-          }
-        },
-        "floor": 2
-      },
-      {
-        "action": "ACQUIRE_ITEM",
-        "status": "COMPLETED",
-        "delta": {
-          "type": "ACQUIRE_ITEM",
-          "detail": {
-            "inventory": {
-              "added": [
-                {
-                  "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
-                  "code": "weapon-battle-axe",
-                  "slot": "weapon",
-                  "rarity": "rare",
-                  "quantity": 1
-                }
-              ]
-            }
-          }
-        },
-        "extra": {
-          "type": "ACQUIRE_ITEM",
-          "details": {
-            "reward": {
-              "source": "BATTLE",
-              "drop": {
-                "tableId": "drops-default",
-                "isElite": false,
-                "items": [
-                  {
-                    "code": "weapon-battle-axe",
-                    "quantity": 1
-                  }
-                ]
-              }
             }
           }
         },

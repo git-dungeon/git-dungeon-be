@@ -12,19 +12,18 @@
 | `pre`  | 실행 전 입력(초기 상태/seed) 기준  | 입력 데이터 검증 |
 | `post` | 실행 결과(steps/logs/summary) 기준 | 출력 결과 검증   |
 
-## Fixture 목록
+## Snapshot Fixture 목록
 
-| Fixture      | Phase | 설명                                           | 태그                   |
-| ------------ | ----- | ---------------------------------------------- | ---------------------- |
-| baseline     | post  | TREASURE → REST → BATTLE 승리, 드랍 ring-topaz | basic, drop            |
-| trap-death   | post  | TRAP 피해로 사망 → DEATH + REVIVE              | death, trap            |
-| forced-move  | post  | progress 100 → floor 이동                      | move, floor            |
-| no-drop      | post  | BATTLE 패배 → DEATH + REVIVE                   | death, battle          |
-| long-battle  | post  | 6턴 전투 승리, 드랍 ring-silver-band           | battle, drop           |
-| turn-limit   | post  | 30턴 후 TURN_LIMIT 패배                        | battle, defeat         |
-| elite-battle | post  | Elite 전투 승리, 멀티 드랍                     | battle, elite, drop    |
-| rest-clamp   | post  | hp full 상태에서 REST, hp 변화 0               | rest                   |
-| level-up     | post  | 연속 레벨업(2회) + 레전더리 드랍               | battle, level-up, drop |
+| Fixture      | Phase | 설명                                      | 태그                |
+| ------------ | ----- | ----------------------------------------- | ------------------- |
+| baseline     | post  | REST → REST → BATTLE 승리, 진행도 0→40    | basic               |
+| trap-death   | post  | TRAP 피해로 사망 → DEATH + REVIVE         | death, trap         |
+| forced-move  | post  | progress 100 → floor 이동                 | move, floor         |
+| turn-limit   | post  | 30턴 후 TURN_LIMIT 패배                   | battle, defeat      |
+| elite-battle | post  | Elite 전투 승리, 멀티 드랍                | battle, elite, drop |
+
+> 나머지 fixture(no-drop/long-battle/level-up/rest-clamp)는 스냅샷 테스트에서 제외하고,
+> CLI 재현/지표 테스트 대상으로 활용합니다.
 
 ## 실행/업데이트
 
@@ -39,6 +38,13 @@ pnpm snapshot:update
 
 # 상세 결과 확인
 pnpm snapshot:check
+```
+
+### 지표 기반 테스트
+
+```bash
+# 이벤트 분포/드랍 확률 지표 테스트
+pnpm test -- --testNamePattern "simulation metrics"
 ```
 
 ### 직접 실행
@@ -61,7 +67,7 @@ pnpm test -- --no-threads --testNamePattern "simulation fixtures" --update
 ## 체크 항목
 
 - progress/HP/EXP 변화: 각 step 로그 delta.detail.progress 또는 stats가 존재해야 합니다(MOVE 제외).
-- 드랍 로그: baseline에서 ACQUIRE_ITEM 로그가 포함돼야 합니다.
+- 드랍 로그: drop 태그가 있는 fixture는 ACQUIRE_ITEM 로그가 포함돼야 합니다.
 - 실패 원인: turn-limit는 `extra.details.cause === TURN_LIMIT`, trap-death는 `TRAP_DAMAGE` 이어야 합니다.
 
 ## 메타데이터 활용
@@ -75,7 +81,7 @@ import { FixtureRegistry } from '../test-support/dungeon/fixtures/registry';
 const fixture = FixtureRegistry.get('baseline');
 console.log(fixture?.meta.snapshotPhase); // 'post'
 console.log(fixture?.meta.description); // '기본 시나리오...'
-console.log(fixture?.meta.tags); // ['basic', 'drop']
+console.log(fixture?.meta.tags); // ['basic']
 
 // 모든 fixture 목록
 const names = FixtureRegistry.list();

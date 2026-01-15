@@ -23,6 +23,52 @@
             }
           }
         },
+        "extra": {
+          "type": "BATTLE",
+          "details": {
+            "monster": {
+              "code": "monster-giant-rat",
+              "name": "Giant Rat",
+              "hp": 8,
+              "atk": 2,
+              "def": 0,
+              "spriteId": "sprite/monster-giant-rat"
+            },
+            "player": {
+              "hp": 3,
+              "maxHp": 10,
+              "atk": 1,
+              "def": 0,
+              "luck": 0,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 1,
+                  "def": 0,
+                  "luck": 0
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 1,
+                  "def": 0,
+                  "luck": 0
+                }
+              },
+              "level": 1,
+              "exp": 0,
+              "expToLevel": 10
+            }
+          }
+        },
         "floor": 1
       },
       {
@@ -33,9 +79,6 @@
           "detail": {
             "stats": {
               "hp": -3
-            },
-            "rewards": {
-              "items": []
             }
           }
         },
@@ -49,6 +92,39 @@
               "atk": 2,
               "def": 0,
               "spriteId": "sprite/monster-giant-rat"
+            },
+            "player": {
+              "hp": 0,
+              "maxHp": 10,
+              "atk": 1,
+              "def": 0,
+              "luck": 0,
+              "stats": {
+                "base": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 1,
+                  "def": 0,
+                  "luck": 0
+                },
+                "equipmentBonus": {
+                  "hp": 0,
+                  "maxHp": 0,
+                  "atk": 0,
+                  "def": 0,
+                  "luck": 0
+                },
+                "total": {
+                  "hp": 10,
+                  "maxHp": 10,
+                  "atk": 1,
+                  "def": 0,
+                  "luck": 0
+                }
+              },
+              "level": 1,
+              "exp": 0,
+              "expToLevel": 10
             },
             "result": "DEFEAT",
             "cause": "PLAYER_DEFEATED",
@@ -77,7 +153,8 @@
         "extra": {
           "type": "DEATH",
           "details": {
-            "cause": "PLAYER_DEFEATED"
+            "cause": "PLAYER_DEFEATED",
+            "handledBy": "monster-giant-rat"
           }
         },
         "floor": 1

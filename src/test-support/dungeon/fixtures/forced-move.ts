@@ -71,9 +71,15 @@ export const forcedMoveSteps: SnapshotStep[] = [
               def: 1,
               luck: 1,
               stats: {
-                base: { hp: 10, atk: 3, def: 1, luck: 1 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+                base: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
               },
               level: 1,
               exp: 0,
@@ -93,7 +99,8 @@ export const forcedMoveSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: -1, exp: 3 },
             rewards: {
-              items: [{ code: 'weapon-battle-axe', quantity: 1 }],
+              gold: 2,
+              items: [{ code: 'ring-silver-band', quantity: 1 }],
             },
             progress: {
               previousProgress: 90,
@@ -120,9 +127,15 @@ export const forcedMoveSteps: SnapshotStep[] = [
               def: 1,
               luck: 1,
               stats: {
-                base: { hp: 10, atk: 3, def: 1, luck: 1 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+                base: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
               },
               level: 1,
               exp: 3,
@@ -148,10 +161,10 @@ export const forcedMoveSteps: SnapshotStep[] = [
             inventory: {
               added: [
                 {
-                  itemId: deterministicUuidV5('inventory:weapon-battle-axe'),
-                  code: 'weapon-battle-axe',
-                  slot: 'weapon',
-                  rarity: 'rare',
+                  itemId: deterministicUuidV5('inventory:ring-silver-band'),
+                  code: 'ring-silver-band',
+                  slot: 'ring',
+                  rarity: 'common',
                   quantity: 1,
                 },
               ],
@@ -168,7 +181,7 @@ export const forcedMoveSteps: SnapshotStep[] = [
                 isElite: false,
                 items: [
                   {
-                    code: 'weapon-battle-axe',
+                    code: 'ring-silver-band',
                     quantity: 1,
                   },
                 ],

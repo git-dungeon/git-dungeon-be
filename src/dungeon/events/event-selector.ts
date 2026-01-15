@@ -17,7 +17,8 @@ export class WeightedDungeonEventSelector implements DungeonEventSelector {
       weights[DungeonEventType.BATTLE] +
       weights[DungeonEventType.TREASURE] +
       weights[DungeonEventType.REST] +
-      weights[DungeonEventType.TRAP];
+      weights[DungeonEventType.TRAP] +
+      weights[DungeonEventType.EMPTY];
 
     if (total <= 0) {
       return DungeonEventType.BATTLE;
@@ -45,6 +46,16 @@ export class WeightedDungeonEventSelector implements DungeonEventSelector {
       return DungeonEventType.REST;
     }
 
-    return DungeonEventType.TRAP;
+    if (
+      pick <
+      weights[DungeonEventType.BATTLE] +
+        weights[DungeonEventType.TREASURE] +
+        weights[DungeonEventType.REST] +
+        weights[DungeonEventType.TRAP]
+    ) {
+      return DungeonEventType.TRAP;
+    }
+
+    return DungeonEventType.EMPTY;
   }
 }

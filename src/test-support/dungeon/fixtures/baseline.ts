@@ -1,12 +1,11 @@
 import type { DungeonState } from '@prisma/client';
-import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 import type { FixtureDefinition, SnapshotStep } from './fixture.types';
 import { FixtureRegistry } from './registry';
 
 /**
  * 기본 시나리오
  * seed: baseline
- * 흐름: TREASURE → REST → BATTLE 승리, 진행도 0→40, 드랍 ring-topaz 2회
+ * 흐름: REST → REST → BATTLE 승리, 진행도 0→40
  */
 export const baselineSeed = 'baseline';
 
@@ -36,9 +35,9 @@ export const baselineInitialState: DungeonState = {
 export const baselineSteps: SnapshotStep[] = [
   {
     actionCounter: 0,
-    selectedEvent: 'TREASURE',
+    selectedEvent: 'REST',
     stateAfter: {
-      hp: 6,
+      hp: 10,
       ap: 4,
       floor: 1,
       floorProgress: 10,
@@ -48,78 +47,27 @@ export const baselineSteps: SnapshotStep[] = [
     },
     extra: [
       {
-        action: 'TREASURE',
+        action: 'REST',
         status: 'STARTED',
         category: 'EXPLORATION',
         floor: 1,
         turnNumber: 0,
-        delta: { type: 'TREASURE', detail: { stats: { ap: -1 } } },
+        delta: { type: 'REST', detail: { stats: { ap: -1 } } },
       },
       {
-        action: 'TREASURE',
+        action: 'REST',
         status: 'COMPLETED',
         category: 'EXPLORATION',
         floor: 1,
         turnNumber: 0,
         delta: {
-          type: 'TREASURE',
+          type: 'REST',
           detail: {
-            rewards: {
-              gold: 5,
-              items: [
-                {
-                  quantity: 1,
-                  code: 'ring-topaz',
-                },
-              ],
-              buffs: [],
-              unlocks: [],
-            },
+            stats: { hp: 4 },
             progress: {
               previousProgress: 0,
               floorProgress: 10,
               delta: 10,
-            },
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 1,
-        turnNumber: 0,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:ring-topaz'),
-                  code: 'ring-topaz',
-                  slot: 'ring',
-                  rarity: 'uncommon',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'TREASURE',
-              drop: {
-                tableId: 'drops-default',
-                isElite: false,
-                items: [
-                  {
-                    code: 'ring-topaz',
-                    quantity: 1,
-                  },
-                ],
-              },
             },
           },
         },
@@ -156,7 +104,7 @@ export const baselineSteps: SnapshotStep[] = [
         delta: {
           type: 'REST',
           detail: {
-            stats: { hp: 4 },
+            stats: { hp: 0 },
             progress: {
               previousProgress: 10,
               floorProgress: 20,
@@ -205,9 +153,15 @@ export const baselineSteps: SnapshotStep[] = [
               def: 1,
               luck: 1,
               stats: {
-                base: { hp: 10, atk: 3, def: 1, luck: 1 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+                base: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
               },
               level: 1,
               exp: 0,
@@ -227,7 +181,7 @@ export const baselineSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: -1, exp: 3 },
             rewards: {
-              items: [{ code: 'ring-topaz', quantity: 1 }],
+              gold: 2,
             },
             progress: {
               previousProgress: 20,
@@ -254,9 +208,15 @@ export const baselineSteps: SnapshotStep[] = [
               def: 1,
               luck: 1,
               stats: {
-                base: { hp: 10, atk: 3, def: 1, luck: 1 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 3, def: 1, luck: 1 },
+                base: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 3, def: 1, luck: 1 },
               },
               level: 1,
               exp: 3,
@@ -268,47 +228,6 @@ export const baselineSteps: SnapshotStep[] = [
             turns: 2,
             damageDealt: 9,
             damageTaken: 1,
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 1,
-        turnNumber: 2,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:ring-topaz'),
-                  code: 'ring-topaz',
-                  slot: 'ring',
-                  rarity: 'uncommon',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'BATTLE',
-              drop: {
-                tableId: 'drops-default',
-                isElite: false,
-                items: [
-                  {
-                    code: 'ring-topaz',
-                    quantity: 1,
-                  },
-                ],
-              },
-            },
           },
         },
       },
@@ -329,9 +248,9 @@ export const baselineSnapshot = {
 export const baselineFixture: FixtureDefinition = {
   meta: {
     name: 'baseline',
-    description: '기본 시나리오: TREASURE → REST → BATTLE 승리, 진행도 0→40',
+    description: '기본 시나리오: REST → REST → BATTLE 승리, 진행도 0→40',
     snapshotPhase: 'post',
-    tags: ['basic', 'drop'],
+    tags: ['basic'],
   },
   seed: baselineSeed,
   initialState: baselineInitialState,

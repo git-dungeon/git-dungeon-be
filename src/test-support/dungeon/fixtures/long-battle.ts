@@ -1,13 +1,12 @@
 import type { DungeonState } from '@prisma/client';
 import type { FixtureDefinition, SnapshotStep } from './fixture.types';
 import { FixtureRegistry } from './registry';
-import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 장기 전투(6턴) 지표용 시나리오
  * seed: t0
  * 초기: hp10/10, atk1, def5, floor5? (actually floor1?), progress20, ap1
- * 결과: 6턴 승리, exp+3, progress +20 → 40, 드랍 ring-silver-band
+ * 결과: 6턴 승리, exp+3, progress +20 → 40
  */
 export const longBattleSeed = 't0';
 
@@ -71,9 +70,15 @@ export const longBattleSteps: SnapshotStep[] = [
               def: 5,
               luck: 0,
               stats: {
-                base: { hp: 10, atk: 1, def: 5, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 1, def: 5, luck: 0 },
+                base: { hp: 10, maxHp: 10, atk: 1, def: 5, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 1, def: 5, luck: 0 },
               },
               level: 1,
               exp: 0,
@@ -93,7 +98,7 @@ export const longBattleSteps: SnapshotStep[] = [
           detail: {
             stats: { hp: -5, exp: 3 },
             rewards: {
-              items: [{ code: 'ring-silver-band', quantity: 1 }],
+              gold: 2,
             },
             progress: {
               previousProgress: 20,
@@ -120,9 +125,15 @@ export const longBattleSteps: SnapshotStep[] = [
               def: 5,
               luck: 0,
               stats: {
-                base: { hp: 10, atk: 1, def: 5, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 10, atk: 1, def: 5, luck: 0 },
+                base: { hp: 10, maxHp: 10, atk: 1, def: 5, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 10, maxHp: 10, atk: 1, def: 5, luck: 0 },
               },
               level: 1,
               exp: 3,
@@ -133,47 +144,6 @@ export const longBattleSteps: SnapshotStep[] = [
             turns: 6,
             damageDealt: 8,
             damageTaken: 5,
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 1,
-        turnNumber: 0,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:ring-silver-band'),
-                  code: 'ring-silver-band',
-                  slot: 'ring',
-                  rarity: 'common',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'BATTLE',
-              drop: {
-                tableId: 'drops-default',
-                isElite: false,
-                items: [
-                  {
-                    code: 'ring-silver-band',
-                    quantity: 1,
-                  },
-                ],
-              },
-            },
           },
         },
       },
@@ -191,9 +161,9 @@ export const longBattleSnapshot = {
 export const longBattleFixture: FixtureDefinition = {
   meta: {
     name: 'long-battle',
-    description: '장기 전투(6턴) 시나리오: 승리, exp+3, 드랍 ring-silver-band',
+    description: '장기 전투(6턴) 시나리오: 승리, exp+3, progress +20 → 40',
     snapshotPhase: 'post',
-    tags: ['battle', 'drop'],
+    tags: ['battle'],
   },
   seed: longBattleSeed,
   initialState: longBattleInitialState,

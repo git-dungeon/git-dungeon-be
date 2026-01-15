@@ -85,6 +85,7 @@ pnpm start:prod
 - 해시/버전: `config/config.hashes.json` 자동 관리 (catalog는 version/updatedAt 증가, event-config/i18n은 해시 추적)
 - 변경 워크플로: `pnpm config:bump` → `pnpm validate:config` (pre-commit 훅에서 자동 실행)
 - API 제공: `/api/catalog?locale=ko` (locale별 i18n 적용)
+- **게임 로직(config) 변경 시** 시뮬레이션 fixtures/스냅샷을 갱신해야 합니다 (`pnpm sim:fixtures:gen`, `pnpm snapshot:update`).
 
 ---
 

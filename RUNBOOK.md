@@ -127,6 +127,7 @@ pnpm dev
 - **전체 fixture 빠른 회귀**: `pnpm sim:all --mode fast`
 - **임시 DB commit 플로우 자동화**: `pnpm sim:commit-flow`
 - **스냅샷 테스트**: `pnpm test -- --no-threads --testNamePattern "simulation fixtures"` (변경 시 `--update`)
+- **게임 로직(config) 변경 시** fixtures/스냅샷 갱신 필요 (`pnpm sim:fixtures:gen`, `pnpm snapshot:update`)
 - **JSON 리포트 재생성**: `pnpm sim:fixtures:gen` → `src/test-support/simulation/generated/*.json`
 - **비결정 값 마스킹**: 로그의 Date, duration 등은 테스트에서 정규화됨(자세한 규칙은 아래 링크).
 - **자세한 옵션/절차**: 아래 `CLI 상세`, `기준선/지표 비교 절차`, `실패/엣지 케이스 재현` 참고

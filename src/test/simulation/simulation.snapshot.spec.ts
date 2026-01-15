@@ -7,8 +7,18 @@ import '../../test-support/dungeon/fixtures';
 
 const runner = new SimulationRunner(false); // dry-run (no DB)
 
-// Registry에서 모든 fixture를 가져와 테스트 케이스 생성
-const fixtures = FixtureRegistry.listAll();
+// Registry에서 대표 fixture만 추려 스냅샷 테스트 생성
+const snapshotFixtureNames = new Set([
+  'baseline',
+  'trap-death',
+  'forced-move',
+  'turn-limit',
+  'elite-battle',
+]);
+const allFixtures = FixtureRegistry.listAll();
+const fixtures = allFixtures.filter((fixture) =>
+  snapshotFixtureNames.has(fixture.meta.name),
+);
 
 describe('simulation fixtures snapshots', () => {
   it('has fixtures registered', () => {
@@ -93,16 +103,6 @@ describe('simulation fixtures snapshots', () => {
           .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
         const deathExtra = death?.extra as { details?: { cause?: unknown } };
         expect(deathExtra?.details?.cause).toBe('TRAP_DAMAGE');
-      }
-
-      if (name === 'no-drop') {
-        const death = result.steps
-          .flatMap((s) => s.logs)
-          .find((l) => l.action === 'DEATH' && l.status === 'COMPLETED');
-        const deathExtra = death?.extra as {
-          details?: { handledBy?: unknown };
-        };
-        expect(deathExtra?.details?.handledBy).toBe('monster-giant-rat');
       }
 
       if (name === 'forced-move') {

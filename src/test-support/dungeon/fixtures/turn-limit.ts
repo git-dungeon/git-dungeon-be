@@ -70,9 +70,15 @@ export const turnLimitSteps: SnapshotStep[] = [
               def: 60,
               luck: 0,
               stats: {
-                base: { hp: 150, atk: 2, def: 60, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 150, atk: 2, def: 60, luck: 0 },
+                base: { hp: 150, maxHp: 150, atk: 2, def: 60, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 150, maxHp: 150, atk: 2, def: 60, luck: 0 },
               },
               level: 30,
               exp: 0,
@@ -91,7 +97,6 @@ export const turnLimitSteps: SnapshotStep[] = [
           type: 'BATTLE',
           detail: {
             stats: { hp: -34 },
-            rewards: { items: [] },
             progress: {
               previousProgress: 0,
               floorProgress: 20,
@@ -117,9 +122,15 @@ export const turnLimitSteps: SnapshotStep[] = [
               def: 60,
               luck: 0,
               stats: {
-                base: { hp: 150, atk: 2, def: 60, luck: 0 },
-                equipmentBonus: { hp: 0, atk: 0, def: 0, luck: 0 },
-                total: { hp: 150, atk: 2, def: 60, luck: 0 },
+                base: { hp: 150, maxHp: 150, atk: 2, def: 60, luck: 0 },
+                equipmentBonus: {
+                  hp: 0,
+                  maxHp: 0,
+                  atk: 0,
+                  def: 0,
+                  luck: 0,
+                },
+                total: { hp: 150, maxHp: 150, atk: 2, def: 60, luck: 0 },
               },
               level: 30,
               exp: 0,
