@@ -12,19 +12,18 @@
 | `pre`  | 실행 전 입력(초기 상태/seed) 기준  | 입력 데이터 검증 |
 | `post` | 실행 결과(steps/logs/summary) 기준 | 출력 결과 검증   |
 
-## Fixture 목록
+## Snapshot Fixture 목록
 
-| Fixture      | Phase | 설명                                           | 태그                   |
-| ------------ | ----- | ---------------------------------------------- | ---------------------- |
-| baseline     | post  | REST → REST → BATTLE 승리, 진행도 0→40         | basic                  |
-| trap-death   | post  | TRAP 피해로 사망 → DEATH + REVIVE              | death, trap            |
-| forced-move  | post  | progress 100 → floor 이동                      | move, floor            |
-| no-drop      | post  | BATTLE 패배 → DEATH + REVIVE                   | death, battle          |
-| long-battle  | post  | 6턴 전투 승리, 드랍 없음(골드만)               | battle                 |
-| turn-limit   | post  | 30턴 후 TURN_LIMIT 패배                        | battle, defeat         |
-| elite-battle | post  | Elite 전투 승리, 멀티 드랍                     | battle, elite, drop    |
-| rest-clamp   | post  | hp full 상태에서 REST, hp 변화 0               | rest                   |
-| level-up     | post  | 연속 레벨업(2회) + 골드 보상                   | battle, level-up       |
+| Fixture      | Phase | 설명                                      | 태그                |
+| ------------ | ----- | ----------------------------------------- | ------------------- |
+| baseline     | post  | REST → REST → BATTLE 승리, 진행도 0→40    | basic               |
+| trap-death   | post  | TRAP 피해로 사망 → DEATH + REVIVE         | death, trap         |
+| forced-move  | post  | progress 100 → floor 이동                 | move, floor         |
+| turn-limit   | post  | 30턴 후 TURN_LIMIT 패배                   | battle, defeat      |
+| elite-battle | post  | Elite 전투 승리, 멀티 드랍                | battle, elite, drop |
+
+> 나머지 fixture(no-drop/long-battle/level-up/rest-clamp)는 스냅샷 테스트에서 제외하고,
+> CLI 재현/지표 테스트 대상으로 활용합니다.
 
 ## 실행/업데이트
 
