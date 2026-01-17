@@ -20,4 +20,10 @@ export interface LogsQueryDto {
     tags.MinLength<1> &
     tags.Example<'MjAyNS0xMi0xMFQwMDowMDowMC4wMDBafGQ1YzA0MGI0LTg0MzItNDljNC1hYzgwLTdlNmJhMTY4OGQ0ZQ'>;
   type?: LogTypeEnum & tags.Example<'BATTLE'>;
+  from?: string &
+    tags.Format<'date-time'> &
+    tags.Example<'2026-01-01T00:00:00.000Z'>;
+  to?: string &
+    tags.Format<'date-time'> &
+    tags.Example<'2026-01-31T23:59:59.999Z'>;
 }
