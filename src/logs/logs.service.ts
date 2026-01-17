@@ -32,6 +32,13 @@ export class LogsService {
       where.sequence = { lt: params.cursorPayload.sequence };
     }
 
+    if (params.from || params.to) {
+      where.createdAt = {
+        ...(params.from ? { gte: params.from } : {}),
+        ...(params.to ? { lte: params.to } : {}),
+      };
+    }
+
     const logs = await this.prisma.dungeonLog.findMany({
       where,
       orderBy: [{ sequence: Prisma.SortOrder.desc }],
