@@ -13,6 +13,8 @@ export type ValidatedLogsQuery = {
   cursor?: string;
   cursorPayload?: LogsCursor;
   type?: LogTypeFilter;
+  from?: Date;
+  to?: Date;
 };
 
 const parseLimit = (rawLimit: number | string | undefined): number => {
@@ -60,16 +62,52 @@ const parseType = (rawType: string | undefined): LogTypeFilter | undefined => {
   });
 };
 
+const parseDateTime = (
+  raw: string | undefined,
+  label: 'from' | 'to',
+): Date | undefined => {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  if (raw === '') {
+    throw buildInvalidQueryException(`${label} 값은 비어 있을 수 없습니다.`, {
+      [label]: raw,
+    });
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    throw buildInvalidQueryException(
+      `${label} 값은 ISO 8601 날짜 형식이어야 합니다.`,
+      { [label]: raw },
+    );
+  }
+
+  return parsed;
+};
+
 export const validateLogsQuery = (raw: LogsQueryDto): ValidatedLogsQuery => {
   const limit = parseLimit(raw.limit as number | string | undefined);
   const type = parseType(raw.type);
   const cursorPayload =
     raw.cursor !== undefined ? decodeLogsCursor(raw.cursor) : undefined;
+  const from = parseDateTime(raw.from, 'from');
+  const to = parseDateTime(raw.to, 'to');
+
+  if (from && to && from.getTime() > to.getTime()) {
+    throw buildInvalidQueryException('from 값이 to 값보다 클 수 없습니다.', {
+      from: raw.from,
+      to: raw.to,
+    });
+  }
 
   return {
     limit,
     type,
     cursor: raw.cursor,
     cursorPayload,
+    from,
+    to,
   };
 };

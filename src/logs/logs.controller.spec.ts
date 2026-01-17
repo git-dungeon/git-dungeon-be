@@ -106,6 +106,8 @@ describe('LogsController (E2E)', () => {
         cursor: undefined,
         cursorPayload: undefined,
         type: undefined,
+        from: undefined,
+        to: undefined,
       });
     } finally {
       await app.close();

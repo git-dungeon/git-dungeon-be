@@ -59,4 +59,23 @@ describe('validateLogsQuery', () => {
     ).toString('base64url');
     expect(() => validateLogsQuery({ cursor: legacy })).toThrow();
   });
+
+  it('from/to가 유효하면 Date로 파싱한다', () => {
+    const from = '2026-01-01T00:00:00.000Z';
+    const to = '2026-01-31T23:59:59.999Z';
+    const result = validateLogsQuery({ from, to });
+    expect(result.from?.toISOString()).toBe(from);
+    expect(result.to?.toISOString()).toBe(to);
+  });
+
+  it('from/to 형식이 잘못되면 예외를 던진다', () => {
+    expect(() => validateLogsQuery({ from: 'invalid-date' })).toThrow();
+    expect(() => validateLogsQuery({ to: 'not-a-date' })).toThrow();
+  });
+
+  it('from이 to보다 크면 예외를 던진다', () => {
+    const from = '2026-02-01T00:00:00.000Z';
+    const to = '2026-01-01T00:00:00.000Z';
+    expect(() => validateLogsQuery({ from, to })).toThrow();
+  });
 });
