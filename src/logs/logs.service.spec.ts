@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PrismaService } from '../prisma/prisma.service';
 import { LogsService } from './logs.service';
