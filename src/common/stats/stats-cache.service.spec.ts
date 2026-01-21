@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { UnauthorizedException } from '@nestjs/common';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { StatsCacheService } from './stats-cache.service';
@@ -22,9 +21,7 @@ describe('StatsCacheService', () => {
   };
   const loadCatalogDataMock = vi.mocked(loadCatalogData);
 
-  const service = new StatsCacheService(
-    prismaMock as unknown as PrismaService,
-  );
+  const service = new StatsCacheService(prismaMock as unknown as PrismaService);
 
   beforeEach(() => {
     prismaMock.dungeonState.findUnique.mockReset();
@@ -109,7 +106,7 @@ describe('StatsCacheService', () => {
         id: 'item-2',
         code: 'armor-chain',
         modifiers: [{ kind: 'stat', stat: 'def', mode: 'percent', value: 0.1 }],
-        modifierVersion: 5,
+        modifierVersion: 4,
       },
     ]);
     loadCatalogDataMock.mockResolvedValue({
@@ -133,7 +130,9 @@ describe('StatsCacheService', () => {
           name: 'Chain Armor',
           slot: 'armor',
           rarity: 'common',
-          modifiers: [{ kind: 'stat', stat: 'def', mode: 'percent', value: 0.2 }],
+          modifiers: [
+            { kind: 'stat', stat: 'def', mode: 'percent', value: 0.2 },
+          ],
           spriteId: 'armor-chain',
         },
       ],
@@ -237,11 +236,11 @@ describe('StatsCacheService', () => {
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
     loadCatalogDataMock.mockResolvedValue(buildCatalog(1));
 
-    await expect(service.ensureStatsCache(baseState.userId)).rejects.toMatchObject(
-      {
-        constructor: UnauthorizedException,
-        response: { code: 'INVENTORY_UNAUTHORIZED' },
-      },
-    );
+    await expect(
+      service.ensureStatsCache(baseState.userId),
+    ).rejects.toMatchObject({
+      constructor: UnauthorizedException,
+      response: { code: 'INVENTORY_UNAUTHORIZED' },
+    });
   });
 });

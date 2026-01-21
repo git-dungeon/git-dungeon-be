@@ -12,7 +12,7 @@ import type { PrismaService } from '../../prisma/prisma.service';
 import type { DungeonEventService } from '../events/dungeon-event.service';
 import type { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import type { SimpleQueue } from '../../common/queue/simple-queue';
-import type { StatsCacheService } from '../../common/stats/stats-cache.service';
+import { StatsCacheService } from '../../common/stats/stats-cache.service';
 
 type MockConfigService = Pick<ConfigService, 'get'>;
 
@@ -93,15 +93,18 @@ describe('DungeonBatchService 배치 동작', () => {
     execute: vi.fn(),
   };
 
-  const statsCacheMock = {
-    ensureStatsCache: vi.fn().mockResolvedValue({
+  const statsCacheService = new StatsCacheService(
+    prismaMock as unknown as PrismaService,
+  );
+  const statsCacheMock = vi
+    .spyOn(statsCacheService, 'ensureStatsCache')
+    .mockResolvedValue({
       hp: 0,
       maxHp: 0,
       atk: 0,
       def: 0,
       luck: 0,
-    }),
-  };
+    });
 
   const queueMock = (() => {
     let handler: ((data: { userId: string }) => Promise<void>) | null = null;
@@ -136,7 +139,7 @@ describe('DungeonBatchService 배치 동작', () => {
     queueMock.registerHandler.mockClear();
     queueMock.enqueue.mockClear();
     queueMock.resetHandler();
-    statsCacheMock.ensureStatsCache.mockClear();
+    statsCacheMock.mockClear();
   });
 
   afterEach(() => {
@@ -148,7 +151,7 @@ describe('DungeonBatchService 배치 동작', () => {
       prismaMock as unknown as PrismaService,
       eventServiceMock as unknown as DungeonEventService,
       lockMock as unknown as DungeonBatchLockService,
-      statsCacheMock as StatsCacheService,
+      statsCacheService,
       queueMock as unknown as SimpleQueue<{ userId: string }>,
       undefined,
       configService as unknown as ConfigService,
@@ -244,10 +247,7 @@ describe('DungeonBatchService 배치 동작', () => {
 
     await service.runBatchTick();
 
-    expect(statsCacheMock.ensureStatsCache).toHaveBeenCalledWith(
-      state.userId,
-      prismaMock,
-    );
+    expect(statsCacheMock).toHaveBeenCalledWith(state.userId, prismaMock);
     expect(eventServiceMock.execute).toHaveBeenCalledTimes(1);
     expect(eventServiceMock.execute).toHaveBeenCalledWith(
       expect.objectContaining({
