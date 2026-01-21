@@ -18,6 +18,8 @@ export const baselineInitialState: DungeonState = {
   atk: 3,
   def: 1,
   luck: 1,
+  equipmentBonus: null,
+  statsVersion: 0,
   floor: 1,
   maxFloor: 1,
   floorProgress: 0,

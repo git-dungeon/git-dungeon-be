@@ -19,6 +19,8 @@ export const restClampInitialState: DungeonState = {
   atk: 4,
   def: 2,
   luck: 1,
+  equipmentBonus: null,
+  statsVersion: 0,
   floor: 2,
   maxFloor: 2,
   floorProgress: 10,

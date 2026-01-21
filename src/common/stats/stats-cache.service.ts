@@ -76,7 +76,7 @@ export class StatsCacheService {
           prismaClient.inventoryItem.update({
             where: { id: update.id },
             data: {
-              modifiers: update.modifiers as Prisma.InputJsonValue,
+              modifiers: update.modifiers as unknown as Prisma.InputJsonValue,
               modifierVersion: update.modifierVersion,
             },
           }),
@@ -88,7 +88,7 @@ export class StatsCacheService {
       await prismaClient.dungeonState.update({
         where: { userId },
         data: {
-          equipmentBonus: equipmentBonus as Prisma.InputJsonValue,
+          equipmentBonus: equipmentBonus as unknown as Prisma.InputJsonValue,
           statsVersion: catalogVersion,
         },
       });
