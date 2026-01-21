@@ -87,28 +87,42 @@ export class StatsCacheService {
 
     const equipmentBonus = calculateEquipmentBonus(baseStats, modifiersList);
 
-    if (updates.length > 0) {
-      await Promise.all(
-        updates.map((update) =>
-          prismaClient.inventoryItem.update({
-            where: { id: update.id },
-            data: {
-              modifiers: update.modifiers as unknown as Prisma.InputJsonValue,
-              modifierVersion: update.modifierVersion,
-            },
-          }),
-        ),
+    if (updates.length > 0 || shouldRefresh) {
+      const inventoryUpdateOps = updates.map((update) =>
+        prismaClient.inventoryItem.update({
+          where: { id: update.id },
+          data: {
+            modifiers: update.modifiers as unknown as Prisma.InputJsonValue,
+            modifierVersion: update.modifierVersion,
+          },
+        }),
       );
-    }
+      const stateUpdateOp = shouldRefresh
+        ? prismaClient.dungeonState.update({
+            where: { userId },
+            data: {
+              equipmentBonus:
+                equipmentBonus as unknown as Prisma.InputJsonValue,
+              statsVersion: catalogVersion,
+            },
+          })
+        : null;
 
-    if (shouldRefresh) {
-      await prismaClient.dungeonState.update({
-        where: { userId },
-        data: {
-          equipmentBonus: equipmentBonus as unknown as Prisma.InputJsonValue,
-          statsVersion: catalogVersion,
-        },
-      });
+      if ('$transaction' in prismaClient) {
+        const ops = stateUpdateOp
+          ? [...inventoryUpdateOps, stateUpdateOp]
+          : inventoryUpdateOps;
+        if (ops.length > 0) {
+          await prismaClient.$transaction(ops);
+        }
+      } else {
+        for (const op of inventoryUpdateOps) {
+          await op;
+        }
+        if (stateUpdateOp) {
+          await stateUpdateOp;
+        }
+      }
     }
 
     return equipmentBonus;

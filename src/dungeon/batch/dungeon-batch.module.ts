@@ -7,9 +7,10 @@ import { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import { SimpleQueue } from '../../common/queue/simple-queue';
 import { ConfigService } from '@nestjs/config';
 import { StatsCacheService } from '../../common/stats/stats-cache.service';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule, ScheduleModule, DungeonModule],
+  imports: [ConfigModule, ScheduleModule, DungeonModule, PrismaModule],
   providers: [
     DungeonBatchService,
     DungeonBatchLockService,
