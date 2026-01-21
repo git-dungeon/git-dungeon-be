@@ -5,7 +5,9 @@ import { EmbeddingController } from './embedding.controller';
 import type { EmbeddingService } from './embedding.service';
 
 vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import('../test-support/mocks/nestia');
+  const { createNestiaModuleMock } = await import(
+    '../test-support/mocks/nestia'
+  );
   return createNestiaModuleMock();
 });
 

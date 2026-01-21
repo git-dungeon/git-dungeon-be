@@ -258,7 +258,12 @@ export class BattleEventProcessor implements DungeonEventProcessor {
 
     const drops =
       outcome === 'VICTORY' &&
-      this.shouldDrop(monsterMeta, { next: rng }, dropChance, eliteDropMultiplier)
+      this.shouldDrop(
+        monsterMeta,
+        { next: rng },
+        dropChance,
+        eliteDropMultiplier,
+      )
         ? this.rollDrops(monsterMeta, { next: rng })
         : [];
 

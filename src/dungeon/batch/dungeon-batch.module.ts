@@ -6,12 +6,14 @@ import { DungeonBatchService } from './dungeon-batch.service';
 import { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import { SimpleQueue } from '../../common/queue/simple-queue';
 import { ConfigService } from '@nestjs/config';
+import { StatsCacheService } from '../../common/stats/stats-cache.service';
 
 @Module({
   imports: [ConfigModule, ScheduleModule, DungeonModule],
   providers: [
     DungeonBatchService,
     DungeonBatchLockService,
+    StatsCacheService,
     {
       provide: 'DUNGEON_BATCH_QUEUE',
       inject: [ConfigService],

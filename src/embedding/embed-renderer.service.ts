@@ -102,13 +102,9 @@ export class EmbedRendererService {
     };
   }
 
-  private toRendererItem(
-    item: EmbeddingPreviewEquipmentItem,
-  ): InventoryItem {
+  private toRendererItem(item: EmbeddingPreviewEquipmentItem): InventoryItem {
     const code =
-      typeof item.code === 'string' && item.code.trim()
-        ? item.code
-        : undefined;
+      typeof item.code === 'string' && item.code.trim() ? item.code : undefined;
     const effect = item.effect ?? undefined;
 
     return {

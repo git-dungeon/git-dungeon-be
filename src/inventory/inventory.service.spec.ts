@@ -9,6 +9,7 @@ import {
 import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import type { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from './inventory.service';
+import type { StatsCacheService } from '../common/stats/stats-cache.service';
 import {
   resetTypiaAssertMock,
   typiaAssertMock,
@@ -36,11 +37,19 @@ describe('InventoryService', () => {
     },
   };
 
-  const service = new InventoryService(prismaMock as unknown as PrismaService);
+  const statsCacheMock = {
+    ensureStatsCache: vi.fn(),
+  };
+
+  const service = new InventoryService(
+    prismaMock as unknown as PrismaService,
+    statsCacheMock as unknown as StatsCacheService,
+  );
 
   beforeEach(() => {
     prismaMock.dungeonState.findUnique.mockReset();
     prismaMock.inventoryItem.findMany.mockReset();
+    statsCacheMock.ensureStatsCache.mockReset();
     resetTypiaAssertMock();
   });
 
@@ -81,6 +90,13 @@ describe('InventoryService', () => {
         version: 1,
       },
     ]);
+    statsCacheMock.ensureStatsCache.mockResolvedValue({
+      hp: 0,
+      maxHp: 0,
+      atk: 5,
+      def: 1,
+      luck: 0,
+    });
 
     const response = await service.getInventory(USER_ID_1);
 
@@ -121,6 +137,13 @@ describe('InventoryService', () => {
       luck: 1,
     });
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
+    statsCacheMock.ensureStatsCache.mockResolvedValue({
+      hp: 0,
+      maxHp: 0,
+      atk: 0,
+      def: 0,
+      luck: 0,
+    });
 
     const response = await service.getInventory(USER_ID_1);
 
@@ -153,6 +176,12 @@ describe('InventoryService', () => {
   it('던전 상태가 없으면 INVENTORY_UNAUTHORIZED 예외를 던져야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue(null);
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
+    statsCacheMock.ensureStatsCache.mockRejectedValue(
+      new UnauthorizedException({
+        code: 'INVENTORY_UNAUTHORIZED',
+        message: '인벤토리를 조회할 수 없습니다.',
+      }),
+    );
 
     await expect(service.getInventory(USER_ID_1)).rejects.toMatchObject({
       constructor: UnauthorizedException,
@@ -170,6 +199,13 @@ describe('InventoryService', () => {
       luck: 1,
     });
     prismaMock.inventoryItem.findMany.mockResolvedValue([]);
+    statsCacheMock.ensureStatsCache.mockResolvedValue({
+      hp: 0,
+      maxHp: 0,
+      atk: 0,
+      def: 0,
+      luck: 0,
+    });
 
     const loggerSpy = vi.spyOn(
       (
@@ -358,8 +394,21 @@ describe('InventoryService mutations', () => {
       ),
     };
 
+    const statsCacheMock = {
+      ensureStatsCache: vi.fn().mockResolvedValue({
+        hp: 0,
+        maxHp: 0,
+        atk: 0,
+        def: 0,
+        luck: 0,
+      }),
+    };
+
     return {
-      service: new InventoryService(prismaMock as unknown as PrismaService),
+      service: new InventoryService(
+        prismaMock as unknown as PrismaService,
+        statsCacheMock as unknown as StatsCacheService,
+      ),
       prismaMock,
       getItems: () => inventoryItems,
       getDungeonLogs: () => dungeonLogCreates,

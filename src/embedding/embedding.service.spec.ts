@@ -274,6 +274,7 @@ describe('EmbeddingService', () => {
         theme: 'dark',
         size: 'wide',
         language: 'ko',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         overview: expect.any(Object),
       }),
     );

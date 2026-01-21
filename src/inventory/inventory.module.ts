@@ -7,12 +7,14 @@ import {
   RATE_LIMIT_CONFIG,
 } from '../common/guards/authenticated-throttler.guard';
 import { AuthModule } from '../auth/auth.module';
+import { StatsCacheService } from '../common/stats/stats-cache.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],
   controllers: [InventoryController],
   providers: [
     InventoryService,
+    StatsCacheService,
     {
       provide: RATE_LIMIT_CONFIG,
       useValue: {

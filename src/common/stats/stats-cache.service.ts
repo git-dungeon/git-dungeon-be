@@ -24,7 +24,12 @@ export class StatsCacheService {
       prismaClient.dungeonState.findUnique({ where: { userId } }),
       prismaClient.inventoryItem.findMany({
         where: { userId, isEquipped: true },
-        select: { id: true, code: true, modifiers: true, modifierVersion: true },
+        select: {
+          id: true,
+          code: true,
+          modifiers: true,
+          modifierVersion: true,
+        },
       }),
       loadCatalogData(),
     ]);
@@ -45,7 +50,11 @@ export class StatsCacheService {
     }> = [];
 
     const modifiersList = equippedItems.map((item) => {
-      const resolved = resolveItemModifiers(item, catalogItemMap, catalogVersion);
+      const resolved = resolveItemModifiers(
+        item,
+        catalogItemMap,
+        catalogVersion,
+      );
       if (resolved.updated) {
         updates.push({
           id: item.id,
@@ -63,12 +72,20 @@ export class StatsCacheService {
       def: state.def,
       luck: state.luck,
     };
-    const equipmentBonus = calculateEquipmentBonus(baseStats, modifiersList);
     const hasCachedBonus = isEquipmentStats(state.equipmentBonus);
+    const cachedBonus = hasCachedBonus
+      ? (state.equipmentBonus as unknown as EquipmentStats)
+      : undefined;
     const shouldRefresh =
       state.statsVersion !== catalogVersion ||
       updates.length > 0 ||
       !hasCachedBonus;
+
+    if (!shouldRefresh && cachedBonus) {
+      return cachedBonus;
+    }
+
+    const equipmentBonus = calculateEquipmentBonus(baseStats, modifiersList);
 
     if (updates.length > 0) {
       await Promise.all(
