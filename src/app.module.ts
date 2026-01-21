@@ -18,6 +18,7 @@ import { SettingsModule } from './settings/settings.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { RankingModule } from './ranking/ranking.module';
 import { GithubModule } from './github/github.module';
 import { DungeonModule } from './dungeon/dungeon.module';
 import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
@@ -74,6 +75,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     DashboardModule,
     InventoryModule,
     CatalogModule,
+    RankingModule,
     GithubModule,
     DungeonModule,
     LogsModule,
