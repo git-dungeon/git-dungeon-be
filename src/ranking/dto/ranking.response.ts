@@ -17,5 +17,3 @@ export interface RankingPayload {
   rankings: RankingEntry[];
   nextCursor: (string & tags.MinLength<1>) | null;
 }
-
-export type RankingResponse = ApiSuccessResponse<RankingPayload>;
