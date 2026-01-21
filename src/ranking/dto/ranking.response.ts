@@ -18,9 +18,4 @@ export interface RankingPayload {
   nextCursor: (string & tags.MinLength<1>) | null;
 }
 
-export type RankingResponse = ApiSuccessResponse<RankingPayload> & {
-  meta: {
-    requestId: string & tags.Format<'uuid'>;
-    generatedAt: string & tags.Format<'date-time'>;
-  };
-};
+export type RankingResponse = ApiSuccessResponse<RankingPayload>;

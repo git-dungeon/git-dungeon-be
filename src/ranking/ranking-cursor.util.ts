@@ -34,7 +34,7 @@ export const decodeRankingCursor = (
     }
 
     const offset = Number.parseInt(decoded, 10);
-    if (!Number.isFinite(offset) || offset < 0) {
+    if (!Number.isSafeInteger(offset) || offset < 0) {
       throw new Error('cursor offset must be >= 0');
     }
 

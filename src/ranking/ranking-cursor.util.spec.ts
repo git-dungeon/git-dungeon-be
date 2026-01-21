@@ -1,7 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
 import { RANKING_ERROR_CODES } from './ranking.errors';
-import { decodeRankingCursor, encodeRankingCursor } from './ranking-cursor.util';
+import {
+  decodeRankingCursor,
+  encodeRankingCursor,
+} from './ranking-cursor.util';
 
 describe('ranking-cursor.util', () => {
   it('커서를 인코딩/디코딩할 수 있어야 한다', () => {
@@ -31,6 +34,12 @@ describe('ranking-cursor.util', () => {
 
   it('음수 offset 커서는 예외를 던진다', () => {
     const invalid = Buffer.from('-1', 'utf8').toString('base64url');
+    expect(() => decodeRankingCursor(invalid)).toThrow(BadRequestException);
+  });
+
+  it('안전하지 않은 offset 커서는 예외를 던진다', () => {
+    const unsafeOffset = '9007199254740993';
+    const invalid = Buffer.from(unsafeOffset, 'utf8').toString('base64url');
     expect(() => decodeRankingCursor(invalid)).toThrow(BadRequestException);
   });
 });

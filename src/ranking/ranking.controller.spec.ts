@@ -25,13 +25,16 @@ describe('RankingController (E2E)', () => {
     };
 
     const app = await createTestingApp({
-      overrideProviders: [{ provide: RankingService, useValue: rankingServiceMock }],
+      overrideProviders: [
+        { provide: RankingService, useValue: rankingServiceMock },
+      ],
       globalGuards: options?.guards,
     });
 
     const controller = app.get(RankingController);
-    (controller as unknown as { rankingService: RankingService }).rankingService =
-      rankingServiceMock as unknown as RankingService;
+    (
+      controller as unknown as { rankingService: RankingService }
+    ).rankingService = rankingServiceMock as unknown as RankingService;
 
     return { app, rankingServiceMock };
   };

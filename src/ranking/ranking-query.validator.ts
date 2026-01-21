@@ -3,10 +3,7 @@ import {
   RANKING_MAX_LIMIT,
   RANKING_MIN_LIMIT,
 } from './ranking.constants';
-import {
-  decodeRankingCursor,
-  type RankingCursor,
-} from './ranking-cursor.util';
+import { decodeRankingCursor, type RankingCursor } from './ranking-cursor.util';
 import { buildInvalidQueryException } from './ranking.errors';
 import type { RankingQueryDto } from './dto/ranking.query';
 
@@ -21,10 +18,9 @@ const parseLimit = (rawLimit: number | string | undefined): number => {
     return RANKING_DEFAULT_LIMIT;
   }
 
-  const parsed =
-    typeof rawLimit === 'number' ? rawLimit : Number.parseInt(rawLimit, 10);
+  const parsed = typeof rawLimit === 'number' ? rawLimit : Number(rawLimit);
 
-  if (!Number.isFinite(parsed)) {
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
     throw buildInvalidQueryException('limit 값이 숫자가 아닙니다.', {
       limit: rawLimit,
     });

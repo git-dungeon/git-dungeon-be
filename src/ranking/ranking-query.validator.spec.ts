@@ -5,6 +5,7 @@ import {
   RANKING_MIN_LIMIT,
 } from './ranking.constants';
 import { validateRankingQuery } from './ranking-query.validator';
+import type { RankingQueryDto } from './dto/ranking.query';
 import { encodeRankingCursor } from './ranking-cursor.util';
 
 describe('validateRankingQuery', () => {
@@ -25,6 +26,24 @@ describe('validateRankingQuery', () => {
   it('limit가 범위를 벗어나면 예외를 던진다', () => {
     expect(() => validateRankingQuery({ limit: 0 })).toThrow();
     expect(() => validateRankingQuery({ limit: 999 })).toThrow();
+  });
+
+  it('limit가 정수가 아니면 예외를 던진다', () => {
+    expect(() =>
+      validateRankingQuery({ limit: '10abc' } as unknown as RankingQueryDto),
+    ).toThrow();
+    expect(() =>
+      validateRankingQuery({ limit: '1.5' } as unknown as RankingQueryDto),
+    ).toThrow();
+    expect(() =>
+      validateRankingQuery({ limit: 1.5 } as unknown as RankingQueryDto),
+    ).toThrow();
+  });
+
+  it('limit가 숫자 문자열이면 파싱한다', () => {
+    expect(
+      validateRankingQuery({ limit: '10' } as unknown as RankingQueryDto).limit,
+    ).toBe(10);
   });
 
   it('cursor가 유효하면 파싱한다', () => {
