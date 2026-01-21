@@ -11,7 +11,9 @@ vi.mock('typia', async () => {
   return typiaModuleMock;
 });
 vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import('../test-support/mocks/nestia');
+  const { createNestiaModuleMock } = await import(
+    '../test-support/mocks/nestia'
+  );
   return createNestiaModuleMock();
 });
 
@@ -64,9 +66,7 @@ describe('EmbeddingController SVG (E2E)', () => {
 
       const bodyText =
         response.text ??
-        (response.body
-          ? (response.body as Buffer).toString()
-          : '');
+        (response.body ? (response.body as Buffer).toString() : '');
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('image/svg+xml');

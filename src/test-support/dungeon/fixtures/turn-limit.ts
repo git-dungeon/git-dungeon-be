@@ -19,6 +19,8 @@ export const turnLimitInitialState: DungeonState = {
   atk: 2,
   def: 60,
   luck: 0,
+  equipmentBonus: null,
+  statsVersion: 0,
   floor: 120,
   maxFloor: 120,
   floorProgress: 0,

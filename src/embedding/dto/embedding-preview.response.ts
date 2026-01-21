@@ -11,7 +11,13 @@ export type EmbeddingPreviewRarity =
   | 'epic'
   | 'legendary';
 export type EmbeddingPreviewSlot = 'helmet' | 'armor' | 'weapon' | 'ring';
-export type EmbeddingPreviewStat = 'hp' | 'maxHp' | 'atk' | 'def' | 'luck' | 'ap';
+export type EmbeddingPreviewStat =
+  | 'hp'
+  | 'maxHp'
+  | 'atk'
+  | 'def'
+  | 'luck'
+  | 'ap';
 
 export interface EmbeddingPreviewPayload {
   theme: EmbeddingPreviewTheme;
@@ -79,4 +85,5 @@ export interface EmbeddingPreviewEffect {
   description: string;
 }
 
-export type EmbeddingPreviewResponse = ApiSuccessResponse<EmbeddingPreviewPayload>;
+export type EmbeddingPreviewResponse =
+  ApiSuccessResponse<EmbeddingPreviewPayload>;

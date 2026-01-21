@@ -92,8 +92,7 @@ export class EmbeddingService {
     const { dashboard, inventory, catalog, displayName, avatarUrl } = params;
     const state = dashboard.state;
     const stats = this.buildStatSummary(state);
-    const expToLevel =
-      state.expToLevel ?? Math.max(0, state.level * 10);
+    const expToLevel = state.expToLevel ?? Math.max(0, state.level * 10);
 
     return {
       displayName,
@@ -114,7 +113,9 @@ export class EmbeddingService {
     };
   }
 
-  private buildStatSummary(state: DashboardStateResponse['state']): EmbeddingPreviewStatSummary {
+  private buildStatSummary(
+    state: DashboardStateResponse['state'],
+  ): EmbeddingPreviewStatSummary {
     const equipmentBonus = {
       hp: state.stats.equipmentBonus.hp,
       maxHp: state.stats.equipmentBonus.maxHp,
@@ -165,9 +166,7 @@ export class EmbeddingService {
     inventory: InventoryResponse,
     catalog: CatalogData,
   ): EmbeddingPreviewEquipmentItem[] {
-    const catalogMap = new Map(
-      catalog.items.map((item) => [item.code, item]),
-    );
+    const catalogMap = new Map(catalog.items.map((item) => [item.code, item]));
 
     return Object.values(inventory.equipped)
       .filter((item): item is NonNullable<typeof item> => Boolean(item))

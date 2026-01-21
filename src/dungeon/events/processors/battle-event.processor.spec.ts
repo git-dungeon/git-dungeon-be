@@ -14,6 +14,8 @@ const createState = (overrides: Partial<DungeonState> = {}): DungeonState => ({
   atk: 4,
   def: 1,
   luck: 1,
+  equipmentBonus: null,
+  statsVersion: 0,
   floor: 1,
   maxFloor: 1,
   floorProgress: 0,

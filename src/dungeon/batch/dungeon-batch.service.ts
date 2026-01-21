@@ -12,12 +12,10 @@ import type { DungeonState, Prisma } from '@prisma/client';
 import { DungeonEventService } from '../events/dungeon-event.service';
 import type { DungeonEventResult } from '../events/event.types';
 import { PrismaService } from '../../prisma/prisma.service';
-import { calculateEquipmentBonus } from '../../common/inventory/equipment-stats';
-import { parseInventoryModifiers } from '../../common/inventory/inventory-modifier';
-import type { EquipmentStats } from '../../inventory/dto/inventory.response';
 import { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import { loadEnvironment } from '../../config/environment';
 import { SimpleQueue } from '../../common/queue/simple-queue';
+import { StatsCacheService } from '../../common/stats/stats-cache.service';
 
 type BatchConfig = {
   cron: string;
@@ -55,6 +53,7 @@ export class DungeonBatchService implements OnModuleInit {
     private readonly prisma: PrismaService,
     private readonly dungeonEventService: DungeonEventService,
     private readonly lockService: DungeonBatchLockService,
+    private readonly statsCacheService: StatsCacheService,
     @Inject('DUNGEON_BATCH_QUEUE')
     private readonly queue: SimpleQueue<DungeonBatchJob>,
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
@@ -257,7 +256,10 @@ export class DungeonBatchService implements OnModuleInit {
   }
 
   private async runSingleAction(state: DungeonState): Promise<DungeonState> {
-    const equipmentBonus = await this.loadEquipmentBonus(state);
+    const equipmentBonus = await this.statsCacheService.ensureStatsCache(
+      state.userId,
+      this.prisma,
+    );
     const result = await this.dungeonEventService.execute({
       state,
       seed: this.buildSeed(state),
@@ -346,28 +348,5 @@ export class DungeonBatchService implements OnModuleInit {
 
   private buildSeed(state: DungeonState): string {
     return state.userId;
-  }
-
-  private async loadEquipmentBonus(
-    state: DungeonState,
-  ): Promise<EquipmentStats> {
-    const equippedItems = await this.prisma.inventoryItem.findMany({
-      where: { userId: state.userId, isEquipped: true },
-      select: { modifiers: true },
-    });
-
-    const baseStats: EquipmentStats = {
-      hp: state.maxHp,
-      maxHp: state.maxHp,
-      atk: state.atk,
-      def: state.def,
-      luck: state.luck,
-    };
-
-    const modifiersList = equippedItems.map((item) =>
-      parseInventoryModifiers(item.modifiers),
-    );
-
-    return calculateEquipmentBonus(baseStats, modifiersList);
   }
 }

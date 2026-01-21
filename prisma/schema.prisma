@@ -131,6 +131,8 @@ model DungeonState {
   atk                    Int           @default(1)
   def                    Int           @default(1)
   luck                   Int           @default(1)
+  equipmentBonus         Json?
+  statsVersion           Int           @default(0)
   floor                  Int           @default(1)
   maxFloor               Int           @default(1)
   floorProgress          Int           @default(0)
@@ -222,6 +224,7 @@ model InventoryItem {
   rarity     InventoryRarity
   modifiers  Json
   isEquipped Boolean         @default(false)
+  modifierVersion Int        @default(0)
   obtainedAt DateTime        @default(now())
   version    Int             @default(1)
   createdAt  DateTime        @default(now())

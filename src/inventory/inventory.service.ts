@@ -16,10 +16,7 @@ import {
 } from '@prisma/client';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
-import {
-  addEquipmentStats,
-  calculateEquipmentBonus,
-} from '../common/inventory/equipment-stats';
+import { addEquipmentStats } from '../common/inventory/equipment-stats';
 import {
   extractFlatStatModifiers,
   calculateStatsDiff,
@@ -36,6 +33,7 @@ import type {
 } from './dto/inventory.response';
 import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
+import { StatsCacheService } from '../common/stats/stats-cache.service';
 
 type InventoryLogAction = 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
 
@@ -51,7 +49,10 @@ const INVENTORY_SLOTS: InventorySlot[] = [
 export class InventoryService {
   private readonly logger = new Logger(InventoryService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly statsCacheService: StatsCacheService,
+  ) {}
 
   async getInventory(userId: string): Promise<InventoryResponse> {
     const response = await this.buildInventoryResponse(this.prisma, userId);
@@ -238,6 +239,10 @@ export class InventoryService {
     userId: string,
     options?: { forcedInventoryVersion?: number },
   ): Promise<InventoryResponse> {
+    const equipmentBonus = await this.statsCacheService.ensureStatsCache(
+      userId,
+      prismaClient,
+    );
     const [dungeonState, inventoryItems] = await Promise.all([
       prismaClient.dungeonState.findUnique({ where: { userId } }),
       prismaClient.inventoryItem.findMany({
@@ -256,12 +261,6 @@ export class InventoryService {
     const items = inventoryItems.map((item) => this.mapInventoryItem(item));
     const equipped = this.mapEquipped(items);
     const baseStats = this.getBaseStats(dungeonState);
-    const equipmentBonus = calculateEquipmentBonus(
-      baseStats,
-      Object.values(equipped)
-        .filter((item): item is EquipmentItem => Boolean(item))
-        .map((item) => item.modifiers),
-    );
     const summary = {
       base: baseStats,
       equipmentBonus,

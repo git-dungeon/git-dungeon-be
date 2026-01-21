@@ -26,6 +26,7 @@ describe('LogsService', () => {
 
     expect(prismaMock.dungeonLog.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         where: expect.objectContaining({
           userId: USER_ID,
           createdAt: {
