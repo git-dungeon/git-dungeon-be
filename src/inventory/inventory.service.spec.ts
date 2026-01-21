@@ -124,6 +124,8 @@ describe('InventoryService', () => {
       def: 4,
       luck: 1,
     });
+    expect(statsCacheMock.ensureStatsCache).toHaveBeenCalledTimes(1);
+    expect(statsCacheMock.ensureStatsCache).toHaveBeenCalledWith(USER_ID_1);
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 

@@ -101,7 +101,7 @@ describe('DungeonBatchService 배치 동작', () => {
       def: 0,
       luck: 0,
     }),
-  } as unknown;
+  };
 
   const queueMock = (() => {
     let handler: ((data: { userId: string }) => Promise<void>) | null = null;
@@ -136,6 +136,7 @@ describe('DungeonBatchService 배치 동작', () => {
     queueMock.registerHandler.mockClear();
     queueMock.enqueue.mockClear();
     queueMock.resetHandler();
+    statsCacheMock.ensureStatsCache.mockClear();
   });
 
   afterEach(() => {
@@ -243,6 +244,10 @@ describe('DungeonBatchService 배치 동작', () => {
 
     await service.runBatchTick();
 
+    expect(statsCacheMock.ensureStatsCache).toHaveBeenCalledWith(
+      state.userId,
+      prismaMock,
+    );
     expect(eventServiceMock.execute).toHaveBeenCalledTimes(1);
     expect(eventServiceMock.execute).toHaveBeenCalledWith(
       expect.objectContaining({
