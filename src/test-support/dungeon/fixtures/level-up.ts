@@ -18,6 +18,8 @@ export const levelUpInitialState: DungeonState = {
   atk: 35,
   def: 12,
   luck: 5,
+  levelUpPoints: 0,
+  levelUpRollIndex: 0,
   equipmentBonus: null,
   statsVersion: 0,
   floor: 80,

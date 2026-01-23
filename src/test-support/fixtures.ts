@@ -36,6 +36,7 @@ export const createDashboardStateResponse = (
     userId: TEST_USER_ID_1,
     level: 5,
     exp: 120,
+    levelUpPoints: 0,
     hp: 100,
     maxHp: 120,
     atk: 25,

@@ -19,6 +19,8 @@ export const longBattleInitialState: DungeonState = {
   atk: 1,
   def: 5,
   luck: 0,
+  levelUpPoints: 0,
+  levelUpRollIndex: 0,
   equipmentBonus: null,
   statsVersion: 0,
   floor: 1,

@@ -20,6 +20,8 @@ export const eliteBattleInitialState: DungeonState = {
   atk: 8,
   def: 4,
   luck: 5,
+  levelUpPoints: 0,
+  levelUpRollIndex: 0,
   equipmentBonus: null,
   statsVersion: 0,
   floor: 5,
