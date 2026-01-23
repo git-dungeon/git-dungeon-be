@@ -172,6 +172,7 @@ enum DungeonLogAction {
   DISCARD_ITEM
   BUFF_APPLIED
   BUFF_EXPIRED
+  STAT_APPLIED
   LEVEL_UP
 }
 

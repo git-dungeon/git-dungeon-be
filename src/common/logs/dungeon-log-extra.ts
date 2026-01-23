@@ -119,6 +119,19 @@ export type LevelUpDetails = {
   };
 };
 
+export type StatAppliedDetails = {
+  type: 'STAT_APPLIED';
+  details: {
+    applied: Partial<{
+      hp: number;
+      maxHp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    }>;
+  };
+};
+
 export type RestDetails = {
   type: 'REST';
   details: {
@@ -171,6 +184,7 @@ export type DungeonLogDetails =
   | AcquireItemDetails
   | InventoryMutationDetails
   | LevelUpDetails
+  | StatAppliedDetails
   | BuffDetails
   | RestDetails
   | TrapDetails

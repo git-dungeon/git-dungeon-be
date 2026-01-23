@@ -155,6 +155,13 @@ export type LevelUpDelta = {
   };
 };
 
+export type StatAppliedDelta = {
+  type: 'STAT_APPLIED';
+  detail: {
+    stats: StatsDelta;
+  };
+};
+
 export type BuffDelta =
   | {
       type: 'BUFF_APPLIED';
@@ -171,6 +178,7 @@ export type DungeonLogDelta =
   | ReviveDelta
   | AcquireItemDelta
   | EquipItemDelta
+  | StatAppliedDelta
   | LevelUpDelta
   | BuffDelta
   | RestDelta
