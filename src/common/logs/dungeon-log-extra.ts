@@ -109,7 +109,7 @@ export type LevelUpDetails = {
     previousLevel: number;
     currentLevel: number;
     threshold: number;
-    statsGained: Partial<{
+    statsGained?: Partial<{
       hp: number;
       maxHp: number;
       atk: number;

@@ -34,7 +34,6 @@ import { SEEDED_RNG_FACTORY, SeededRandomFactory } from './seeded-rng.provider';
 import { WeightedDungeonEventSelector } from './event-selector';
 import { DungeonEventProcessors } from './event.tokens';
 import { DungeonLogBuilder } from './dungeon-log.builder';
-import type { SeededRandom } from './seeded-rng.provider';
 import { DropInventoryService } from '../drops/drop-inventory.service';
 import { mapDropsToInventoryAdds } from '../drops/drop.utils';
 
@@ -127,7 +126,6 @@ export class DungeonEventService {
     const expApplied = this.applyExpAndLevelUp(
       deathApplied.state,
       deathApplied.alive ? (processorResult.expGained ?? 0) : 0,
-      rng,
     );
 
     const progressDetail =
@@ -347,7 +345,6 @@ export class DungeonEventService {
   private applyExpAndLevelUp(
     state: DungeonState,
     expGained: number,
-    rng: SeededRandom,
   ): {
     state: DungeonState;
     expDelta?: StatsDelta;
@@ -368,19 +365,10 @@ export class DungeonEventService {
       const threshold = currentLevel * 10;
       nextState.exp -= threshold;
       currentLevel += 1;
-      nextState = { ...nextState, level: currentLevel };
-
-      // 랜덤 스탯 증가
-      const stats = ['atk', 'def', 'luck'] as const;
-      const statKey = stats[Math.floor(rng.next() * stats.length)];
-      nextState = { ...nextState, [statKey]: nextState[statKey] + 1 };
-
-      // HP/MaxHP 보너스
-      const newMaxHp = nextState.maxHp + 2;
       nextState = {
         ...nextState,
-        maxHp: newMaxHp,
-        hp: Math.min(newMaxHp, nextState.hp + 2),
+        level: currentLevel,
+        levelUpPoints: nextState.levelUpPoints + 1,
       };
 
       levelUps.push({
@@ -392,9 +380,9 @@ export class DungeonEventService {
           detail: {
             stats: {
               level: 1,
-              [statKey]: 1,
-              maxHp: 2,
-              hp: 2,
+            },
+            rewards: {
+              skillPoints: 1,
             },
           },
         },
@@ -404,11 +392,6 @@ export class DungeonEventService {
             previousLevel: currentLevel - 1,
             currentLevel,
             threshold,
-            statsGained: {
-              [statKey]: 1,
-              maxHp: 2,
-              hp: 2,
-            },
           },
         },
       });

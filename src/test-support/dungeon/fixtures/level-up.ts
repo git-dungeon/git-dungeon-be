@@ -5,7 +5,7 @@ import { FixtureRegistry } from './registry';
  * 연속 레벨업(2회) 시나리오
  * seed: lvlup18
  * 초기: level1, hp60/60, atk35, def12, luck5, floor80, progress0, ap1
- * 결과: exp 39 → 레벨업 2회(→3), 스탯/HP 증가, progress +20
+ * 결과: exp 39 → 레벨업 2회(→3), 포인트 누적, progress +20
  */
 export const levelUpSeed = 'lvlup18';
 
@@ -164,9 +164,9 @@ export const levelUpSteps: SnapshotStep[] = [
           detail: {
             stats: {
               level: 1,
-              luck: 1,
-              maxHp: 2,
-              hp: 2,
+            },
+            rewards: {
+              skillPoints: 1,
             },
           },
         },
@@ -176,11 +176,6 @@ export const levelUpSteps: SnapshotStep[] = [
             previousLevel: 1,
             currentLevel: 2,
             threshold: 10,
-            statsGained: {
-              luck: 1,
-              maxHp: 2,
-              hp: 2,
-            },
           },
         },
       },
@@ -195,9 +190,9 @@ export const levelUpSteps: SnapshotStep[] = [
           detail: {
             stats: {
               level: 1,
-              atk: 1,
-              maxHp: 2,
-              hp: 2,
+            },
+            rewards: {
+              skillPoints: 1,
             },
           },
         },
@@ -207,11 +202,6 @@ export const levelUpSteps: SnapshotStep[] = [
             previousLevel: 2,
             currentLevel: 3,
             threshold: 20,
-            statsGained: {
-              atk: 1,
-              maxHp: 2,
-              hp: 2,
-            },
           },
         },
       },

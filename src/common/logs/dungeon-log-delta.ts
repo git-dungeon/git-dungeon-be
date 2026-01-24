@@ -62,6 +62,7 @@ export type RewardsDelta = {
   }>; // 이벤트(BATTLE/TREASURE) 보상: 카탈로그 기준 (인벤토리 SSOT는 ACQUIRE_ITEM)
   buffs?: BuffAppliedDelta['detail']['applied'];
   unlocks?: string[];
+  skillPoints?: number;
 };
 
 export type BattleDelta = {
