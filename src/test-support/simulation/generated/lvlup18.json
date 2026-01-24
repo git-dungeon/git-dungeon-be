@@ -3,7 +3,7 @@
     "actionCounter": 0,
     "selectedEvent": "BATTLE",
     "stateAfter": {
-      "hp": 45,
+      "hp": 41,
       "ap": 0,
       "floor": 80,
       "floorProgress": 20,
@@ -151,10 +151,10 @@
           "type": "LEVEL_UP",
           "detail": {
             "stats": {
-              "level": 1,
-              "luck": 1,
-              "maxHp": 2,
-              "hp": 2
+              "level": 1
+            },
+            "rewards": {
+              "skillPoints": 1
             }
           }
         },
@@ -163,12 +163,7 @@
           "details": {
             "previousLevel": 1,
             "currentLevel": 2,
-            "threshold": 10,
-            "statsGained": {
-              "luck": 1,
-              "maxHp": 2,
-              "hp": 2
-            }
+            "threshold": 10
           }
         },
         "floor": 80
@@ -180,10 +175,10 @@
           "type": "LEVEL_UP",
           "detail": {
             "stats": {
-              "level": 1,
-              "atk": 1,
-              "maxHp": 2,
-              "hp": 2
+              "level": 1
+            },
+            "rewards": {
+              "skillPoints": 1
             }
           }
         },
@@ -192,12 +187,7 @@
           "details": {
             "previousLevel": 2,
             "currentLevel": 3,
-            "threshold": 20,
-            "statsGained": {
-              "atk": 1,
-              "maxHp": 2,
-              "hp": 2
-            }
+            "threshold": 20
           }
         },
         "floor": 80
