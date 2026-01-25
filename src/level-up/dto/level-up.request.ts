@@ -1,4 +1,4 @@
-import { tags } from 'typia';
+import type { tags } from 'typia';
 import type { LevelUpStat } from './level-up.response';
 
 export interface LevelUpApplyRequest {
