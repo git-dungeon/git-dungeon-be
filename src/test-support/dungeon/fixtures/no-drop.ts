@@ -19,6 +19,8 @@ export const noDropInitialState: DungeonState = {
   atk: 1,
   def: 0,
   luck: 0,
+  levelUpPoints: 0,
+  levelUpRollIndex: 0,
   equipmentBonus: null,
   statsVersion: 0,
   floor: 1,

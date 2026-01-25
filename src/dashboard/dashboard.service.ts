@@ -80,6 +80,7 @@ export class DashboardService {
         userId: state.userId,
         level: state.level,
         exp: state.exp,
+        levelUpPoints: state.levelUpPoints,
         hp: currentHp,
         maxHp,
         atk: totalStats.atk,

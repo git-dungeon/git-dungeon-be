@@ -109,7 +109,20 @@ export type LevelUpDetails = {
     previousLevel: number;
     currentLevel: number;
     threshold: number;
-    statsGained: Partial<{
+    statsGained?: Partial<{
+      hp: number;
+      maxHp: number;
+      atk: number;
+      def: number;
+      luck: number;
+    }>;
+  };
+};
+
+export type StatAppliedDetails = {
+  type: 'STAT_APPLIED';
+  details: {
+    applied: Partial<{
       hp: number;
       maxHp: number;
       atk: number;
@@ -171,6 +184,7 @@ export type DungeonLogDetails =
   | AcquireItemDetails
   | InventoryMutationDetails
   | LevelUpDetails
+  | StatAppliedDetails
   | BuffDetails
   | RestDetails
   | TrapDetails

@@ -131,6 +131,8 @@ model DungeonState {
   atk                    Int           @default(1)
   def                    Int           @default(1)
   luck                   Int           @default(1)
+  levelUpPoints          Int           @default(0)
+  levelUpRollIndex       Int           @default(0)
   equipmentBonus         Json?
   statsVersion           Int           @default(0)
   floor                  Int           @default(1)
@@ -170,6 +172,7 @@ enum DungeonLogAction {
   DISCARD_ITEM
   BUFF_APPLIED
   BUFF_EXPIRED
+  STAT_APPLIED
   LEVEL_UP
 }
 

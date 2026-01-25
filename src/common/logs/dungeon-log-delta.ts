@@ -62,6 +62,7 @@ export type RewardsDelta = {
   }>; // 이벤트(BATTLE/TREASURE) 보상: 카탈로그 기준 (인벤토리 SSOT는 ACQUIRE_ITEM)
   buffs?: BuffAppliedDelta['detail']['applied'];
   unlocks?: string[];
+  skillPoints?: number;
 };
 
 export type BattleDelta = {
@@ -155,6 +156,13 @@ export type LevelUpDelta = {
   };
 };
 
+export type StatAppliedDelta = {
+  type: 'STAT_APPLIED';
+  detail: {
+    stats: StatsDelta;
+  };
+};
+
 export type BuffDelta =
   | {
       type: 'BUFF_APPLIED';
@@ -171,6 +179,7 @@ export type DungeonLogDelta =
   | ReviveDelta
   | AcquireItemDelta
   | EquipItemDelta
+  | StatAppliedDelta
   | LevelUpDelta
   | BuffDelta
   | RestDelta

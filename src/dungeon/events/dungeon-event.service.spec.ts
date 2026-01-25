@@ -446,7 +446,7 @@ describe('DungeonEventService', () => {
     );
   });
 
-  it('승리 시 전투 EXP는 BATTLE에 기록하고, 레벨업 스탯은 LEVEL_UP에만 기록한다', async () => {
+  it('승리 시 전투 EXP는 BATTLE에 기록하고, 레벨업은 포인트 지급만 기록한다', async () => {
     const state: DungeonState = createState({
       atk: 20,
       def: 1,
@@ -476,6 +476,7 @@ describe('DungeonEventService', () => {
     if (levelUpLog?.delta?.type === 'LEVEL_UP') {
       expect(levelUpLog.delta.detail.stats.level).toBeDefined();
       expect(levelUpLog.delta.detail.stats.exp).toBeUndefined();
+      expect(levelUpLog.delta.detail.rewards?.skillPoints).toBe(1);
     }
 
     const battleCompleted = result.logs.find(
@@ -501,7 +502,10 @@ describe('DungeonEventService', () => {
     }
 
     expect(result.stateAfter.level).toBeGreaterThan(state.level);
-    expect(result.stateAfter.maxHp).toBeGreaterThan(state.maxHp);
+    expect(result.stateAfter.maxHp).toBe(state.maxHp);
+    expect(result.stateAfter.levelUpPoints).toBe(
+      state.levelUpPoints + (result.stateAfter.level - state.level),
+    );
     expect(battleCompleted?.delta?.type).toBe('BATTLE');
     if (battleCompleted?.delta?.type === 'BATTLE') {
       expect(battleCompleted.delta.detail.stats?.exp).toBeDefined();
@@ -802,6 +806,8 @@ function createState(overrides: Partial<DungeonState> = {}): DungeonState {
     atk: 1,
     def: 1,
     luck: 1,
+    levelUpPoints: 0,
+    levelUpRollIndex: 0,
     equipmentBonus: null,
     statsVersion: 0,
     floor: 1,
