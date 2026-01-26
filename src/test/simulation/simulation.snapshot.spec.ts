@@ -75,17 +75,19 @@ describe('simulation fixtures snapshots', () => {
 
       // 태그 기반 추가 검증
       if (tags?.includes('drop')) {
-        const hasChests = result.steps.flatMap((s) => s.logs).some((log) => {
-          const delta = log.delta as
-            | {
-                detail?: {
-                  rewards?: { chests?: number };
-                };
-              }
-            | null
-            | undefined;
-          return (delta?.detail?.rewards?.chests ?? 0) > 0;
-        });
+        const hasChests = result.steps
+          .flatMap((s) => s.logs)
+          .some((log) => {
+            const delta = log.delta as
+              | {
+                  detail?: {
+                    rewards?: { chests?: number };
+                  };
+                }
+              | null
+              | undefined;
+            return (delta?.detail?.rewards?.chests ?? 0) > 0;
+          });
         expect(hasChests, `${name} should have chest rewards`).toBe(true);
       }
 

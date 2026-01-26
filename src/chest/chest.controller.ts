@@ -29,9 +29,7 @@ export class ChestController {
     applyNoCacheHeaders(response);
     appendCookies(response, session.cookies);
 
-    const result = await this.chestService.open(
-      session.view.session.userId,
-    );
+    const result = await this.chestService.open(session.view.session.userId);
 
     return successResponseWithGeneratedAt(result, {
       requestId: request.id,

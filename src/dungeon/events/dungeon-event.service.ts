@@ -4,10 +4,7 @@ import {
   Injectable,
   PreconditionFailedException,
 } from '@nestjs/common';
-import {
-  type DungeonAction,
-  type DungeonState,
-} from '@prisma/client';
+import { type DungeonAction, type DungeonState } from '@prisma/client';
 import {
   BASE_PROGRESS_INCREMENT,
   BATTLE_PROGRESS_INCREMENT,
@@ -60,6 +57,7 @@ export class DungeonEventService {
   ) {}
 
   async execute(context: DungeonEventContext): Promise<DungeonEventResult> {
+    await Promise.resolve();
     const apCost = context.apCost ?? 1;
     const weights = context.weights ?? DEFAULT_EVENT_WEIGHTS;
     const rng = this.rngFactory.create(

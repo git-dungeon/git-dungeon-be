@@ -38,7 +38,9 @@ describe('ChestService', () => {
   it('상자가 없으면 409를 반환한다', async () => {
     const prisma = {
       dungeonState: {
-        findUnique: vi.fn().mockResolvedValue(createState({ unopenedChests: 0 })),
+        findUnique: vi
+          .fn()
+          .mockResolvedValue(createState({ unopenedChests: 0 })),
       },
     } as unknown as Prisma.TransactionClient & {
       dungeonState: { findUnique: ReturnType<typeof vi.fn> };
@@ -51,7 +53,9 @@ describe('ChestService', () => {
       { applyDrops: vi.fn() } as unknown as DropInventoryService,
     );
 
-    await expect(service.open('user')).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.open('user')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('사용자 상태가 없으면 401을 반환한다', async () => {
@@ -70,7 +74,9 @@ describe('ChestService', () => {
       { applyDrops: vi.fn() } as unknown as DropInventoryService,
     );
 
-    await expect(service.open('user')).rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(service.open('user')).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
   });
 
   it('상자 열기 성공 시 인벤토리/로그를 기록한다', async () => {
@@ -86,21 +92,27 @@ describe('ChestService', () => {
       dungeonLog: {
         create: createLog,
       },
-      $transaction: vi.fn(async (fn: (tx: Prisma.TransactionClient) => Promise<unknown>) =>
-        fn({
-          dungeonState: { updateMany },
-          dungeonLog: { create: createLog },
-        } as unknown as Prisma.TransactionClient),
+      $transaction: vi.fn(
+        async (fn: (tx: Prisma.TransactionClient) => Promise<unknown>) =>
+          fn({
+            dungeonState: { updateMany },
+            dungeonLog: { create: createLog },
+          } as unknown as Prisma.TransactionClient),
       ),
     } as unknown as Prisma.TransactionClient & {
-      dungeonState: { findUnique: ReturnType<typeof vi.fn>; updateMany: ReturnType<typeof vi.fn> };
+      dungeonState: {
+        findUnique: ReturnType<typeof vi.fn>;
+        updateMany: ReturnType<typeof vi.fn>;
+      };
       dungeonLog: { create: ReturnType<typeof vi.fn> };
       $transaction: ReturnType<typeof vi.fn>;
     };
 
     const dropService = {
-      roll: vi.fn().mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
-    } as unknown as DropService;
+      roll: vi
+        .fn()
+        .mockReturnValue([{ code: 'weapon-wooden-sword', quantity: 1 }]),
+    };
     const dropInventoryService = {
       applyDrops: vi.fn().mockResolvedValue([
         {
@@ -111,7 +123,7 @@ describe('ChestService', () => {
           quantity: 1,
         },
       ]),
-    } as unknown as DropInventoryService;
+    };
     const rngFactory = {
       create: vi.fn().mockReturnValue({ next: () => 0.1 }),
     } as unknown as SeededRandomFactory;
@@ -119,8 +131,8 @@ describe('ChestService', () => {
     const service = new ChestService(
       prisma as never,
       rngFactory,
-      dropService,
-      dropInventoryService,
+      dropService as unknown as DropService,
+      dropInventoryService as unknown as DropInventoryService,
     );
 
     const result = await service.open(state.userId);

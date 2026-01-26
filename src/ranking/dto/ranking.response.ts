@@ -1,5 +1,4 @@
 import { tags } from 'typia';
-import type { ApiSuccessResponse } from '../../common/http/api-response';
 
 export interface RankingEntry {
   rank: number & tags.Minimum<1> & tags.Example<1>;

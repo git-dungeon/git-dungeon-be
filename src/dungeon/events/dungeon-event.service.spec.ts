@@ -595,9 +595,7 @@ describe('DungeonEventService', () => {
         if (treasureLog?.delta?.type === 'TREASURE') {
           expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
         }
-        expect(result.stateAfter.unopenedChests).toBe(
-          state.unopenedChests + 1,
-        );
+        expect(result.stateAfter.unopenedChests).toBe(state.unopenedChests + 1);
         expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
         expect(result.inventoryAdds).toBeUndefined();
       } finally {
@@ -729,9 +727,7 @@ describe('DungeonEventService', () => {
         if (treasureLog?.delta?.type === 'TREASURE') {
           expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
         }
-        expect(result.stateAfter.unopenedChests).toBe(
-          state.unopenedChests + 1,
-        );
+        expect(result.stateAfter.unopenedChests).toBe(state.unopenedChests + 1);
       } finally {
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
       }
@@ -800,9 +796,7 @@ describe('DungeonEventService', () => {
         if (treasureLog?.delta?.type === 'TREASURE') {
           expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
         }
-        expect(result.stateAfter.unopenedChests).toBe(
-          state.unopenedChests + 1,
-        );
+        expect(result.stateAfter.unopenedChests).toBe(state.unopenedChests + 1);
       } finally {
         process.env.NODE_ENV = originalNodeEnv;
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;

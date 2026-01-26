@@ -10,6 +10,7 @@ type ApplyDropsInput = {
   userId: string;
   drops: DropResult[];
 };
+type AddedItems = NonNullable<InventoryDelta['added']>;
 
 @Injectable()
 export class DropInventoryService {
@@ -18,8 +19,8 @@ export class DropInventoryService {
   async applyDrops(
     input: ApplyDropsInput,
     tx?: Prisma.TransactionClient,
-  ): Promise<InventoryDelta['added']> {
-    const added: InventoryDelta['added'] = [];
+  ): Promise<AddedItems> {
+    const added: AddedItems = [];
 
     const applyWithClient = async (client: Prisma.TransactionClient) => {
       const result = await client.inventoryItem.aggregate({

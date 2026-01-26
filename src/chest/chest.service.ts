@@ -18,10 +18,17 @@ import {
   SEEDED_RNG_FACTORY,
   type SeededRandomFactory,
 } from '../dungeon/events/seeded-rng.provider';
-import { DEFAULT_DROP_TABLE_ID, DropService } from '../dungeon/drops/drop.service';
+import {
+  DEFAULT_DROP_TABLE_ID,
+  DropService,
+} from '../dungeon/drops/drop.service';
 import { DropInventoryService } from '../dungeon/drops/drop-inventory.service';
 import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
+import type {
+  InventoryRarity,
+  InventorySlot,
+} from '../inventory/dto/inventory.response';
 
 @Injectable()
 export class ChestService {
@@ -138,10 +145,18 @@ export class ChestService {
       return added;
     });
 
+    const responseItems: ChestOpenResponse['items'] = items.map((item) => ({
+      itemId: item.itemId,
+      code: item.code,
+      slot: item.slot as InventorySlot,
+      rarity: (item.rarity ?? 'common') as InventoryRarity,
+      quantity: item.quantity ?? 1,
+    }));
+
     return {
       remainingChests,
       rollIndex,
-      items,
+      items: responseItems,
     };
   }
 }
