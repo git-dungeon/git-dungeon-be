@@ -1,4 +1,10 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { TypedRoute } from '@nestia/core';
 import type { ApiSuccessResponse } from '../common/http/api-response';
@@ -22,14 +28,22 @@ export class ChestController {
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async openChest(
-    @CurrentAuthSession() session: ActiveSessionResult,
+    @CurrentAuthSession({ optional: true }) session: ActiveSessionResult | null,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<ChestOpenResponse>> {
+    if (!session?.view?.session?.userId) {
+      throw new UnauthorizedException({
+        code: 'CHEST_UNAUTHORIZED',
+        message: '인증이 필요합니다.',
+      });
+    }
+    const userId = session.view.session.userId;
+
     applyNoCacheHeaders(response);
     appendCookies(response, session.cookies);
 
-    const result = await this.chestService.open(session.view.session.userId);
+    const result = await this.chestService.open(userId);
 
     return successResponseWithGeneratedAt(result, {
       requestId: request.id,

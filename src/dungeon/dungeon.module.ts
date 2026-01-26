@@ -19,14 +19,13 @@ import { join } from 'path';
 import { MonsterRegistry } from './monsters';
 import type { CatalogMonster } from '../catalog';
 import { DropService } from './drops/drop.service';
-import { DropInventoryService } from './drops/drop-inventory.service';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
+  imports: [SharedModule],
   providers: [
     DungeonEventService,
     DungeonLogBuilder,
-    DropService,
-    DropInventoryService,
     {
       provide: MonsterRegistry,
       useFactory: () => {
