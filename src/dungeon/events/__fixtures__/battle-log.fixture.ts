@@ -13,6 +13,8 @@ export const createState = (
   luck: 1,
   levelUpPoints: 0,
   levelUpRollIndex: 0,
+  unopenedChests: 0,
+  chestRollIndex: 0,
   equipmentBonus: null,
   statsVersion: 0,
   floor: 1,

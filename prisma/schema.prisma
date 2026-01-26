@@ -133,6 +133,8 @@ model DungeonState {
   luck                   Int           @default(1)
   levelUpPoints          Int           @default(0)
   levelUpRollIndex       Int           @default(0)
+  unopenedChests         Int           @default(0)
+  chestRollIndex         Int           @default(0)
   equipmentBonus         Json?
   statsVersion           Int           @default(0)
   floor                  Int           @default(1)
