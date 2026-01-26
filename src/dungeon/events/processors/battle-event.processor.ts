@@ -342,6 +342,14 @@ export class BattleEventProcessor implements DungeonEventProcessor {
       effectiveMaxHp,
       goldReward,
     );
+    const chestCount = params.drops && params.drops.length > 0 ? 1 : 0;
+    const stateWithChests =
+      chestCount > 0
+        ? {
+            ...nextState,
+            unopenedChests: nextState.unopenedChests + chestCount,
+          }
+        : nextState;
     const statsDelta: StatsDelta = {};
     if (nextState.hp !== input.state.hp) {
       statsDelta.hp = nextState.hp - input.state.hp;
@@ -362,15 +370,12 @@ export class BattleEventProcessor implements DungeonEventProcessor {
           }
         : undefined;
 
-    const rewardItems =
-      dropMeta?.items?.map((item) => ({
-        code: item.code,
-        quantity: item.quantity,
-      })) ?? [];
-    const hasRewards = rewardItems.length > 0 || goldReward > 0;
+    const rewardItems: Array<{ code: string; quantity?: number }> = [];
+    const hasRewards =
+      rewardItems.length > 0 || goldReward > 0 || chestCount > 0;
 
     return {
-      state: nextState,
+      state: stateWithChests,
       delta: {
         type: 'BATTLE',
         detail: {
@@ -379,6 +384,7 @@ export class BattleEventProcessor implements DungeonEventProcessor {
             ? {
                 ...(goldReward > 0 ? { gold: goldReward } : {}),
                 ...(rewardItems.length ? { items: rewardItems } : {}),
+                ...(chestCount > 0 ? { chests: chestCount } : {}),
               }
             : undefined,
           progress:

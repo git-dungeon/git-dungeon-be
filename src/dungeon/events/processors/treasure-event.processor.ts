@@ -52,6 +52,7 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
     );
 
     const drops = this.rollDrops(rng);
+    const chestCount = drops.length > 0 ? 1 : 0;
     const dropMeta =
       drops.length > 0
         ? {
@@ -64,22 +65,24 @@ export class TreasureEventProcessor implements DungeonEventProcessor {
           }
         : undefined;
     const baseAdds = this.toInventoryAdds(this.effect.rewards?.items);
-    const rewardItems = [
-      ...this.toRewardItems(baseAdds),
-      ...drops.map((drop) => ({
-        code: drop.code,
-        quantity: drop.quantity,
-      })),
-    ];
+    const rewardItems = this.toRewardItems(baseAdds);
+    const nextState =
+      chestCount > 0
+        ? {
+            ...applied.state,
+            unopenedChests: applied.state.unopenedChests + chestCount,
+          }
+        : applied.state;
 
     return {
-      state: applied.state,
+      state: nextState,
       delta: {
         type: 'TREASURE',
         detail: {
           rewards: {
             gold: applied.rewardsDelta.gold ?? goldDelta,
-            items: rewardItems,
+            ...(rewardItems.length ? { items: rewardItems } : {}),
+            ...(chestCount > 0 ? { chests: chestCount } : {}),
             buffs: this.toAppliedBuffs(this.effect.rewards?.buffs),
             unlocks: [],
           },

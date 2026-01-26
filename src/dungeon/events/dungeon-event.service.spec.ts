@@ -535,7 +535,7 @@ describe('DungeonEventService', () => {
   });
 
   it.sequential(
-    '드랍 시 STATUS 카테고리 ACQUIRE_ITEM 로그를 추가한다',
+    '드랍 시 TREASURE 로그 rewards에 chests를 기록한다',
     async () => {
       const originalNodeEnv = process.env.NODE_ENV;
       const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
@@ -585,22 +585,21 @@ describe('DungeonEventService', () => {
           },
         });
 
-        const acquireLog = result.logs.find(
-          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        const treasureLog = result.logs.find(
+          (log) =>
+            log.action === DungeonLogAction.TREASURE &&
+            log.status === DungeonLogStatus.COMPLETED,
         );
-        expect(acquireLog?.category).toBe(DungeonLogCategory.STATUS);
-        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
-        if (acquireLog?.delta?.type === 'ACQUIRE_ITEM') {
-          expect(acquireLog.delta.detail.inventory?.added?.[0]?.code).toBe(
-            'weapon-wooden-sword',
-          );
+        expect(treasureLog?.category).toBe(DungeonLogCategory.EXPLORATION);
+        expect(treasureLog?.delta?.type).toBe('TREASURE');
+        if (treasureLog?.delta?.type === 'TREASURE') {
+          expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
         }
-        if (acquireLog?.extra?.type === 'ACQUIRE_ITEM') {
-          expect(acquireLog.extra.details.reward.drop?.items?.[0]?.code).toBe(
-            'weapon-wooden-sword',
-          );
-        }
-        expect(result.inventoryAdds?.length).toBeGreaterThan(0);
+        expect(result.stateAfter.unopenedChests).toBe(
+          state.unopenedChests + 1,
+        );
+        expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
+        expect(result.inventoryAdds).toBeUndefined();
       } finally {
         process.env.NODE_ENV = originalNodeEnv;
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
@@ -609,7 +608,7 @@ describe('DungeonEventService', () => {
   );
 
   it.sequential(
-    '강제 MOVE가 필요한 경우 ACQUIRE_ITEM 로그가 MOVE보다 먼저 기록된다',
+    '강제 MOVE가 필요한 경우 TREASURE 로그가 MOVE보다 먼저 기록된다',
     async () => {
       const originalNodeEnv = process.env.NODE_ENV;
       const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
@@ -659,8 +658,10 @@ describe('DungeonEventService', () => {
           },
         });
 
-        const acquireIndex = result.logs.findIndex(
-          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        const treasureIndex = result.logs.findIndex(
+          (log) =>
+            log.action === DungeonLogAction.TREASURE &&
+            log.status === DungeonLogStatus.COMPLETED,
         );
         const moveStartedIndex = result.logs.findIndex(
           (log) =>
@@ -668,9 +669,9 @@ describe('DungeonEventService', () => {
             log.status === DungeonLogStatus.STARTED,
         );
 
-        expect(acquireIndex).toBeGreaterThanOrEqual(0);
+        expect(treasureIndex).toBeGreaterThanOrEqual(0);
         expect(moveStartedIndex).toBeGreaterThanOrEqual(0);
-        expect(acquireIndex).toBeLessThan(moveStartedIndex);
+        expect(treasureIndex).toBeLessThan(moveStartedIndex);
       } finally {
         process.env.NODE_ENV = originalNodeEnv;
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
@@ -679,7 +680,7 @@ describe('DungeonEventService', () => {
   );
 
   it.sequential(
-    'DB 연결을 건너뛰는 환경에서도 드랍 로그를 남긴다',
+    'DB 연결을 건너뛰는 환경에서도 rewards.chests를 기록한다',
     async () => {
       const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
       process.env.DATABASE_SKIP_CONNECTION = 'true';
@@ -719,11 +720,18 @@ describe('DungeonEventService', () => {
         });
 
         expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
-        const acquireLog = result.logs.find(
-          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        const treasureLog = result.logs.find(
+          (log) =>
+            log.action === DungeonLogAction.TREASURE &&
+            log.status === DungeonLogStatus.COMPLETED,
         );
-        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
-        expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+        expect(treasureLog?.delta?.type).toBe('TREASURE');
+        if (treasureLog?.delta?.type === 'TREASURE') {
+          expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
+        }
+        expect(result.stateAfter.unopenedChests).toBe(
+          state.unopenedChests + 1,
+        );
       } finally {
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;
       }
@@ -731,7 +739,7 @@ describe('DungeonEventService', () => {
   );
 
   it.sequential(
-    'skipInventoryApply 옵션이면 드랍 인벤토리 적용을 스킵한다',
+    'skipInventoryApply 옵션에서도 rewards.chests는 기록된다',
     async () => {
       const originalNodeEnv = process.env.NODE_ENV;
       const originalDbSkip = process.env.DATABASE_SKIP_CONNECTION;
@@ -783,11 +791,18 @@ describe('DungeonEventService', () => {
         });
 
         expect(dropInventoryService.applyDrops).not.toHaveBeenCalled();
-        const acquireLog = result.logs.find(
-          (log) => log.action === DungeonLogAction.ACQUIRE_ITEM,
+        const treasureLog = result.logs.find(
+          (log) =>
+            log.action === DungeonLogAction.TREASURE &&
+            log.status === DungeonLogStatus.COMPLETED,
         );
-        expect(acquireLog?.delta?.type).toBe('ACQUIRE_ITEM');
-        expect(result.inventoryAdds?.[0]?.code).toBe('weapon-wooden-sword');
+        expect(treasureLog?.delta?.type).toBe('TREASURE');
+        if (treasureLog?.delta?.type === 'TREASURE') {
+          expect(treasureLog.delta.detail.rewards?.chests).toBe(1);
+        }
+        expect(result.stateAfter.unopenedChests).toBe(
+          state.unopenedChests + 1,
+        );
       } finally {
         process.env.NODE_ENV = originalNodeEnv;
         process.env.DATABASE_SKIP_CONNECTION = originalDbSkip;

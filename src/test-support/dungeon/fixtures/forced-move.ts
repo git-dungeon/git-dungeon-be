@@ -1,7 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { FixtureDefinition, SnapshotStep } from './fixture.types';
 import { FixtureRegistry } from './registry';
-import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 강제 MOVE 시나리오
@@ -106,7 +105,7 @@ export const forcedMoveSteps: SnapshotStep[] = [
             stats: { hp: -1, exp: 3 },
             rewards: {
               gold: 2,
-              items: [{ code: 'ring-silver-band', quantity: 1 }],
+              chests: 1,
             },
             progress: {
               previousProgress: 90,
@@ -152,47 +151,6 @@ export const forcedMoveSteps: SnapshotStep[] = [
             turns: 2,
             damageDealt: 9,
             damageTaken: 1,
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 1,
-        turnNumber: 0,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:ring-silver-band'),
-                  code: 'ring-silver-band',
-                  slot: 'ring',
-                  rarity: 'common',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'BATTLE',
-              drop: {
-                tableId: 'drops-default',
-                isElite: false,
-                items: [
-                  {
-                    code: 'ring-silver-band',
-                    quantity: 1,
-                  },
-                ],
-              },
-            },
           },
         },
       },

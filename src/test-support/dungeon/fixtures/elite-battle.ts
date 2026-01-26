@@ -1,7 +1,6 @@
 import type { DungeonState } from '@prisma/client';
 import type { FixtureDefinition, SnapshotStep } from './fixture.types';
 import { FixtureRegistry } from './registry';
-import { deterministicUuidV5 } from '../../../common/ids/deterministic-uuid';
 
 /**
  * 엘리트 전투 + 멀티 드랍 시나리오
@@ -106,10 +105,7 @@ export const eliteBattleSteps: SnapshotStep[] = [
             stats: { hp: -1, exp: 10 },
             rewards: {
               gold: 3,
-              items: [
-                { code: 'weapon-battle-axe', quantity: 1 },
-                { code: 'armor-steel-armor', quantity: 1 },
-              ],
+              chests: 1,
             },
             progress: {
               previousProgress: 0,
@@ -155,52 +151,6 @@ export const eliteBattleSteps: SnapshotStep[] = [
             turns: 2,
             damageDealt: 15,
             damageTaken: 1,
-          },
-        },
-      },
-      {
-        action: 'ACQUIRE_ITEM',
-        status: 'COMPLETED',
-        category: 'STATUS',
-        floor: 5,
-        turnNumber: 0,
-        delta: {
-          type: 'ACQUIRE_ITEM',
-          detail: {
-            inventory: {
-              added: [
-                {
-                  itemId: deterministicUuidV5('inventory:weapon-battle-axe'),
-                  code: 'weapon-battle-axe',
-                  slot: 'weapon',
-                  rarity: 'rare',
-                  quantity: 1,
-                },
-                {
-                  itemId: deterministicUuidV5('inventory:armor-steel-armor'),
-                  code: 'armor-steel-armor',
-                  slot: 'armor',
-                  rarity: 'uncommon',
-                  quantity: 1,
-                },
-              ],
-            },
-          },
-        },
-        extra: {
-          type: 'ACQUIRE_ITEM',
-          details: {
-            reward: {
-              source: 'BATTLE',
-              drop: {
-                tableId: 'drops-default',
-                isElite: true,
-                items: [
-                  { code: 'weapon-battle-axe', quantity: 1 },
-                  { code: 'armor-steel-armor', quantity: 1 },
-                ],
-              },
-            },
           },
         },
       },
