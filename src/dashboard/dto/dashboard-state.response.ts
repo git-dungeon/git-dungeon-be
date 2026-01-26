@@ -34,6 +34,7 @@ export interface DashboardState {
   level: number & tags.Minimum<1> & tags.Example<8>;
   exp: number & tags.Minimum<0> & tags.Example<54>;
   levelUpPoints: number & tags.Minimum<0> & tags.Example<2>;
+  unopenedChests: number & tags.Minimum<0> & tags.Example<1>;
   hp: number & tags.Example<32>;
   maxHp: number & tags.Example<40>;
   atk: number & tags.Example<18>;
