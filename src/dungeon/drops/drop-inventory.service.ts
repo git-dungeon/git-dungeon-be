@@ -15,11 +15,14 @@ type ApplyDropsInput = {
 export class DropInventoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async applyDrops(input: ApplyDropsInput): Promise<InventoryDelta['added']> {
+  async applyDrops(
+    input: ApplyDropsInput,
+    tx?: Prisma.TransactionClient,
+  ): Promise<InventoryDelta['added']> {
     const added: InventoryDelta['added'] = [];
 
-    await this.prisma.$transaction(async (tx) => {
-      const result = await tx.inventoryItem.aggregate({
+    const applyWithClient = async (client: Prisma.TransactionClient) => {
+      const result = await client.inventoryItem.aggregate({
         where: { userId: input.userId },
         _max: { version: true },
       });
@@ -39,7 +42,7 @@ export class DropInventoryService {
         for (let i = 0; i < quantity; i += 1) {
           const id = randomUUID();
           versionCounter += 1;
-          await tx.inventoryItem.create({
+          await client.inventoryItem.create({
             data: {
               id,
               userId: input.userId,
@@ -61,7 +64,15 @@ export class DropInventoryService {
           });
         }
       }
-    });
+    };
+
+    if (tx) {
+      await applyWithClient(tx);
+    } else {
+      await this.prisma.$transaction(async (transaction) => {
+        await applyWithClient(transaction);
+      });
+    }
 
     return added;
   }

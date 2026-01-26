@@ -25,6 +25,7 @@ import { DungeonBatchModule } from './dungeon/batch/dungeon-batch.module';
 import { LogsModule } from './logs/logs.module';
 import { EmbeddingModule } from './embedding/embedding.module';
 import { LevelUpModule } from './level-up/level-up.module';
+import { ChestModule } from './chest/chest.module';
 
 const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
 
@@ -83,7 +84,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     EmbeddingModule,
     // 테스트에서는 크론/큐/LevelUp 초기화를 생략해 부트스트랩을 가볍게 유지하고 타임아웃 방지
     // (LevelUpModule은 E2E 테스트에서 typia/mock 충돌로 타임아웃 유발)
-    ...(isTestEnv ? [] : [DungeonBatchModule, LevelUpModule]),
+    ...(isTestEnv ? [] : [DungeonBatchModule, LevelUpModule, ChestModule]),
   ],
   controllers: [AppController],
   providers: [
