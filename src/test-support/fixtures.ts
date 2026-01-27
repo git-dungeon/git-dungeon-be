@@ -37,6 +37,7 @@ export const createDashboardStateResponse = (
     level: 5,
     exp: 120,
     levelUpPoints: 0,
+    unopenedChests: 0,
     hp: 100,
     maxHp: 120,
     atk: 25,

@@ -81,6 +81,7 @@ export class DashboardService {
         level: state.level,
         exp: state.exp,
         levelUpPoints: state.levelUpPoints,
+        unopenedChests: state.unopenedChests,
         hp: currentHp,
         maxHp,
         atk: totalStats.atk,

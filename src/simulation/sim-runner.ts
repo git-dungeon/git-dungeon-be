@@ -113,7 +113,6 @@ export class SimulationRunner {
         rngFactory,
         processors,
         this.logBuilder,
-        this.persistDeps.dropInventoryService,
       );
     }
   }

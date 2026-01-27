@@ -359,17 +359,8 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
                 "previousProgress": 0,
               },
               "rewards": {
+                "chests": 1,
                 "gold": 3,
-                "items": [
-                  {
-                    "code": "weapon-battle-axe",
-                    "quantity": 1,
-                  },
-                  {
-                    "code": "armor-steel-armor",
-                    "quantity": 1,
-                  },
-                ],
               },
               "stats": {
                 "exp": 10,
@@ -429,56 +420,6 @@ exports[`simulation fixtures snapshots > [elite-battle] matches snapshot (엘리
               "turns": 2,
             },
             "type": "BATTLE",
-          },
-          "floor": 5,
-          "status": "COMPLETED",
-        },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "weapon-battle-axe",
-                    "itemId": "75e1a270-af5a-50f9-b083-daea3e429016",
-                    "quantity": 1,
-                    "rarity": "rare",
-                    "slot": "weapon",
-                  },
-                  {
-                    "code": "armor-steel-armor",
-                    "itemId": "7dff3c25-8905-5ad6-aab7-cf9003c17a7e",
-                    "quantity": 1,
-                    "rarity": "uncommon",
-                    "slot": "armor",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": true,
-                  "items": [
-                    {
-                      "code": "weapon-battle-axe",
-                      "quantity": 1,
-                    },
-                    {
-                      "code": "armor-steel-armor",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-default",
-                },
-                "source": "BATTLE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
           },
           "floor": 5,
           "status": "COMPLETED",
@@ -596,13 +537,8 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
                 "previousProgress": 90,
               },
               "rewards": {
+                "chests": 1,
                 "gold": 2,
-                "items": [
-                  {
-                    "code": "ring-silver-band",
-                    "quantity": 1,
-                  },
-                ],
               },
               "stats": {
                 "exp": 3,
@@ -662,45 +598,6 @@ exports[`simulation fixtures snapshots > [forced-move] matches snapshot (강제 
               "turns": 2,
             },
             "type": "BATTLE",
-          },
-          "floor": 1,
-          "status": "COMPLETED",
-        },
-        {
-          "action": "ACQUIRE_ITEM",
-          "delta": {
-            "detail": {
-              "inventory": {
-                "added": [
-                  {
-                    "code": "ring-silver-band",
-                    "itemId": "14333d13-900d-5324-871e-0fd3efcd6748",
-                    "quantity": 1,
-                    "rarity": "common",
-                    "slot": "ring",
-                  },
-                ],
-              },
-            },
-            "type": "ACQUIRE_ITEM",
-          },
-          "extra": {
-            "details": {
-              "reward": {
-                "drop": {
-                  "isElite": false,
-                  "items": [
-                    {
-                      "code": "ring-silver-band",
-                      "quantity": 1,
-                    },
-                  ],
-                  "tableId": "drops-default",
-                },
-                "source": "BATTLE",
-              },
-            },
-            "type": "ACQUIRE_ITEM",
           },
           "floor": 1,
           "status": "COMPLETED",

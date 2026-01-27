@@ -3,7 +3,7 @@
 ## 목적
 
 - 고정 시드 fixture 실행 결과가 회귀하지 않았는지 자동으로 검증합니다.
-- delta.progress, extra.details.cause, ACQUIRE_ITEM 로그 등 핵심 필드가 포함되어 있는지 함께 확인합니다.
+- delta.progress, extra.details.cause, rewards.chests 등 핵심 필드가 포함되어 있는지 함께 확인합니다.
 
 ## 스냅샷 기준 (Snapshot Phase)
 
@@ -67,7 +67,7 @@ pnpm test -- --no-threads --testNamePattern "simulation fixtures" --update
 ## 체크 항목
 
 - progress/HP/EXP 변화: 각 step 로그 delta.detail.progress 또는 stats가 존재해야 합니다(MOVE 제외).
-- 드랍 로그: drop 태그가 있는 fixture는 ACQUIRE_ITEM 로그가 포함돼야 합니다.
+- 드랍 로그: drop 태그가 있는 fixture는 rewards.chests가 포함돼야 합니다.
 - 실패 원인: turn-limit는 `extra.details.cause === TURN_LIMIT`, trap-death는 `TRAP_DAMAGE` 이어야 합니다.
 
 ## 메타데이터 활용
