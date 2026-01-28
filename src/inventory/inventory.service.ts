@@ -16,6 +16,7 @@ import {
   type InventoryItem,
   type InventoryRarity as PrismaInventoryRarity,
 } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
@@ -33,11 +34,18 @@ import type {
   InventoryRarity,
   InventorySlot,
 } from './dto/inventory.response';
-import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
+import type {
+  DungeonLogDelta,
+  InventoryDelta,
+} from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 
-type InventoryLogAction = 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
+type InventoryLogAction =
+  | 'EQUIP_ITEM'
+  | 'UNEQUIP_ITEM'
+  | 'DISCARD_ITEM'
+  | 'DISMANTLE_ITEM';
 
 const INVENTORY_SLOTS: InventorySlot[] = [
   'helmet',
@@ -307,6 +315,7 @@ export class InventoryService {
         where: { userId, code: materialCode, slot: 'MATERIAL' },
       });
 
+      const materialItemId = existingMaterial?.id ?? randomUUID();
       const nextVersion = currentInventoryVersion + 1;
 
       if (existingMaterial) {
@@ -331,6 +340,7 @@ export class InventoryService {
       } else {
         await tx.inventoryItem.create({
           data: {
+            id: materialItemId,
             userId,
             code: materialCode,
             slot: 'MATERIAL',
@@ -342,6 +352,22 @@ export class InventoryService {
           },
         });
       }
+
+      const materialRarityLabel = materialRarity.toLowerCase() as InventoryRarity;
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.DISMANTLE_ITEM,
+        item: this.mapInventoryItem(target),
+        added: [
+          {
+            itemId: materialItemId,
+            code: materialCode,
+            slot: 'material',
+            rarity: materialRarityLabel,
+            quantity: materialQuantity,
+          },
+        ],
+        materials: [{ code: materialCode, quantity: materialQuantity }],
+      });
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: nextVersion,
@@ -604,6 +630,8 @@ export class InventoryService {
       action: InventoryLogAction;
       item: EquipmentItem;
       replaced?: EquipmentItem;
+      added?: InventoryDelta['added'];
+      materials?: Array<{ code: string; quantity?: number }>;
     },
   ): Promise<void> {
     const delta: DungeonLogDelta = this.buildInventoryDelta(input);
@@ -630,6 +658,7 @@ export class InventoryService {
     action: InventoryLogAction;
     item: EquipmentItem;
     replaced?: EquipmentItem;
+    added?: InventoryDelta['added'];
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
       const equipStats = extractFlatStatModifiers(input.item.modifiers);
@@ -685,6 +714,24 @@ export class InventoryService {
       };
     }
 
+    if (input.action === DungeonLogAction.DISMANTLE_ITEM) {
+      return {
+        type: 'DISMANTLE_ITEM',
+        detail: {
+          inventory: {
+            removed: [
+              {
+                itemId: input.item.id,
+                code: input.item.code,
+                quantity: input.item.quantity ?? 1,
+              },
+            ],
+            added: input.added ?? [],
+          },
+        },
+      };
+    }
+
     return {
       type: 'DISCARD_ITEM',
       detail: {
@@ -711,6 +758,7 @@ export class InventoryService {
     action: InventoryLogAction;
     item: EquipmentItem;
     replaced?: EquipmentItem;
+    materials?: Array<{ code: string; quantity?: number }>;
   }): DungeonLogDetails {
     return {
       type:
@@ -718,7 +766,9 @@ export class InventoryService {
           ? 'EQUIP_ITEM'
           : input.action === DungeonLogAction.UNEQUIP_ITEM
             ? 'UNEQUIP_ITEM'
-            : 'DISCARD_ITEM',
+            : input.action === DungeonLogAction.DISMANTLE_ITEM
+              ? 'DISMANTLE_ITEM'
+              : 'DISCARD_ITEM',
       details: {
         item: {
           id: input.item.id,
@@ -737,6 +787,10 @@ export class InventoryService {
               name: input.replaced.name ?? null,
             }
           : undefined,
+        materials:
+          input.action === DungeonLogAction.DISMANTLE_ITEM
+            ? input.materials ?? []
+            : undefined,
       },
     };
   }

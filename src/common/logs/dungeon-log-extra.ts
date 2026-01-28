@@ -83,7 +83,7 @@ export type AcquireItemDetails = {
 };
 
 export type InventoryMutationDetails = {
-  type: 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
+  type: 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM' | 'DISMANTLE_ITEM';
   details: {
     item: {
       id: string;
@@ -100,6 +100,10 @@ export type InventoryMutationDetails = {
       rarity: string;
       name?: string | null;
     };
+    materials?: Array<{
+      code: string;
+      quantity?: number;
+    }>;
   };
 };
 
