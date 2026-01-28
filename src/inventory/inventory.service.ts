@@ -30,6 +30,7 @@ import type {
   EquipmentItem,
   EquipmentStats,
   EquippedItems,
+  EquippableSlot,
   InventoryResponse,
   InventoryRarity,
   InventorySlot,
@@ -47,13 +48,11 @@ type InventoryLogAction =
   | 'DISCARD_ITEM'
   | 'DISMANTLE_ITEM';
 
-const INVENTORY_SLOTS: InventorySlot[] = [
+const EQUIPPABLE_SLOTS: EquippableSlot[] = [
   'helmet',
   'armor',
   'weapon',
   'ring',
-  'consumable',
-  'material',
 ];
 
 const DISMANTLE_TARGET_SLOTS: InventorySlot[] = [
@@ -311,30 +310,35 @@ export class InventoryService {
         });
       }
 
-      const existingMaterial = await tx.inventoryItem.findFirst({
+      const existingMaterials = await tx.inventoryItem.findMany({
         where: { userId, code: materialCode, slot: 'MATERIAL' },
+        orderBy: { obtainedAt: 'asc' },
       });
 
+      const existingMaterial = existingMaterials[0];
       const materialItemId = existingMaterial?.id ?? randomUUID();
       const nextVersion = currentInventoryVersion + 1;
 
       if (existingMaterial) {
-        const updated = await tx.inventoryItem.updateMany({
-          where: {
-            id: existingMaterial.id,
-            userId,
-            version: existingMaterial.version,
-          },
+        const totalQuantity =
+          existingMaterials.reduce(
+            (sum, item) => sum + (item.quantity ?? 1),
+            0,
+          ) + materialQuantity;
+
+        await tx.inventoryItem.update({
+          where: { id: existingMaterial.id },
           data: {
-            quantity: { increment: materialQuantity },
+            quantity: totalQuantity,
             version: nextVersion,
           },
         });
 
-        if (updated.count === 0) {
-          throw new PreconditionFailedException({
-            code: 'INVENTORY_VERSION_MISMATCH',
-            message: '아이템 버전이 일치하지 않습니다.',
+        const duplicateIds = existingMaterials.slice(1).map((item) => item.id);
+
+        if (duplicateIds.length > 0) {
+          await tx.inventoryItem.deleteMany({
+            where: { id: { in: duplicateIds }, userId },
           });
         }
       } else {
@@ -353,7 +357,8 @@ export class InventoryService {
         });
       }
 
-      const materialRarityLabel = materialRarity.toLowerCase() as InventoryRarity;
+      const materialRarityLabel =
+        materialRarity.toLowerCase() as InventoryRarity;
       await this.appendInventoryLog(tx, userId, {
         action: DungeonLogAction.DISMANTLE_ITEM,
         item: this.mapInventoryItem(target),
@@ -597,7 +602,7 @@ export class InventoryService {
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
     return items.reduce<EquippedItems>((acc, item) => {
-      if (item.isEquipped && this.isInventorySlot(item.slot)) {
+      if (item.isEquipped && this.isEquippableSlot(item.slot)) {
         acc[item.slot] = item;
       }
       return acc;
@@ -619,8 +624,8 @@ export class InventoryService {
     };
   }
 
-  private isInventorySlot(slot: string): slot is InventorySlot {
-    return INVENTORY_SLOTS.includes(slot as InventorySlot);
+  private isEquippableSlot(slot: string): slot is EquippableSlot {
+    return EQUIPPABLE_SLOTS.includes(slot as EquippableSlot);
   }
 
   private async appendInventoryLog(
@@ -789,7 +794,7 @@ export class InventoryService {
           : undefined,
         materials:
           input.action === DungeonLogAction.DISMANTLE_ITEM
-            ? input.materials ?? []
+            ? (input.materials ?? [])
             : undefined,
       },
     };

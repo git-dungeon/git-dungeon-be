@@ -9,6 +9,8 @@ export type InventorySlot =
   | 'consumable'
   | 'material';
 
+export type EquippableSlot = 'helmet' | 'armor' | 'weapon' | 'ring';
+
 export type InventoryRarity =
   | 'common'
   | 'uncommon'
@@ -47,7 +49,7 @@ export interface EquipmentSummary {
   equipmentBonus: EquipmentStats;
 }
 
-export type EquippedItems = Partial<Record<InventorySlot, EquipmentItem>>;
+export type EquippedItems = Partial<Record<EquippableSlot, EquipmentItem>>;
 
 export interface InventoryResponse {
   version: number & tags.Minimum<0> & tags.Example<7>;

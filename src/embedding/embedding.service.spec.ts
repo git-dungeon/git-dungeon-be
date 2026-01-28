@@ -87,7 +87,7 @@ describe('EmbeddingService', () => {
       effect: null,
       sprite: null,
       createdAt: '2025-10-30T09:00:00.000Z',
-      isEquipped: true,
+      isEquipped: false,
       quantity: 1,
       version: 1,
     } as InventoryResponse['items'][number];
@@ -117,7 +117,6 @@ describe('EmbeddingService', () => {
       items: [weaponItem, consumableItem],
       equipped: {
         weapon: weaponItem,
-        consumable: consumableItem,
       },
     });
 

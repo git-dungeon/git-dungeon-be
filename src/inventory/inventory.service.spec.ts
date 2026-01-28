@@ -252,13 +252,7 @@ describe('InventoryService mutations', () => {
       id: string;
       userId: string;
       code: string;
-      slot:
-        | 'WEAPON'
-        | 'ARMOR'
-        | 'HELMET'
-        | 'RING'
-        | 'CONSUMABLE'
-        | 'MATERIAL';
+      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE' | 'MATERIAL';
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
@@ -296,13 +290,7 @@ describe('InventoryService mutations', () => {
       id: string;
       userId: string;
       code: string;
-      slot:
-        | 'WEAPON'
-        | 'ARMOR'
-        | 'HELMET'
-        | 'RING'
-        | 'CONSUMABLE'
-        | 'MATERIAL';
+      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE' | 'MATERIAL';
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
@@ -342,12 +330,47 @@ describe('InventoryService mutations', () => {
               ) ?? null,
             ),
         ),
-        findMany: vi.fn(({ where }: { where: { userId: string } }) =>
-          Promise.resolve(
-            inventoryItems
-              .filter((item) => item.userId === where.userId)
-              .sort((a, b) => a.obtainedAt.getTime() - b.obtainedAt.getTime()),
-          ),
+        findMany: vi.fn(
+          ({
+            where,
+            orderBy,
+          }: {
+            where: {
+              userId: string;
+              code?: string;
+              slot?: string;
+              isEquipped?: boolean;
+            };
+            orderBy?: { obtainedAt?: 'asc' | 'desc' };
+          }) => {
+            let filtered = inventoryItems.filter(
+              (item) => item.userId === where.userId,
+            );
+
+            if (where.code) {
+              filtered = filtered.filter((item) => item.code === where.code);
+            }
+
+            if (where.slot) {
+              filtered = filtered.filter((item) => item.slot === where.slot);
+            }
+
+            if (where.isEquipped !== undefined) {
+              filtered = filtered.filter(
+                (item) => item.isEquipped === where.isEquipped,
+              );
+            }
+
+            const sorted = filtered.sort(
+              (a, b) => a.obtainedAt.getTime() - b.obtainedAt.getTime(),
+            );
+
+            if (orderBy?.obtainedAt === 'desc') {
+              sorted.reverse();
+            }
+
+            return Promise.resolve(sorted);
+          },
         ),
         updateMany: vi.fn(
           ({
@@ -387,6 +410,41 @@ describe('InventoryService mutations', () => {
             return Promise.resolve({ count });
           },
         ),
+        update: vi.fn(
+          ({
+            where,
+            data,
+          }: {
+            where: { id: string };
+            data: { isEquipped?: boolean; quantity?: number; version?: number };
+          }) => {
+            const targetIndex = inventoryItems.findIndex(
+              (item) => item.id === where.id,
+            );
+
+            if (targetIndex < 0) {
+              return Promise.reject(new Error('Record not found'));
+            }
+
+            const target = inventoryItems[targetIndex];
+            const updated = {
+              ...target,
+              ...(data.isEquipped !== undefined
+                ? { isEquipped: data.isEquipped }
+                : {}),
+              ...(data.quantity !== undefined
+                ? { quantity: data.quantity }
+                : {}),
+              ...(data.version !== undefined ? { version: data.version } : {}),
+            };
+
+            inventoryItems = inventoryItems.map((item, index) =>
+              index === targetIndex ? updated : item,
+            );
+
+            return Promise.resolve(updated);
+          },
+        ),
         create: vi.fn(({ data }: { data: unknown }) => {
           const payload = data as {
             id?: string;
@@ -423,17 +481,34 @@ describe('InventoryService mutations', () => {
           ({
             where,
           }: {
-            where: { id: string; userId: string; version: number };
+            where:
+              | { id: string; userId: string; version?: number }
+              | { id: { in: string[] }; userId: string };
           }) => {
             const before = inventoryItems.length;
-            inventoryItems = inventoryItems.filter(
-              (item) =>
-                !(
-                  item.id === where.id &&
-                  item.userId === where.userId &&
-                  item.version === where.version
-                ),
-            );
+
+            if (typeof where.id === 'string') {
+              const whereWithVersion = where as {
+                id: string;
+                userId: string;
+                version?: number;
+              };
+              inventoryItems = inventoryItems.filter(
+                (item) =>
+                  !(
+                    item.id === whereWithVersion.id &&
+                    item.userId === whereWithVersion.userId &&
+                    (whereWithVersion.version === undefined ||
+                      item.version === whereWithVersion.version)
+                  ),
+              );
+            } else {
+              const ids = new Set(where.id.in);
+              inventoryItems = inventoryItems.filter(
+                (item) => !(item.userId === where.userId && ids.has(item.id)),
+              );
+            }
+
             const after = inventoryItems.length;
             return Promise.resolve({ count: before - after });
           },
