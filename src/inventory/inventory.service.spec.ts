@@ -252,12 +252,13 @@ describe('InventoryService mutations', () => {
       id: string;
       userId: string;
       code: string;
-      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE';
+      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE' | 'MATERIAL';
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
       obtainedAt: Date;
       version: number;
+      quantity: number;
     }>,
   ) => ({
     id: ITEM_ID_GENERIC,
@@ -269,6 +270,7 @@ describe('InventoryService mutations', () => {
     isEquipped: false,
     obtainedAt: new Date('2025-10-30T09:00:00.000Z'),
     version: 1,
+    quantity: 1,
     ...overrides,
   });
 
@@ -288,12 +290,13 @@ describe('InventoryService mutations', () => {
       id: string;
       userId: string;
       code: string;
-      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE';
+      slot: 'WEAPON' | 'ARMOR' | 'HELMET' | 'RING' | 'CONSUMABLE' | 'MATERIAL';
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
       obtainedAt: Date;
       version: number;
+      quantity: number;
     }>;
   }) => {
     let inventoryItems = [...items];
@@ -327,12 +330,47 @@ describe('InventoryService mutations', () => {
               ) ?? null,
             ),
         ),
-        findMany: vi.fn(({ where }: { where: { userId: string } }) =>
-          Promise.resolve(
-            inventoryItems
-              .filter((item) => item.userId === where.userId)
-              .sort((a, b) => a.obtainedAt.getTime() - b.obtainedAt.getTime()),
-          ),
+        findMany: vi.fn(
+          ({
+            where,
+            orderBy,
+          }: {
+            where: {
+              userId: string;
+              code?: string;
+              slot?: string;
+              isEquipped?: boolean;
+            };
+            orderBy?: { obtainedAt?: 'asc' | 'desc' };
+          }) => {
+            let filtered = inventoryItems.filter(
+              (item) => item.userId === where.userId,
+            );
+
+            if (where.code) {
+              filtered = filtered.filter((item) => item.code === where.code);
+            }
+
+            if (where.slot) {
+              filtered = filtered.filter((item) => item.slot === where.slot);
+            }
+
+            if (where.isEquipped !== undefined) {
+              filtered = filtered.filter(
+                (item) => item.isEquipped === where.isEquipped,
+              );
+            }
+
+            const sorted = filtered.sort(
+              (a, b) => a.obtainedAt.getTime() - b.obtainedAt.getTime(),
+            );
+
+            if (orderBy?.obtainedAt === 'desc') {
+              sorted.reverse();
+            }
+
+            return Promise.resolve(sorted);
+          },
         ),
         updateMany: vi.fn(
           ({
@@ -340,7 +378,11 @@ describe('InventoryService mutations', () => {
             data,
           }: {
             where: { id: string; userId: string; version: number };
-            data: { isEquipped?: boolean; version?: { increment: number } };
+            data: {
+              isEquipped?: boolean;
+              version?: { increment: number };
+              quantity?: { increment: number };
+            };
           }) => {
             let count = 0;
             inventoryItems = inventoryItems.map((item) => {
@@ -355,6 +397,9 @@ describe('InventoryService mutations', () => {
                   ...(data.isEquipped !== undefined
                     ? { isEquipped: data.isEquipped }
                     : {}),
+                  ...(data.quantity
+                    ? { quantity: item.quantity + data.quantity.increment }
+                    : {}),
                   ...(data.version
                     ? { version: item.version + data.version.increment }
                     : {}),
@@ -365,21 +410,105 @@ describe('InventoryService mutations', () => {
             return Promise.resolve({ count });
           },
         ),
+        update: vi.fn(
+          ({
+            where,
+            data,
+          }: {
+            where: { id: string };
+            data: { isEquipped?: boolean; quantity?: number; version?: number };
+          }) => {
+            const targetIndex = inventoryItems.findIndex(
+              (item) => item.id === where.id,
+            );
+
+            if (targetIndex < 0) {
+              return Promise.reject(new Error('Record not found'));
+            }
+
+            const target = inventoryItems[targetIndex];
+            const updated = {
+              ...target,
+              ...(data.isEquipped !== undefined
+                ? { isEquipped: data.isEquipped }
+                : {}),
+              ...(data.quantity !== undefined
+                ? { quantity: data.quantity }
+                : {}),
+              ...(data.version !== undefined ? { version: data.version } : {}),
+            };
+
+            inventoryItems = inventoryItems.map((item, index) =>
+              index === targetIndex ? updated : item,
+            );
+
+            return Promise.resolve(updated);
+          },
+        ),
+        create: vi.fn(({ data }: { data: unknown }) => {
+          const payload = data as {
+            id?: string;
+            userId: string;
+            code: string;
+            slot: string;
+            rarity: string;
+            modifiers: unknown;
+            isEquipped: boolean;
+            quantity?: number;
+            version: number;
+          };
+          inventoryItems.push({
+            id: payload.id ?? ITEM_ID_GENERIC,
+            userId: payload.userId,
+            code: payload.code,
+            slot: payload.slot as
+              | 'WEAPON'
+              | 'ARMOR'
+              | 'HELMET'
+              | 'RING'
+              | 'CONSUMABLE'
+              | 'MATERIAL',
+            rarity: payload.rarity,
+            modifiers: payload.modifiers,
+            isEquipped: payload.isEquipped,
+            obtainedAt: new Date('2025-10-30T09:00:00.000Z'),
+            version: payload.version,
+            quantity: payload.quantity ?? 1,
+          });
+          return Promise.resolve(payload);
+        }),
         deleteMany: vi.fn(
           ({
             where,
           }: {
-            where: { id: string; userId: string; version: number };
+            where:
+              | { id: string; userId: string; version?: number }
+              | { id: { in: string[] }; userId: string };
           }) => {
             const before = inventoryItems.length;
-            inventoryItems = inventoryItems.filter(
-              (item) =>
-                !(
-                  item.id === where.id &&
-                  item.userId === where.userId &&
-                  item.version === where.version
-                ),
-            );
+
+            if (typeof where.id === 'string') {
+              const whereWithVersion = where as {
+                id: string;
+                userId: string;
+                version?: number;
+              };
+              inventoryItems = inventoryItems.filter(
+                (item) =>
+                  !(
+                    item.id === whereWithVersion.id &&
+                    item.userId === whereWithVersion.userId &&
+                    (whereWithVersion.version === undefined ||
+                      item.version === whereWithVersion.version)
+                  ),
+              );
+            } else {
+              const ids = new Set(where.id.in);
+              inventoryItems = inventoryItems.filter(
+                (item) => !(item.userId === where.userId && ids.has(item.id)),
+              );
+            }
+
             const after = inventoryItems.length;
             return Promise.resolve({ count: before - after });
           },
@@ -626,6 +755,72 @@ describe('InventoryService mutations', () => {
       constructor: PreconditionFailedException,
       response: { code: 'INVENTORY_VERSION_MISMATCH' },
     });
+  });
+
+  it('dismantle: 장착 중이면 409를 던져야 한다', async () => {
+    const { service } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: RING_ID,
+          code: 'ring-topaz',
+          slot: 'RING',
+          rarity: 'UNCOMMON',
+          isEquipped: true,
+          version: 2,
+        }),
+      ],
+    });
+
+    await expect(
+      service.dismantleItem(USER_ID_1, {
+        itemId: RING_ID,
+        expectedVersion: 2,
+        inventoryVersion: 2,
+      }),
+    ).rejects.toMatchObject({
+      constructor: ConflictException,
+      response: { code: 'INVENTORY_SLOT_CONFLICT' },
+    });
+  });
+
+  it('dismantle: 재료를 추가하고 로그를 남긴다', async () => {
+    const { service, getItems, getDungeonLogs } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          rarity: 'RARE',
+          isEquipped: false,
+          version: 3,
+        }),
+      ],
+    });
+
+    const response = await service.dismantleItem(USER_ID_1, {
+      itemId: SWORD_ID,
+      expectedVersion: 3,
+      inventoryVersion: 3,
+    });
+
+    expect(response.items.find((item) => item.id === SWORD_ID)).toBeUndefined();
+    expect(getItems().some((item) => item.id === SWORD_ID)).toBe(false);
+
+    const material = response.items.find(
+      (item) => item.code === 'material-metal-scrap',
+    );
+    expect(material?.quantity).toBe(3);
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.DISMANTLE_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
   });
 
   it('다른 사용자의 아이템이면 404를 던져야 한다', async () => {

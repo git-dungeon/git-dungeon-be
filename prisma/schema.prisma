@@ -101,6 +101,7 @@ enum InventorySlot {
   HELMET
   RING
   CONSUMABLE
+  MATERIAL
 }
 
 enum InventoryRarity {
@@ -172,6 +173,7 @@ enum DungeonLogAction {
   EQUIP_ITEM
   UNEQUIP_ITEM
   DISCARD_ITEM
+  DISMANTLE_ITEM
   BUFF_APPLIED
   BUFF_EXPIRED
   STAT_APPLIED
@@ -229,6 +231,7 @@ model InventoryItem {
   rarity     InventoryRarity
   modifiers  Json
   isEquipped Boolean         @default(false)
+  quantity   Int             @default(1)
   modifierVersion Int        @default(0)
   obtainedAt DateTime        @default(now())
   version    Int             @default(1)

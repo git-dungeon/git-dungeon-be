@@ -6,7 +6,10 @@ export type InventorySlot =
   | 'armor'
   | 'weapon'
   | 'ring'
-  | 'consumable';
+  | 'consumable'
+  | 'material';
+
+export type EquippableSlot = 'helmet' | 'armor' | 'weapon' | 'ring';
 
 export type InventoryRarity =
   | 'common'
@@ -28,6 +31,7 @@ export interface EquipmentItem {
   sprite?: (string & tags.Example<'sprite/weapon-longsword.svg'>) | null;
   createdAt: string & tags.Format<'date-time'>;
   isEquipped: boolean & tags.Example<true>;
+  quantity: number & tags.Minimum<1> & tags.Example<2>;
   version: number & tags.Minimum<0>;
 }
 
@@ -45,7 +49,7 @@ export interface EquipmentSummary {
   equipmentBonus: EquipmentStats;
 }
 
-export type EquippedItems = Partial<Record<InventorySlot, EquipmentItem>>;
+export type EquippedItems = Partial<Record<EquippableSlot, EquipmentItem>>;
 
 export interface InventoryResponse {
   version: number & tags.Minimum<0> & tags.Example<7>;

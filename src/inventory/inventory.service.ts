@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -13,7 +14,9 @@ import {
   DungeonLogStatus,
   Prisma,
   type InventoryItem,
+  type InventoryRarity as PrismaInventoryRarity,
 } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
@@ -27,23 +30,46 @@ import type {
   EquipmentItem,
   EquipmentStats,
   EquippedItems,
+  EquippableSlot,
   InventoryResponse,
   InventoryRarity,
   InventorySlot,
 } from './dto/inventory.response';
-import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
+import type {
+  DungeonLogDelta,
+  InventoryDelta,
+} from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 
-type InventoryLogAction = 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM';
+type InventoryLogAction =
+  | 'EQUIP_ITEM'
+  | 'UNEQUIP_ITEM'
+  | 'DISCARD_ITEM'
+  | 'DISMANTLE_ITEM';
 
-const INVENTORY_SLOTS: InventorySlot[] = [
+const EQUIPPABLE_SLOTS: EquippableSlot[] = [
   'helmet',
   'armor',
   'weapon',
   'ring',
-  'consumable',
 ];
+
+const DISMANTLE_TARGET_SLOTS: InventorySlot[] = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+];
+
+const MATERIAL_CODE_BY_SLOT: Record<InventorySlot, string> = {
+  helmet: 'material-leather-scrap',
+  armor: 'material-cloth-scrap',
+  weapon: 'material-metal-scrap',
+  ring: 'material-mithril-dust',
+  consumable: '',
+  material: '',
+};
 
 @Injectable()
 export class InventoryService {
@@ -234,6 +260,128 @@ export class InventoryService {
     });
   }
 
+  async dismantleItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      if (target.isEquipped) {
+        throw new ConflictException({
+          code: 'INVENTORY_SLOT_CONFLICT',
+          message: '장착 중인 아이템은 분해할 수 없습니다.',
+        });
+      }
+
+      const targetSlot = target.slot.toLowerCase() as InventorySlot;
+      const targetRarity = target.rarity.toLowerCase() as InventoryRarity;
+
+      const materialCode = this.resolveMaterialCode(targetSlot);
+      const materialQuantity = this.resolveMaterialQuantity(targetRarity);
+      const materialRarity = this.resolveMaterialRarity(materialCode);
+
+      const deleted = await tx.inventoryItem.deleteMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+      });
+
+      if (deleted.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const existingMaterials = await tx.inventoryItem.findMany({
+        where: { userId, code: materialCode, slot: 'MATERIAL' },
+        orderBy: { obtainedAt: 'asc' },
+      });
+
+      const existingMaterial = existingMaterials[0];
+      const materialItemId = existingMaterial?.id ?? randomUUID();
+      const nextVersion = currentInventoryVersion + 1;
+
+      if (existingMaterial) {
+        const totalQuantity =
+          existingMaterials.reduce(
+            (sum, item) => sum + (item.quantity ?? 1),
+            0,
+          ) + materialQuantity;
+
+        await tx.inventoryItem.update({
+          where: { id: existingMaterial.id },
+          data: {
+            quantity: totalQuantity,
+            version: nextVersion,
+          },
+        });
+
+        const duplicateIds = existingMaterials.slice(1).map((item) => item.id);
+
+        if (duplicateIds.length > 0) {
+          await tx.inventoryItem.deleteMany({
+            where: { id: { in: duplicateIds }, userId },
+          });
+        }
+      } else {
+        await tx.inventoryItem.create({
+          data: {
+            id: materialItemId,
+            userId,
+            code: materialCode,
+            slot: 'MATERIAL',
+            rarity: materialRarity,
+            modifiers: [],
+            isEquipped: false,
+            quantity: materialQuantity,
+            version: nextVersion,
+          },
+        });
+      }
+
+      const materialRarityLabel =
+        materialRarity.toLowerCase() as InventoryRarity;
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.DISMANTLE_ITEM,
+        item: this.mapInventoryItem(target),
+        added: [
+          {
+            itemId: materialItemId,
+            code: materialCode,
+            slot: 'material',
+            rarity: materialRarityLabel,
+            quantity: materialQuantity,
+          },
+        ],
+        materials: [{ code: materialCode, quantity: materialQuantity }],
+      });
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: nextVersion,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
   private async buildInventoryResponse(
     prismaClient: PrismaService | Prisma.TransactionClient,
     userId: string,
@@ -394,6 +542,7 @@ export class InventoryService {
       sprite: null,
       createdAt: item.obtainedAt.toISOString(),
       isEquipped: item.isEquipped,
+      quantity: item.quantity ?? 1,
       version: item.version,
     };
   }
@@ -419,9 +568,41 @@ export class InventoryService {
     });
   }
 
+  private resolveMaterialCode(slot: InventorySlot): string {
+    if (!DISMANTLE_TARGET_SLOTS.includes(slot)) {
+      throw new BadRequestException({
+        code: 'INVENTORY_INVALID_REQUEST',
+        message: '분해할 수 없는 슬롯입니다.',
+      });
+    }
+
+    return MATERIAL_CODE_BY_SLOT[slot];
+  }
+
+  private resolveMaterialQuantity(rarity: InventoryRarity): number {
+    switch (rarity) {
+      case 'common':
+        return 1;
+      case 'uncommon':
+        return 2;
+      case 'rare':
+        return 3;
+      case 'epic':
+        return 4;
+      case 'legendary':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  private resolveMaterialRarity(code: string): PrismaInventoryRarity {
+    return code === 'material-mithril-dust' ? 'LEGENDARY' : 'COMMON';
+  }
+
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
     return items.reduce<EquippedItems>((acc, item) => {
-      if (item.isEquipped && this.isInventorySlot(item.slot)) {
+      if (item.isEquipped && this.isEquippableSlot(item.slot)) {
         acc[item.slot] = item;
       }
       return acc;
@@ -443,8 +624,8 @@ export class InventoryService {
     };
   }
 
-  private isInventorySlot(slot: string): slot is InventorySlot {
-    return INVENTORY_SLOTS.includes(slot as InventorySlot);
+  private isEquippableSlot(slot: string): slot is EquippableSlot {
+    return EQUIPPABLE_SLOTS.includes(slot as EquippableSlot);
   }
 
   private async appendInventoryLog(
@@ -454,6 +635,8 @@ export class InventoryService {
       action: InventoryLogAction;
       item: EquipmentItem;
       replaced?: EquipmentItem;
+      added?: InventoryDelta['added'];
+      materials?: Array<{ code: string; quantity?: number }>;
     },
   ): Promise<void> {
     const delta: DungeonLogDelta = this.buildInventoryDelta(input);
@@ -480,6 +663,7 @@ export class InventoryService {
     action: InventoryLogAction;
     item: EquipmentItem;
     replaced?: EquipmentItem;
+    added?: InventoryDelta['added'];
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
       const equipStats = extractFlatStatModifiers(input.item.modifiers);
@@ -535,6 +719,24 @@ export class InventoryService {
       };
     }
 
+    if (input.action === DungeonLogAction.DISMANTLE_ITEM) {
+      return {
+        type: 'DISMANTLE_ITEM',
+        detail: {
+          inventory: {
+            removed: [
+              {
+                itemId: input.item.id,
+                code: input.item.code,
+                quantity: input.item.quantity ?? 1,
+              },
+            ],
+            added: input.added ?? [],
+          },
+        },
+      };
+    }
+
     return {
       type: 'DISCARD_ITEM',
       detail: {
@@ -561,6 +763,7 @@ export class InventoryService {
     action: InventoryLogAction;
     item: EquipmentItem;
     replaced?: EquipmentItem;
+    materials?: Array<{ code: string; quantity?: number }>;
   }): DungeonLogDetails {
     return {
       type:
@@ -568,7 +771,9 @@ export class InventoryService {
           ? 'EQUIP_ITEM'
           : input.action === DungeonLogAction.UNEQUIP_ITEM
             ? 'UNEQUIP_ITEM'
-            : 'DISCARD_ITEM',
+            : input.action === DungeonLogAction.DISMANTLE_ITEM
+              ? 'DISMANTLE_ITEM'
+              : 'DISCARD_ITEM',
       details: {
         item: {
           id: input.item.id,
@@ -587,6 +792,10 @@ export class InventoryService {
               name: input.replaced.name ?? null,
             }
           : undefined,
+        materials:
+          input.action === DungeonLogAction.DISMANTLE_ITEM
+            ? (input.materials ?? [])
+            : undefined,
       },
     };
   }

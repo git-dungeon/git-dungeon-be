@@ -118,5 +118,13 @@
   "monster.cave-bat-elite.name": "Cave Bat (Elite)",
   "monster.cave-bat-elite.desc": "A faster, more vicious cave bat.",
   "monster.fire-imp-elite.name": "Fire Imp (Elite)",
-  "monster.fire-imp-elite.desc": "A fire imp with intensified flames."
+  "monster.fire-imp-elite.desc": "A fire imp with intensified flames.",
+  "item.material-leather-scrap.name": "Leather Scrap",
+  "item.material-leather-scrap.desc": "Scrap of usable leather.",
+  "item.material-cloth-scrap.name": "Cloth Scrap",
+  "item.material-cloth-scrap.desc": "Bundle of rough cloth scrap.",
+  "item.material-metal-scrap.name": "Metal Scrap",
+  "item.material-metal-scrap.desc": "Chunk of recyclable metal.",
+  "item.material-mithril-dust.name": "Mithril Dust",
+  "item.material-mithril-dust.desc": "Fine mithril dust filled with power."
 }
