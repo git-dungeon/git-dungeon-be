@@ -124,6 +124,30 @@ export class InventoryController {
     });
   }
 
+  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/dismantle')
+  @HttpCode(HttpStatus.OK)
+  @Authenticated()
+  @UseGuards(AuthenticatedThrottlerGuard)
+  async dismantleInventoryItem(
+    @CurrentAuthSession() session: ActiveSessionResult,
+    @TypedBody() body: InventoryItemMutationRequest,
+    @Req() request: Request & { id?: string },
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ApiSuccessResponse<InventoryResponse>> {
+    applyNoCacheHeaders(response);
+    appendCookies(response, session.cookies);
+    this.assertInventoryMutationRequest(body);
+
+    const inventory = await this.inventoryService.dismantleItem(
+      session.view.session.userId,
+      body,
+    );
+
+    return successResponseWithGeneratedAt(inventory, {
+      requestId: request.id,
+    });
+  }
+
   private assertInventoryMutationRequest(
     body: InventoryItemMutationRequest,
   ): void {
