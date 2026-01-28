@@ -74,6 +74,7 @@ describe('EmbeddingService', () => {
       sprite: null,
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
+      quantity: 1,
       version: 3,
     } as InventoryResponse['items'][number];
     const consumableItem = {
@@ -87,6 +88,7 @@ describe('EmbeddingService', () => {
       sprite: null,
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
+      quantity: 1,
       version: 1,
     } as InventoryResponse['items'][number];
 

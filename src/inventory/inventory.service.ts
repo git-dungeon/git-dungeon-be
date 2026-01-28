@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -13,6 +14,7 @@ import {
   DungeonLogStatus,
   Prisma,
   type InventoryItem,
+  type InventoryRarity as PrismaInventoryRarity,
 } from '@prisma/client';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
@@ -45,6 +47,22 @@ const INVENTORY_SLOTS: InventorySlot[] = [
   'consumable',
   'material',
 ];
+
+const DISMANTLE_TARGET_SLOTS: InventorySlot[] = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+];
+
+const MATERIAL_CODE_BY_SLOT: Record<InventorySlot, string> = {
+  helmet: 'material-leather-scrap',
+  armor: 'material-cloth-scrap',
+  weapon: 'material-metal-scrap',
+  ring: 'material-mithril-dust',
+  consumable: '',
+  material: '',
+};
 
 @Injectable()
 export class InventoryService {
@@ -235,6 +253,104 @@ export class InventoryService {
     });
   }
 
+  async dismantleItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      if (target.isEquipped) {
+        throw new ConflictException({
+          code: 'INVENTORY_SLOT_CONFLICT',
+          message: '장착 중인 아이템은 분해할 수 없습니다.',
+        });
+      }
+
+      const targetSlot = target.slot.toLowerCase() as InventorySlot;
+      const targetRarity = target.rarity.toLowerCase() as InventoryRarity;
+
+      const materialCode = this.resolveMaterialCode(targetSlot);
+      const materialQuantity = this.resolveMaterialQuantity(targetRarity);
+      const materialRarity = this.resolveMaterialRarity(materialCode);
+
+      const deleted = await tx.inventoryItem.deleteMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+      });
+
+      if (deleted.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const existingMaterial = await tx.inventoryItem.findFirst({
+        where: { userId, code: materialCode, slot: 'MATERIAL' },
+      });
+
+      const nextVersion = currentInventoryVersion + 1;
+
+      if (existingMaterial) {
+        const updated = await tx.inventoryItem.updateMany({
+          where: {
+            id: existingMaterial.id,
+            userId,
+            version: existingMaterial.version,
+          },
+          data: {
+            quantity: { increment: materialQuantity },
+            version: nextVersion,
+          },
+        });
+
+        if (updated.count === 0) {
+          throw new PreconditionFailedException({
+            code: 'INVENTORY_VERSION_MISMATCH',
+            message: '아이템 버전이 일치하지 않습니다.',
+          });
+        }
+      } else {
+        await tx.inventoryItem.create({
+          data: {
+            userId,
+            code: materialCode,
+            slot: 'MATERIAL',
+            rarity: materialRarity,
+            modifiers: [],
+            isEquipped: false,
+            quantity: materialQuantity,
+            version: nextVersion,
+          },
+        });
+      }
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: nextVersion,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
   private async buildInventoryResponse(
     prismaClient: PrismaService | Prisma.TransactionClient,
     userId: string,
@@ -419,6 +535,38 @@ export class InventoryService {
         expected: 'InventoryRarity',
       },
     });
+  }
+
+  private resolveMaterialCode(slot: InventorySlot): string {
+    if (!DISMANTLE_TARGET_SLOTS.includes(slot)) {
+      throw new BadRequestException({
+        code: 'INVENTORY_INVALID_REQUEST',
+        message: '분해할 수 없는 슬롯입니다.',
+      });
+    }
+
+    return MATERIAL_CODE_BY_SLOT[slot];
+  }
+
+  private resolveMaterialQuantity(rarity: InventoryRarity): number {
+    switch (rarity) {
+      case 'common':
+        return 1;
+      case 'uncommon':
+        return 2;
+      case 'rare':
+        return 3;
+      case 'epic':
+        return 4;
+      case 'legendary':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  private resolveMaterialRarity(code: string): PrismaInventoryRarity {
+    return code === 'material-mithril-dust' ? 'LEGENDARY' : 'COMMON';
   }
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
