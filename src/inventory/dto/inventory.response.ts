@@ -6,7 +6,8 @@ export type InventorySlot =
   | 'armor'
   | 'weapon'
   | 'ring'
-  | 'consumable';
+  | 'consumable'
+  | 'material';
 
 export type InventoryRarity =
   | 'common'
@@ -28,6 +29,7 @@ export interface EquipmentItem {
   sprite?: (string & tags.Example<'sprite/weapon-longsword.svg'>) | null;
   createdAt: string & tags.Format<'date-time'>;
   isEquipped: boolean & tags.Example<true>;
+  quantity: number & tags.Minimum<1> & tags.Example<2>;
   version: number & tags.Minimum<0>;
 }
 

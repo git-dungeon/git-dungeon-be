@@ -1,9 +1,9 @@
 {
-  "config/catalog/items.json": "1f1b1c5d4bcffddf7525916636b30ee4b79844cb368d222ae95b592c9d75bfa5",
+  "config/catalog/items.json": "a6f41c28482f1a2346b52da0e12f4a306f8663180010e673e7550caadabb9ea6",
   "config/catalog/buffs.json": "788517ddb3fd589130c1263aed4be1180745932715d4a9586a209a488c445a05",
   "config/catalog/monsters.json": "6c9601833d879b8d841a0bf17d834db491cffec61cd37f038faf5ea78e550b8b",
   "config/catalog/drops.json": "1a2e25ee3676f3087cc456a9a7f99e7c25ffc382368caa08dd1f877c8da417fe",
   "config/dungeon/event-config.json": "da007fe7493af36c4114bd6f92cd1bc0baf41c244bb52c68a4cb8afb2268d8c3",
-  "config/catalog/i18n/en.json": "b167b64256c448daf343f471269e7d35e2ba3663dbc91f7391b8765382a3d3f3",
-  "config/catalog/i18n/ko.json": "2d2826dc196c8591a1a8b6733519677b3bb56b1d0432c85c3c94b01e1583d96d"
+  "config/catalog/i18n/en.json": "368f187e5cd65c30db4300a9d5870f637660a28e1c28b8792f8b6c5b559610c5",
+  "config/catalog/i18n/ko.json": "5cea63fda8a11eecfd2e9211a58100cf96b2c4419eace432d0428532d77b2062"
 }

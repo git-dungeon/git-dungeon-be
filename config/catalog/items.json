@@ -1,6 +1,6 @@
 {
-  "version": 8,
-  "updatedAt": "2025-12-29T10:32:49.465Z",
+  "version": 10,
+  "updatedAt": "2026-01-28T06:10:04.001Z",
   "items": [
     {
       "code": "weapon-wooden-sword",
@@ -898,6 +898,54 @@
       "effectCode": "angel-ring-revive",
       "spriteId": "sprite/angel-ring",
       "description": "Once per run, revive at 30% HP."
+    },
+    {
+      "code": "material-leather-scrap",
+      "nameKey": "item.material-leather-scrap.name",
+      "descriptionKey": "item.material-leather-scrap.desc",
+      "name": "Leather Scrap",
+      "slot": "material",
+      "rarity": "common",
+      "modifiers": [],
+      "effectCode": null,
+      "spriteId": "sprite/material-leather-scrap",
+      "description": "Scrap of usable leather."
+    },
+    {
+      "code": "material-cloth-scrap",
+      "nameKey": "item.material-cloth-scrap.name",
+      "descriptionKey": "item.material-cloth-scrap.desc",
+      "name": "Cloth Scrap",
+      "slot": "material",
+      "rarity": "common",
+      "modifiers": [],
+      "effectCode": null,
+      "spriteId": "sprite/material-cloth-scrap",
+      "description": "Bundle of rough cloth scrap."
+    },
+    {
+      "code": "material-metal-scrap",
+      "nameKey": "item.material-metal-scrap.name",
+      "descriptionKey": "item.material-metal-scrap.desc",
+      "name": "Metal Scrap",
+      "slot": "material",
+      "rarity": "common",
+      "modifiers": [],
+      "effectCode": null,
+      "spriteId": "sprite/material-metal-scrap",
+      "description": "Chunk of recyclable metal."
+    },
+    {
+      "code": "material-mithril-dust",
+      "nameKey": "item.material-mithril-dust.name",
+      "descriptionKey": "item.material-mithril-dust.desc",
+      "name": "Mithril Dust",
+      "slot": "material",
+      "rarity": "legendary",
+      "modifiers": [],
+      "effectCode": null,
+      "spriteId": "sprite/material-mithril-dust",
+      "description": "Fine mithril dust filled with power."
     }
   ],
   "assetsBaseUrl": null,

@@ -43,6 +43,7 @@ const INVENTORY_SLOTS: InventorySlot[] = [
   'weapon',
   'ring',
   'consumable',
+  'material',
 ];
 
 @Injectable()
@@ -394,6 +395,7 @@ export class InventoryService {
       sprite: null,
       createdAt: item.obtainedAt.toISOString(),
       isEquipped: item.isEquipped,
+      quantity: item.quantity ?? 1,
       version: item.version,
     };
   }

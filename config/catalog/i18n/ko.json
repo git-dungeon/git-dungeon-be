@@ -118,5 +118,13 @@
   "monster.cave-bat-elite.name": "동굴 박쥐(엘리트)",
   "monster.cave-bat-elite.desc": "더 빠르고 사나운 박쥐입니다.",
   "monster.fire-imp-elite.name": "파이어 임프(엘리트)",
-  "monster.fire-imp-elite.desc": "불꽃이 거세진 엘리트 임프입니다."
+  "monster.fire-imp-elite.desc": "불꽃이 거세진 엘리트 임프입니다.",
+  "item.material-leather-scrap.name": "가죽 조각",
+  "item.material-leather-scrap.desc": "쓸만한 가죽 조각입니다.",
+  "item.material-cloth-scrap.name": "천 조각",
+  "item.material-cloth-scrap.desc": "거친 천 조각 묶음입니다.",
+  "item.material-metal-scrap.name": "금속 파편",
+  "item.material-metal-scrap.desc": "재활용 가능한 금속 파편입니다.",
+  "item.material-mithril-dust.name": "미스릴 가루",
+  "item.material-mithril-dust.desc": "강력한 힘이 깃든 미스릴 가루입니다."
 }
