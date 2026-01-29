@@ -180,9 +180,23 @@ export class InventoryController {
         },
       });
     }
+
+    if (body.quantity !== undefined && !this.isPositiveInteger(body.quantity)) {
+      throw new BadRequestException({
+        code: 'VALIDATION_ERROR',
+        message: 'quantity 형식이 잘못되었습니다.',
+        details: {
+          field: 'quantity',
+        },
+      });
+    }
   }
 
   private isNonNegativeInteger(value: unknown): value is number {
     return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+  }
+
+  private isPositiveInteger(value: unknown): value is number {
+    return typeof value === 'number' && Number.isInteger(value) && value > 0;
   }
 }
