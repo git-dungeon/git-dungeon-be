@@ -279,9 +279,14 @@ export class InventoryService {
         }
       }
 
+      const logItem = {
+        ...this.mapInventoryItem(target),
+        quantity: discardQuantity,
+      };
+
       await this.appendInventoryLog(tx, userId, {
         action: DungeonLogAction.DISCARD_ITEM,
-        item: this.mapInventoryItem(target),
+        item: logItem,
       });
 
       const response = await this.buildInventoryResponse(tx, userId, {
