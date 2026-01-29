@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import {
+  BadRequestException,
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
@@ -381,7 +382,9 @@ describe('InventoryService mutations', () => {
             data: {
               isEquipped?: boolean;
               version?: { increment: number };
-              quantity?: { increment: number };
+              quantity?:
+                | number
+                | { increment?: number; decrement?: number; set?: number };
             };
           }) => {
             let count = 0;
@@ -392,13 +395,26 @@ describe('InventoryService mutations', () => {
                 item.version === where.version
               ) {
                 count += 1;
+                const nextQuantity =
+                  data.quantity === undefined
+                    ? item.quantity
+                    : typeof data.quantity === 'number'
+                      ? data.quantity
+                      : typeof data.quantity.increment === 'number'
+                        ? item.quantity + data.quantity.increment
+                        : typeof data.quantity.decrement === 'number'
+                          ? item.quantity - data.quantity.decrement
+                          : typeof data.quantity.set === 'number'
+                            ? data.quantity.set
+                            : item.quantity;
+
                 return {
                   ...item,
                   ...(data.isEquipped !== undefined
                     ? { isEquipped: data.isEquipped }
                     : {}),
-                  ...(data.quantity
-                    ? { quantity: item.quantity + data.quantity.increment }
+                  ...(data.quantity !== undefined
+                    ? { quantity: nextQuantity }
                     : {}),
                   ...(data.version
                     ? { version: item.version + data.version.increment }
@@ -728,6 +744,77 @@ describe('InventoryService mutations', () => {
         category: DungeonLogCategory.STATUS,
       }),
     );
+  });
+
+  it('discard: quantity가 남아있으면 수량을 감소시키고 버전을 증가시킨다', async () => {
+    const { service, getItems, getDungeonLogs } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: POTION_ID,
+          code: 'potion-healing',
+          slot: 'CONSUMABLE',
+          rarity: 'COMMON',
+          version: 3,
+          quantity: 5,
+        }),
+      ],
+    });
+
+    const response = await service.discardItem(USER_ID_1, {
+      itemId: POTION_ID,
+      expectedVersion: 3,
+      inventoryVersion: 3,
+      quantity: 2,
+    });
+
+    const item = getItems().find(
+      (inventoryItem) => inventoryItem.id === POTION_ID,
+    );
+    expect(item?.quantity).toBe(3);
+    expect(item?.version).toBe(4);
+
+    const responseItem = response.items.find(
+      (inventoryItem) => inventoryItem.id === POTION_ID,
+    );
+    expect(responseItem?.quantity).toBe(3);
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.DISCARD_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
+  });
+
+  it('discard: quantity가 현재 수량보다 크면 400을 던져야 한다', async () => {
+    const { service } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: POTION_ID,
+          code: 'potion-healing',
+          slot: 'CONSUMABLE',
+          rarity: 'COMMON',
+          version: 2,
+          quantity: 3,
+        }),
+      ],
+    });
+
+    await expect(
+      service.discardItem(USER_ID_1, {
+        itemId: POTION_ID,
+        expectedVersion: 2,
+        inventoryVersion: 2,
+        quantity: 4,
+      }),
+    ).rejects.toMatchObject({
+      constructor: BadRequestException,
+      response: { code: 'INVENTORY_INVALID_REQUEST' },
+    });
   });
 
   it('inventoryVersion 불일치 시 412를 던져야 한다', async () => {

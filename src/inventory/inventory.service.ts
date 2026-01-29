@@ -633,7 +633,7 @@ export class InventoryService {
     }
   }
 
-  private resolveMaterialRarity(code: string): PrismaInventoryRarity {
+  private resolveMaterialRarity(_code: string): PrismaInventoryRarity {
     return 'COMMON';
   }
 

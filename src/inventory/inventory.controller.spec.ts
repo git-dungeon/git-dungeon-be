@@ -243,22 +243,27 @@ describe('InventoryController (E2E)', () => {
       await setupApp();
     const inventoryResponse = createInventoryResponse();
     inventoryServiceMock.discardItem.mockResolvedValue(inventoryResponse);
-    authSessionServiceMock.requireActiveSession.mockResolvedValue(
-      createActiveSession({
-        cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
-      }),
-    );
+    const session = createActiveSession({
+      cookies: ['better-auth.session_token=fresh; Path=/; HttpOnly'],
+    });
+    authSessionServiceMock.requireActiveSession.mockResolvedValue(session);
     const server = app.getHttpServer() as Parameters<typeof request>[0];
     const agent = request(server);
 
     try {
-      const response = await agent.post('/api/inventory/discard').send({
+      const payload = {
         itemId: '11111111-1111-4111-8111-111111111111',
         expectedVersion: 1,
         inventoryVersion: 1,
-      });
+        quantity: 2,
+      };
+      const response = await agent.post('/api/inventory/discard').send(payload);
 
       expect(response.status).toBe(200);
+      expect(inventoryServiceMock.discardItem).toHaveBeenCalledWith(
+        session.view.session.userId,
+        payload,
+      );
     } finally {
       await app.close();
     }
