@@ -634,7 +634,7 @@ export class InventoryService {
   }
 
   private resolveMaterialRarity(code: string): PrismaInventoryRarity {
-    return code === 'material-mithril-dust' ? 'LEGENDARY' : 'COMMON';
+    return 'COMMON';
   }
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {

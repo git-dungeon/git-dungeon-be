@@ -1,6 +1,6 @@
 {
-  "version": 10,
-  "updatedAt": "2026-01-28T06:10:04.001Z",
+  "version": 11,
+  "updatedAt": "2026-01-29T07:11:37.770Z",
   "items": [
     {
       "code": "weapon-wooden-sword",
@@ -941,7 +941,7 @@
       "descriptionKey": "item.material-mithril-dust.desc",
       "name": "Mithril Dust",
       "slot": "material",
-      "rarity": "legendary",
+      "rarity": "common",
       "modifiers": [],
       "effectCode": null,
       "spriteId": "sprite/material-mithril-dust",
