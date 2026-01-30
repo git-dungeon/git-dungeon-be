@@ -335,6 +335,7 @@ export class DungeonBatchService implements OnModuleInit {
       atk: state.atk,
       def: state.def,
       luck: state.luck,
+      levelUpPoints: state.levelUpPoints,
       unopenedChests: state.unopenedChests,
       chestRollIndex: state.chestRollIndex,
       floor: state.floor,
