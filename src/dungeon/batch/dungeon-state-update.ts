@@ -1,24 +1,34 @@
 import type { DungeonState, Prisma } from '@prisma/client';
 
+export const PERSISTED_DUNGEON_STATE_KEYS = [
+  'level',
+  'exp',
+  'hp',
+  'maxHp',
+  'atk',
+  'def',
+  'luck',
+  'levelUpPoints',
+  'unopenedChests',
+  'chestRollIndex',
+  'floor',
+  'maxFloor',
+  'floorProgress',
+  'gold',
+  'ap',
+  'currentAction',
+  'currentActionStartedAt',
+  'version',
+] as const satisfies readonly (keyof DungeonState)[];
+
+type PersistedKey = (typeof PERSISTED_DUNGEON_STATE_KEYS)[number];
+
 export const buildDungeonStateUpdate = (
   state: DungeonState,
-): Prisma.DungeonStateUpdateManyMutationInput => ({
-  level: state.level,
-  exp: state.exp,
-  hp: state.hp,
-  maxHp: state.maxHp,
-  atk: state.atk,
-  def: state.def,
-  luck: state.luck,
-  levelUpPoints: state.levelUpPoints,
-  unopenedChests: state.unopenedChests,
-  chestRollIndex: state.chestRollIndex,
-  floor: state.floor,
-  maxFloor: state.maxFloor,
-  floorProgress: state.floorProgress,
-  gold: state.gold,
-  ap: state.ap,
-  currentAction: state.currentAction,
-  currentActionStartedAt: state.currentActionStartedAt,
-  version: state.version,
-});
+): Prisma.DungeonStateUpdateManyMutationInput => {
+  const data = {} as Record<PersistedKey, DungeonState[PersistedKey]>;
+  for (const key of PERSISTED_DUNGEON_STATE_KEYS) {
+    data[key] = state[key];
+  }
+  return data as Prisma.DungeonStateUpdateManyMutationInput;
+};
