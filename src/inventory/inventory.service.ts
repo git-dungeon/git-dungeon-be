@@ -217,6 +217,7 @@ export class InventoryService {
       itemId: string;
       expectedVersion: number;
       inventoryVersion: number;
+      quantity?: number;
     },
   ): Promise<InventoryResponse> {
     return this.prisma.$transaction(async (tx) => {
@@ -232,24 +233,60 @@ export class InventoryService {
         payload.inventoryVersion,
       );
 
-      const deleted = await tx.inventoryItem.deleteMany({
-        where: {
-          id: target.id,
-          userId,
-          version: payload.expectedVersion,
-        },
-      });
+      const currentQuantity = target.quantity ?? 1;
+      const discardQuantity = payload.quantity ?? currentQuantity;
 
-      if (deleted.count === 0) {
-        throw new PreconditionFailedException({
-          code: 'INVENTORY_VERSION_MISMATCH',
-          message: '아이템 버전이 일치하지 않습니다.',
+      if (discardQuantity < 1 || discardQuantity > currentQuantity) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INVALID_REQUEST',
+          message: '버릴 수량이 올바르지 않습니다.',
         });
       }
 
+      if (discardQuantity < currentQuantity) {
+        const updated = await tx.inventoryItem.updateMany({
+          where: {
+            id: target.id,
+            userId,
+            version: payload.expectedVersion,
+          },
+          data: {
+            quantity: currentQuantity - discardQuantity,
+            version: { increment: 1 },
+          },
+        });
+
+        if (updated.count === 0) {
+          throw new PreconditionFailedException({
+            code: 'INVENTORY_VERSION_MISMATCH',
+            message: '아이템 버전이 일치하지 않습니다.',
+          });
+        }
+      } else {
+        const deleted = await tx.inventoryItem.deleteMany({
+          where: {
+            id: target.id,
+            userId,
+            version: payload.expectedVersion,
+          },
+        });
+
+        if (deleted.count === 0) {
+          throw new PreconditionFailedException({
+            code: 'INVENTORY_VERSION_MISMATCH',
+            message: '아이템 버전이 일치하지 않습니다.',
+          });
+        }
+      }
+
+      const logItem = {
+        ...this.mapInventoryItem(target),
+        quantity: discardQuantity,
+      };
+
       await this.appendInventoryLog(tx, userId, {
         action: DungeonLogAction.DISCARD_ITEM,
-        item: this.mapInventoryItem(target),
+        item: logItem,
       });
 
       const response = await this.buildInventoryResponse(tx, userId, {
@@ -596,8 +633,8 @@ export class InventoryService {
     }
   }
 
-  private resolveMaterialRarity(code: string): PrismaInventoryRarity {
-    return code === 'material-mithril-dust' ? 'LEGENDARY' : 'COMMON';
+  private resolveMaterialRarity(_code: string): PrismaInventoryRarity {
+    return 'COMMON';
   }
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
@@ -745,6 +782,7 @@ export class InventoryService {
             {
               itemId: input.item.id,
               code: input.item.code,
+              quantity: input.item.quantity ?? 1,
             },
           ],
           unequipped: input.item.isEquipped
