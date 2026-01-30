@@ -16,6 +16,7 @@ import { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import { loadEnvironment } from '../../config/environment';
 import { SimpleQueue } from '../../common/queue/simple-queue';
 import { StatsCacheService } from '../../common/stats/stats-cache.service';
+import { buildDungeonStateUpdate } from './dungeon-state-update';
 
 type BatchConfig = {
   cron: string;
@@ -293,7 +294,7 @@ export class DungeonBatchService implements OnModuleInit {
     return this.prisma.$transaction(async (tx) => {
       const updateResult = await tx.dungeonState.updateMany({
         where: { userId: stateBefore.userId, version: stateBefore.version },
-        data: this.buildStateUpdate(result.stateAfter),
+        data: buildDungeonStateUpdate(result.stateAfter),
       });
 
       if (updateResult.count === 0) {
@@ -322,31 +323,6 @@ export class DungeonBatchService implements OnModuleInit {
 
       return result.stateAfter;
     });
-  }
-
-  private buildStateUpdate(
-    state: DungeonState,
-  ): Prisma.DungeonStateUpdateManyMutationInput {
-    return {
-      level: state.level,
-      exp: state.exp,
-      hp: state.hp,
-      maxHp: state.maxHp,
-      atk: state.atk,
-      def: state.def,
-      luck: state.luck,
-      levelUpPoints: state.levelUpPoints,
-      unopenedChests: state.unopenedChests,
-      chestRollIndex: state.chestRollIndex,
-      floor: state.floor,
-      maxFloor: state.maxFloor,
-      floorProgress: state.floorProgress,
-      gold: state.gold,
-      ap: state.ap,
-      currentAction: state.currentAction,
-      currentActionStartedAt: state.currentActionStartedAt,
-      version: state.version,
-    };
   }
 
   private buildSeed(state: DungeonState): string {
