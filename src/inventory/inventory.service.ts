@@ -782,6 +782,7 @@ export class InventoryService {
             {
               itemId: input.item.id,
               code: input.item.code,
+              quantity: input.item.quantity ?? 1,
             },
           ],
           unequipped: input.item.isEquipped
