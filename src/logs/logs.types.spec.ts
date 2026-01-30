@@ -6,10 +6,7 @@ describe('logs.types', () => {
   it('LOG_ACTION_VALUES는 DungeonLogAction과 동기화되어야 한다', () => {
     const prismaActions = Object.values(DungeonLogAction);
     const missing = prismaActions.filter(
-      (action) =>
-        !LOG_ACTION_VALUES.includes(
-          action as (typeof LOG_ACTION_VALUES)[number],
-        ),
+      (action) => !LOG_ACTION_VALUES.includes(action),
     );
     const extra = LOG_ACTION_VALUES.filter(
       (action) => !prismaActions.includes(action as DungeonLogAction),
