@@ -580,6 +580,7 @@ export class InventoryService {
       createdAt: item.obtainedAt.toISOString(),
       isEquipped: item.isEquipped,
       quantity: item.quantity ?? 1,
+      enhancementLevel: item.enhancementLevel ?? 0,
       version: item.version,
     };
   }

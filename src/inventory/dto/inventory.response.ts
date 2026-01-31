@@ -32,6 +32,7 @@ export interface EquipmentItem {
   createdAt: string & tags.Format<'date-time'>;
   isEquipped: boolean & tags.Example<true>;
   quantity: number & tags.Minimum<1> & tags.Example<2>;
+  enhancementLevel: number & tags.Minimum<0> & tags.Example<3>;
   version: number & tags.Minimum<0>;
 }
 
