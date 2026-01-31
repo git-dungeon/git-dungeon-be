@@ -8,6 +8,10 @@ import {
 } from '../common/guards/authenticated-throttler.guard';
 import { AuthModule } from '../auth/auth.module';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
+import {
+  SEEDED_RNG_FACTORY,
+  SeedrandomFactory,
+} from '../dungeon/events/seeded-rng.provider';
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -15,6 +19,10 @@ import { StatsCacheService } from '../common/stats/stats-cache.service';
   providers: [
     InventoryService,
     StatsCacheService,
+    {
+      provide: SEEDED_RNG_FACTORY,
+      useClass: SeedrandomFactory,
+    },
     {
       provide: RATE_LIMIT_CONFIG,
       useValue: {

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -26,6 +27,8 @@ import {
   isEmptyStatsDelta,
 } from '../common/stats/stat-delta.util';
 import { PrismaService } from '../prisma/prisma.service';
+import { loadCatalogData } from '../catalog';
+import type { CatalogEnhancementConfig } from '../catalog/catalog.schema';
 import type {
   EquipmentItem,
   EquipmentStats,
@@ -41,6 +44,10 @@ import type {
 } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
+import {
+  SEEDED_RNG_FACTORY,
+  type SeededRandomFactory,
+} from '../dungeon/events/seeded-rng.provider';
 
 type InventoryLogAction =
   | 'EQUIP_ITEM'
@@ -78,6 +85,8 @@ export class InventoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly statsCacheService: StatsCacheService,
+    @Inject(SEEDED_RNG_FACTORY)
+    private readonly rngFactory: SeededRandomFactory,
   ) {}
 
   async getInventory(userId: string): Promise<InventoryResponse> {
@@ -419,6 +428,128 @@ export class InventoryService {
     });
   }
 
+  async enhanceItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      const targetSlot = target.slot.toLowerCase() as InventorySlot;
+      if (!this.isEquippableSlot(targetSlot)) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INVALID_REQUEST',
+          message: '강화할 수 없는 슬롯입니다.',
+        });
+      }
+
+      const enhancementLevel = target.enhancementLevel ?? 0;
+      const enhancementConfig = await this.loadEnhancementConfig();
+
+      if (enhancementLevel >= enhancementConfig.maxLevel) {
+        throw new BadRequestException({
+          code: 'INVENTORY_MAX_ENHANCEMENT',
+          message: '강화 레벨이 최대치입니다.',
+        });
+      }
+
+      const nextLevel = enhancementLevel + 1;
+      const enhancementSlot = targetSlot as EquippableSlot;
+      const { successRate, goldCost, materialCount, materialCode } =
+        this.resolveEnhancementCost(
+          enhancementConfig,
+          nextLevel,
+          enhancementSlot,
+        );
+
+      const state = await tx.dungeonState.findUnique({ where: { userId } });
+      if (!state) {
+        throw new UnauthorizedException({
+          code: 'INVENTORY_UNAUTHORIZED',
+          message: '인벤토리를 조회할 수 없습니다.',
+        });
+      }
+
+      if (state.gold < goldCost) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_GOLD',
+          message: '골드가 부족합니다.',
+        });
+      }
+
+      const materialItems = await tx.inventoryItem.findMany({
+        where: { userId, code: materialCode, slot: 'MATERIAL' },
+        orderBy: { obtainedAt: 'asc' },
+      });
+      const totalMaterialQuantity = materialItems.reduce(
+        (sum, item) => sum + (item.quantity ?? 1),
+        0,
+      );
+
+      if (totalMaterialQuantity < materialCount) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_MATERIALS',
+          message: '강화 재료가 부족합니다.',
+        });
+      }
+
+      const rngSeed = this.buildEnhancementSeed(
+        userId,
+        target.id,
+        nextLevel,
+        currentInventoryVersion,
+      );
+      const rng = this.rngFactory.create(rngSeed);
+      const success = rng.next() < successRate;
+
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+        data: {
+          enhancementLevel: success ? nextLevel : enhancementLevel,
+          version: { increment: 1 },
+        },
+      });
+
+      if (updated.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      await this.consumeMaterials(tx, userId, materialItems, materialCount);
+
+      await tx.dungeonState.update({
+        where: { userId },
+        data: { gold: { decrement: goldCost } },
+      });
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: currentInventoryVersion + 1,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
   private async buildInventoryResponse(
     prismaClient: PrismaService | Prisma.TransactionClient,
     userId: string,
@@ -636,6 +767,91 @@ export class InventoryService {
 
   private resolveMaterialRarity(_code: string): PrismaInventoryRarity {
     return 'COMMON';
+  }
+
+  private async loadEnhancementConfig(): Promise<CatalogEnhancementConfig> {
+    const catalog = await loadCatalogData();
+    return catalog.enhancement;
+  }
+
+  private resolveEnhancementCost(
+    config: CatalogEnhancementConfig,
+    nextLevel: number,
+    slot: EquippableSlot,
+  ): {
+    successRate: number;
+    goldCost: number;
+    materialCount: number;
+    materialCode: string;
+  } {
+    const levelKey = String(nextLevel);
+    const successRate = config.successRates[levelKey];
+    const goldCost = config.goldCosts[levelKey];
+    const materialCount = config.materialCounts[levelKey];
+    const materialCode = config.materialsBySlot[slot];
+
+    if (
+      successRate === undefined ||
+      goldCost === undefined ||
+      materialCount === undefined ||
+      !materialCode
+    ) {
+      throw new InternalServerErrorException({
+        code: 'INVENTORY_INVALID_RESPONSE',
+        message: '강화 설정을 불러올 수 없습니다.',
+      });
+    }
+
+    return { successRate, goldCost, materialCount, materialCode };
+  }
+
+  private buildEnhancementSeed(
+    userId: string,
+    itemId: string,
+    nextLevel: number,
+    inventoryVersion: number,
+  ): string {
+    return `${userId}:enhance:${itemId}:${nextLevel}:${inventoryVersion}`;
+  }
+
+  private async consumeMaterials(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    materialItems: InventoryItem[],
+    quantity: number,
+  ): Promise<void> {
+    let remaining = quantity;
+
+    for (const item of materialItems) {
+      if (remaining <= 0) {
+        break;
+      }
+
+      const currentQuantity = item.quantity ?? 1;
+      if (currentQuantity <= remaining) {
+        await tx.inventoryItem.deleteMany({
+          where: { id: item.id, userId },
+        });
+        remaining -= currentQuantity;
+        continue;
+      }
+
+      await tx.inventoryItem.update({
+        where: { id: item.id },
+        data: {
+          quantity: currentQuantity - remaining,
+          version: { increment: 1 },
+        },
+      });
+      remaining = 0;
+    }
+
+    if (remaining > 0) {
+      throw new InternalServerErrorException({
+        code: 'INVENTORY_INVALID_RESPONSE',
+        message: '강화 재료 처리에 실패했습니다.',
+      });
+    }
   }
 
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
