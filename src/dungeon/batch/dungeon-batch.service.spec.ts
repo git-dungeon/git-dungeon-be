@@ -282,6 +282,44 @@ describe('DungeonBatchService 배치 동작', () => {
     expect(lockMock.release).toHaveBeenCalledWith(state.userId);
   });
 
+  it('레벨업 포인트가 배치 저장에 반영된다', async () => {
+    const configService = createConfigService({
+      'dungeon.batch.maxActionsPerUser': 1,
+    });
+    const state = createState({ ap: 1, version: 2, levelUpPoints: 0 });
+    prismaMock.dungeonState.findMany
+      .mockResolvedValueOnce([state])
+      .mockResolvedValueOnce([]);
+    prismaMock.dungeonState.findUnique.mockResolvedValue(state);
+    lockMock.acquire.mockResolvedValue(true);
+    prismaMock.dungeonState.updateMany.mockResolvedValue({ count: 1 });
+
+    eventServiceMock.execute.mockResolvedValue({
+      selectedEvent: DungeonEventType.BATTLE,
+      forcedMove: false,
+      stateBefore: state,
+      stateAfter: {
+        ...state,
+        ap: state.ap - 1,
+        version: state.version + 1,
+        levelUpPoints: state.levelUpPoints + 2,
+      },
+      rawLogs: [],
+      logs: [],
+    });
+
+    const service = buildService(configService);
+
+    await service.runBatchTick();
+
+    expect(prismaMock.dungeonState.updateMany).toHaveBeenCalledWith({
+      where: { userId: state.userId, version: state.version },
+      data: expect.objectContaining({
+        levelUpPoints: state.levelUpPoints + 2,
+      }) as Record<string, unknown>,
+    });
+  });
+
   it('커서 기반 라운드 로빈으로 사용자 목록을 순환한다', async () => {
     const configService = createConfigService({
       'dungeon.batch.maxUsersPerTick': 2,
