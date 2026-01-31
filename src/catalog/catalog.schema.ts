@@ -14,6 +14,9 @@ export type CatalogRarity = (typeof CATALOG_RARITIES)[number];
 export const CATALOG_MONSTER_RARITIES = ['normal', 'elite'] as const;
 export type CatalogMonsterRarity = (typeof CATALOG_MONSTER_RARITIES)[number];
 
+export const ENHANCEMENT_SLOTS = ['helmet', 'armor', 'weapon', 'ring'] as const;
+export type EnhancementSlot = (typeof ENHANCEMENT_SLOTS)[number];
+
 export interface CatalogItem {
   code: string & tags.MinLength<1>;
   nameKey: string & tags.MinLength<1>;
@@ -66,6 +69,14 @@ export interface CatalogDropTable {
   drops: CatalogDrop[];
 }
 
+export interface CatalogEnhancementConfig {
+  maxLevel: number & tags.Minimum<1>;
+  successRates: Record<string, number>;
+  goldCosts: Record<string, number>;
+  materialCounts: Record<string, number>;
+  materialsBySlot: Record<EnhancementSlot, string>;
+}
+
 export interface CatalogData {
   version: number & tags.Minimum<0>;
   updatedAt: string & tags.Format<'date-time'>;
@@ -73,6 +84,7 @@ export interface CatalogData {
   buffs: CatalogBuff[];
   monsters: CatalogMonster[];
   dropTables: CatalogDropTable[];
+  enhancement: CatalogEnhancementConfig;
   assetsBaseUrl?: string | null;
   spriteMap?: Record<string, string> | null;
 }

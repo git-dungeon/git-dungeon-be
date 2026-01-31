@@ -5,6 +5,7 @@ import {
   type CatalogBuff,
   type CatalogData,
   type CatalogDropTable,
+  type CatalogEnhancementConfig,
   type CatalogItem,
   type CatalogMonster,
 } from './catalog.schema';
@@ -18,6 +19,7 @@ export interface CatalogFilePaths {
   buffs: string;
   monsters: string;
   drops: string;
+  enhancement: string;
 }
 
 export const DEFAULT_CATALOG_PATHS: CatalogFilePaths = {
@@ -25,6 +27,7 @@ export const DEFAULT_CATALOG_PATHS: CatalogFilePaths = {
   buffs: 'config/catalog/buffs.json',
   monsters: 'config/catalog/monsters.json',
   drops: 'config/catalog/drops.json',
+  enhancement: 'config/catalog/enhancement.json',
 };
 
 export type CatalogTranslations = Record<string, string>;
@@ -120,17 +123,25 @@ export const loadCatalogData = async (
     dropTables: CatalogDropTable[];
   }>(baseDir, filePaths.drops);
 
+  const enhancementFile = await loadJson<{
+    version: number;
+    updatedAt: string;
+    enhancement: CatalogEnhancementConfig;
+  }>(baseDir, filePaths.enhancement);
+
   const versions = [
     itemsFile.version,
     buffsFile.version,
     monstersFile.version,
     dropsFile.version,
+    enhancementFile.version,
   ];
   const updatedAt = pickLatestTimestamp([
     itemsFile.updatedAt,
     buffsFile.updatedAt,
     monstersFile.updatedAt,
     dropsFile.updatedAt,
+    enhancementFile.updatedAt,
   ]);
 
   const catalog: CatalogData = {
@@ -140,6 +151,7 @@ export const loadCatalogData = async (
     buffs: buffsFile.buffs,
     monsters: monstersFile.monsters,
     dropTables: dropsFile.dropTables,
+    enhancement: enhancementFile.enhancement,
     assetsBaseUrl: itemsFile.assetsBaseUrl ?? null,
     spriteMap: itemsFile.spriteMap ?? null,
   };
