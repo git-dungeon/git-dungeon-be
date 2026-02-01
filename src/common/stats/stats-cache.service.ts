@@ -142,9 +142,7 @@ export class StatsCacheService {
 }
 
 function calculateEnhancementBonus(
-  items: Array<
-    Pick<InventoryItem, 'slot' | 'enhancementLevel'>
-  >,
+  items: Array<Pick<InventoryItem, 'slot' | 'enhancementLevel'>>,
 ): EquipmentStats {
   const bonus = createEmptyEquipmentStats();
 

@@ -342,9 +342,8 @@ export class InventoryService {
       const materialCode = this.resolveMaterialCode(targetSlot);
       const materialQuantity = this.resolveMaterialQuantity(targetRarity);
       const enhancementLevel = target.enhancementLevel ?? 0;
-      const enhancementRefund = this.calculateEnhancementRefund(
-        enhancementLevel,
-      );
+      const enhancementRefund =
+        this.calculateEnhancementRefund(enhancementLevel);
       const totalMaterialQuantity = materialQuantity + enhancementRefund;
       const materialRarity = this.resolveMaterialRarity(materialCode);
 
@@ -475,7 +474,7 @@ export class InventoryService {
       }
 
       const nextLevel = enhancementLevel + 1;
-      const enhancementSlot = targetSlot as EquippableSlot;
+      const enhancementSlot = targetSlot;
       const { successRate, goldCost, materialCount, materialCode } =
         this.resolveEnhancementCost(
           enhancementConfig,
