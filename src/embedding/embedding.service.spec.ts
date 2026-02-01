@@ -42,6 +42,18 @@ describe('EmbeddingService', () => {
     renderPreviewSvg: vi.fn(),
   };
   const loadCatalogDataMock = vi.mocked(loadCatalogData);
+  const buildEnhancementConfig = () => ({
+    maxLevel: 10,
+    successRates: {},
+    goldCosts: {},
+    materialCounts: {},
+    materialsBySlot: {
+      weapon: 'material-metal-scrap',
+      armor: 'material-cloth-scrap',
+      helmet: 'material-leather-scrap',
+      ring: 'material-mithril-dust',
+    },
+  });
 
   const service = new EmbeddingService(
     prismaMock as unknown as PrismaService,
@@ -75,6 +87,7 @@ describe('EmbeddingService', () => {
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
       quantity: 1,
+      enhancementLevel: 0,
       version: 3,
     } as InventoryResponse['items'][number];
     const consumableItem = {
@@ -89,6 +102,7 @@ describe('EmbeddingService', () => {
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: false,
       quantity: 1,
+      enhancementLevel: 0,
       version: 1,
     } as InventoryResponse['items'][number];
 
@@ -140,6 +154,7 @@ describe('EmbeddingService', () => {
       buffs: [],
       monsters: [],
       dropTables: [],
+      enhancement: buildEnhancementConfig(),
       assetsBaseUrl: null,
       spriteMap: {
         'sprite/weapon-longsword': 'https://cdn.example.com/weapon.png',
@@ -218,6 +233,7 @@ describe('EmbeddingService', () => {
       buffs: [],
       monsters: [],
       dropTables: [],
+      enhancement: buildEnhancementConfig(),
       assetsBaseUrl: null,
       spriteMap: {},
     });
@@ -249,6 +265,7 @@ describe('EmbeddingService', () => {
       buffs: [],
       monsters: [],
       dropTables: [],
+      enhancement: buildEnhancementConfig(),
       assetsBaseUrl: null,
       spriteMap: {},
     });

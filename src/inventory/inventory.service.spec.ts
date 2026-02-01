@@ -42,10 +42,14 @@ describe('InventoryService', () => {
     prismaMock as unknown as PrismaService,
   );
   const statsCacheMock = vi.spyOn(statsCacheService, 'ensureStatsCache');
+  const rngFactoryMock = {
+    create: vi.fn(() => ({ next: () => 0.5 })),
+  };
 
   const service = new InventoryService(
     prismaMock as unknown as PrismaService,
     statsCacheService,
+    rngFactoryMock,
   );
 
   beforeEach(() => {
@@ -562,10 +566,15 @@ describe('InventoryService mutations', () => {
         luck: 0,
       });
 
+    const rngFactoryMock = {
+      create: vi.fn(() => ({ next: () => 0.5 })),
+    };
+
     return {
       service: new InventoryService(
         prismaMock as unknown as PrismaService,
         statsCacheService,
+        rngFactoryMock,
       ),
       prismaMock,
       statsCacheMock,

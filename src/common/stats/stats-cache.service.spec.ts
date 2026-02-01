@@ -39,6 +39,19 @@ describe('StatsCacheService', () => {
     luck: 10,
   };
 
+  const buildEnhancementConfig = () => ({
+    maxLevel: 10,
+    successRates: {},
+    goldCosts: {},
+    materialCounts: {},
+    materialsBySlot: {
+      weapon: 'material-metal-scrap',
+      armor: 'material-cloth-scrap',
+      helmet: 'material-leather-scrap',
+      ring: 'material-mithril-dust',
+    },
+  });
+
   const buildCatalog = (version: number) => ({
     version,
     updatedAt: '2026-01-21T00:00:00.000Z',
@@ -46,6 +59,7 @@ describe('StatsCacheService', () => {
     buffs: [],
     monsters: [],
     dropTables: [],
+    enhancement: buildEnhancementConfig(),
   });
 
   it('버전이 같고 캐시된 보너스가 유효하면 업데이트 없이 반환한다', async () => {
