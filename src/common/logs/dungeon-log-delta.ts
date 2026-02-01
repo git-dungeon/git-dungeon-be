@@ -142,7 +142,12 @@ export type AcquireItemDelta = {
 };
 
 export type EquipItemDelta = {
-  type: 'EQUIP_ITEM' | 'UNEQUIP_ITEM' | 'DISCARD_ITEM' | 'DISMANTLE_ITEM';
+  type:
+    | 'EQUIP_ITEM'
+    | 'UNEQUIP_ITEM'
+    | 'DISCARD_ITEM'
+    | 'DISMANTLE_ITEM'
+    | 'ENHANCE_ITEM';
   detail: {
     inventory: InventoryDelta;
     stats?: StatsDelta;

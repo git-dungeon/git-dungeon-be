@@ -41,6 +41,7 @@ import type {
 import type {
   DungeonLogDelta,
   InventoryDelta,
+  StatsDelta,
 } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
@@ -53,7 +54,8 @@ type InventoryLogAction =
   | 'EQUIP_ITEM'
   | 'UNEQUIP_ITEM'
   | 'DISCARD_ITEM'
-  | 'DISMANTLE_ITEM';
+  | 'DISMANTLE_ITEM'
+  | 'ENHANCE_ITEM';
 
 const EQUIPPABLE_SLOTS: EquippableSlot[] = [
   'helmet',
@@ -339,6 +341,11 @@ export class InventoryService {
 
       const materialCode = this.resolveMaterialCode(targetSlot);
       const materialQuantity = this.resolveMaterialQuantity(targetRarity);
+      const enhancementLevel = target.enhancementLevel ?? 0;
+      const enhancementRefund = this.calculateEnhancementRefund(
+        enhancementLevel,
+      );
+      const totalMaterialQuantity = materialQuantity + enhancementRefund;
       const materialRarity = this.resolveMaterialRarity(materialCode);
 
       const deleted = await tx.inventoryItem.deleteMany({
@@ -370,7 +377,7 @@ export class InventoryService {
           existingMaterials.reduce(
             (sum, item) => sum + (item.quantity ?? 1),
             0,
-          ) + materialQuantity;
+          ) + totalMaterialQuantity;
 
         await tx.inventoryItem.update({
           where: { id: existingMaterial.id },
@@ -397,7 +404,7 @@ export class InventoryService {
             rarity: materialRarity,
             modifiers: [],
             isEquipped: false,
-            quantity: materialQuantity,
+            quantity: totalMaterialQuantity,
             version: nextVersion,
           },
         });
@@ -414,10 +421,10 @@ export class InventoryService {
             code: materialCode,
             slot: 'material',
             rarity: materialRarityLabel,
-            quantity: materialQuantity,
+            quantity: totalMaterialQuantity,
           },
         ],
-        materials: [{ code: materialCode, quantity: materialQuantity }],
+        materials: [{ code: materialCode, quantity: totalMaterialQuantity }],
       });
 
       const response = await this.buildInventoryResponse(tx, userId, {
@@ -535,15 +542,46 @@ export class InventoryService {
         });
       }
 
-      await this.consumeMaterials(tx, userId, materialItems, materialCount);
+      const consumedMaterials = await this.consumeMaterials(
+        tx,
+        userId,
+        materialItems,
+        materialCount,
+      );
 
       await tx.dungeonState.update({
         where: { userId },
         data: { gold: { decrement: goldCost } },
       });
 
+      const enhancementStatsDelta = this.buildEnhancementStatsDelta({
+        slot: targetSlot,
+        success,
+        isEquipped: target.isEquipped,
+      });
+
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.ENHANCE_ITEM,
+        item: {
+          ...this.mapInventoryItem(target),
+          enhancementLevel: success ? nextLevel : enhancementLevel,
+        },
+        materials: [{ code: materialCode, quantity: materialCount }],
+        consumedMaterials,
+        enhancement: {
+          before: enhancementLevel,
+          after: success ? nextLevel : enhancementLevel,
+          success,
+          chance: successRate,
+          gold: goldCost,
+          materials: [{ code: materialCode, quantity: materialCount }],
+          statsDelta: enhancementStatsDelta,
+        },
+      });
+
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -553,11 +591,14 @@ export class InventoryService {
   private async buildInventoryResponse(
     prismaClient: PrismaService | Prisma.TransactionClient,
     userId: string,
-    options?: { forcedInventoryVersion?: number },
+    options?: { forcedInventoryVersion?: number; forceStatsRefresh?: boolean },
   ): Promise<InventoryResponse> {
     const equipmentBonus = await this.statsCacheService.ensureStatsCache(
       userId,
       prismaClient,
+      {
+        forceRefresh: options?.forceStatsRefresh,
+      },
     );
     const [dungeonState, inventoryItems] = await Promise.all([
       prismaClient.dungeonState.findUnique({ where: { userId } }),
@@ -819,8 +860,10 @@ export class InventoryService {
     userId: string,
     materialItems: InventoryItem[],
     quantity: number,
-  ): Promise<void> {
+  ): Promise<Array<{ itemId: string; code: string; quantity: number }>> {
     let remaining = quantity;
+    const consumed: Array<{ itemId: string; code: string; quantity: number }> =
+      [];
 
     for (const item of materialItems) {
       if (remaining <= 0) {
@@ -833,6 +876,11 @@ export class InventoryService {
           where: { id: item.id, userId },
         });
         remaining -= currentQuantity;
+        consumed.push({
+          itemId: item.id,
+          code: item.code,
+          quantity: currentQuantity,
+        });
         continue;
       }
 
@@ -843,6 +891,11 @@ export class InventoryService {
           version: { increment: 1 },
         },
       });
+      consumed.push({
+        itemId: item.id,
+        code: item.code,
+        quantity: remaining,
+      });
       remaining = 0;
     }
 
@@ -851,6 +904,39 @@ export class InventoryService {
         code: 'INVENTORY_INVALID_RESPONSE',
         message: '강화 재료 처리에 실패했습니다.',
       });
+    }
+
+    return consumed;
+  }
+
+  private calculateEnhancementRefund(level: number): number {
+    if (level <= 0) {
+      return 0;
+    }
+
+    const total = (level * (level + 1)) / 2;
+    return Math.floor(total / 2);
+  }
+
+  private buildEnhancementStatsDelta(input: {
+    slot: InventorySlot;
+    success: boolean;
+    isEquipped: boolean;
+  }): StatsDelta | undefined {
+    if (!input.success || !input.isEquipped) {
+      return undefined;
+    }
+
+    switch (input.slot) {
+      case 'weapon':
+        return { atk: 1 };
+      case 'armor':
+      case 'helmet':
+        return { def: 1 };
+      case 'ring':
+        return { luck: 1 };
+      default:
+        return undefined;
     }
   }
 
@@ -891,6 +977,20 @@ export class InventoryService {
       replaced?: EquipmentItem;
       added?: InventoryDelta['added'];
       materials?: Array<{ code: string; quantity?: number }>;
+      consumedMaterials?: Array<{
+        itemId: string;
+        code: string;
+        quantity?: number;
+      }>;
+      enhancement?: {
+        before: number;
+        after: number;
+        success: boolean;
+        chance: number;
+        gold: number;
+        materials: Array<{ code: string; quantity?: number }>;
+        statsDelta?: StatsDelta;
+      };
     },
   ): Promise<void> {
     const delta: DungeonLogDelta = this.buildInventoryDelta(input);
@@ -918,6 +1018,14 @@ export class InventoryService {
     item: EquipmentItem;
     replaced?: EquipmentItem;
     added?: InventoryDelta['added'];
+    consumedMaterials?: Array<{
+      itemId: string;
+      code: string;
+      quantity?: number;
+    }>;
+    enhancement?: {
+      statsDelta?: StatsDelta;
+    };
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
       const equipStats = extractFlatStatModifiers(input.item.modifiers);
@@ -991,6 +1099,18 @@ export class InventoryService {
       };
     }
 
+    if (input.action === DungeonLogAction.ENHANCE_ITEM) {
+      return {
+        type: 'ENHANCE_ITEM',
+        detail: {
+          inventory: {
+            removed: input.consumedMaterials ?? [],
+          },
+          stats: input.enhancement?.statsDelta,
+        },
+      };
+    }
+
     return {
       type: 'DISCARD_ITEM',
       detail: {
@@ -1019,7 +1139,45 @@ export class InventoryService {
     item: EquipmentItem;
     replaced?: EquipmentItem;
     materials?: Array<{ code: string; quantity?: number }>;
+    enhancement?: {
+      before: number;
+      after: number;
+      success: boolean;
+      chance: number;
+      gold: number;
+      materials: Array<{ code: string; quantity?: number }>;
+    };
   }): DungeonLogDetails {
+    if (input.action === DungeonLogAction.ENHANCE_ITEM) {
+      return {
+        type: 'ENHANCE_ITEM',
+        details: {
+          item: {
+            id: input.item.id,
+            code: input.item.code,
+            slot: input.item.slot,
+            rarity: input.item.rarity,
+            name: input.item.name ?? null,
+            modifiers: input.item.modifiers,
+          },
+          enhancement: input.enhancement
+            ? {
+                before: input.enhancement.before,
+                after: input.enhancement.after,
+                success: input.enhancement.success,
+                chance: input.enhancement.chance,
+              }
+            : undefined,
+          cost: input.enhancement
+            ? {
+                gold: input.enhancement.gold,
+                materials: input.enhancement.materials,
+              }
+            : undefined,
+        },
+      };
+    }
+
     return {
       type:
         input.action === DungeonLogAction.EQUIP_ITEM

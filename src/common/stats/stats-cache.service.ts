@@ -2,7 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma, type InventoryItem } from '@prisma/client';
 import { loadCatalogData } from '../../catalog';
 import type { CatalogItem } from '../../catalog/catalog.schema';
-import { calculateEquipmentBonus } from '../inventory/equipment-stats';
+import {
+  addEquipmentStats,
+  calculateEquipmentBonus,
+  createEmptyEquipmentStats,
+} from '../inventory/equipment-stats';
 import {
   parseInventoryModifiers,
   type InventoryModifier,
@@ -19,6 +23,7 @@ export class StatsCacheService {
   async ensureStatsCache(
     userId: string,
     prismaClient: PrismaClient = this.prisma,
+    options?: { forceRefresh?: boolean },
   ): Promise<EquipmentStats> {
     const [state, equippedItems, catalog] = await Promise.all([
       prismaClient.dungeonState.findUnique({ where: { userId } }),
@@ -29,6 +34,8 @@ export class StatsCacheService {
           code: true,
           modifiers: true,
           modifierVersion: true,
+          enhancementLevel: true,
+          slot: true,
         },
       }),
       loadCatalogData(),
@@ -72,11 +79,13 @@ export class StatsCacheService {
       def: state.def,
       luck: state.luck,
     };
+    const enhancementBonus = calculateEnhancementBonus(equippedItems);
     const hasCachedBonus = isEquipmentStats(state.equipmentBonus);
     const cachedBonus = hasCachedBonus
       ? (state.equipmentBonus as unknown as EquipmentStats)
       : undefined;
     const shouldRefresh =
+      options?.forceRefresh === true ||
       state.statsVersion !== catalogVersion ||
       updates.length > 0 ||
       !hasCachedBonus;
@@ -85,7 +94,10 @@ export class StatsCacheService {
       return cachedBonus;
     }
 
-    const equipmentBonus = calculateEquipmentBonus(baseStats, modifiersList);
+    const equipmentBonus = addEquipmentStats(
+      calculateEquipmentBonus(baseStats, modifiersList),
+      enhancementBonus,
+    );
 
     if (updates.length > 0 || shouldRefresh) {
       const inventoryUpdateOps = updates.map((update) =>
@@ -127,6 +139,38 @@ export class StatsCacheService {
 
     return equipmentBonus;
   }
+}
+
+function calculateEnhancementBonus(
+  items: Array<
+    Pick<InventoryItem, 'slot' | 'enhancementLevel'>
+  >,
+): EquipmentStats {
+  const bonus = createEmptyEquipmentStats();
+
+  for (const item of items) {
+    const level = item.enhancementLevel ?? 0;
+    if (level <= 0) {
+      continue;
+    }
+
+    switch (item.slot) {
+      case 'WEAPON':
+        bonus.atk += level;
+        break;
+      case 'ARMOR':
+      case 'HELMET':
+        bonus.def += level;
+        break;
+      case 'RING':
+        bonus.luck += level;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return bonus;
 }
 
 function buildCatalogItemMap(items: CatalogItem[]): Map<string, CatalogItem> {
