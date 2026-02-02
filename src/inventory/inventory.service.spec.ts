@@ -12,6 +12,7 @@ import type { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from './inventory.service';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 import { loadCatalogData } from '../catalog';
+import seedrandom from 'seedrandom';
 import {
   resetTypiaAssertMock,
   typiaAssertMock,
@@ -32,8 +33,12 @@ vi.mock('typia', async () => {
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),
 }));
+vi.mock('seedrandom', () => ({
+  default: vi.fn(),
+}));
 
 const loadCatalogDataMock = vi.mocked(loadCatalogData);
+const seedrandomMock = vi.mocked(seedrandom);
 
 describe('InventoryService', () => {
   const prismaMock = {
@@ -49,14 +54,9 @@ describe('InventoryService', () => {
     prismaMock as unknown as PrismaService,
   );
   const statsCacheMock = vi.spyOn(statsCacheService, 'ensureStatsCache');
-  const rngFactoryMock = {
-    create: vi.fn(() => ({ next: () => 0.5 })),
-  };
-
   const service = new InventoryService(
     prismaMock as unknown as PrismaService,
     statsCacheService,
-    rngFactoryMock,
   );
 
   beforeEach(() => {
@@ -64,6 +64,9 @@ describe('InventoryService', () => {
     prismaMock.inventoryItem.findMany.mockReset();
     statsCacheMock.mockReset();
     loadCatalogDataMock.mockReset();
+    seedrandomMock.mockImplementation(
+      () => ({ quick: () => 0.5 }) as unknown as { quick: () => number },
+    );
     statsCacheMock.mockResolvedValue({
       hp: 0,
       maxHp: 0,
@@ -146,11 +149,9 @@ describe('InventoryService', () => {
       luck: 1,
     });
     expect(statsCacheMock).toHaveBeenCalledTimes(1);
-    expect(statsCacheMock).toHaveBeenCalledWith(
-      USER_ID_1,
-      prismaMock,
-      { forceRefresh: undefined },
-    );
+    expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
+      forceRefresh: undefined,
+    });
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
@@ -337,15 +338,17 @@ describe('InventoryService mutations', () => {
               : null,
           ),
         ),
-        update: vi.fn(({ data }: { data: { gold?: { decrement: number } } }) => {
-          if (data.gold?.decrement) {
-            dungeonStateSnapshot = {
-              ...dungeonStateSnapshot,
-              gold: dungeonStateSnapshot.gold - data.gold.decrement,
-            };
-          }
-          return Promise.resolve(dungeonStateSnapshot);
-        }),
+        update: vi.fn(
+          ({ data }: { data: { gold?: { decrement: number } } }) => {
+            if (data.gold?.decrement) {
+              dungeonStateSnapshot = {
+                ...dungeonStateSnapshot,
+                gold: dungeonStateSnapshot.gold - data.gold.decrement,
+              };
+            }
+            return Promise.resolve(dungeonStateSnapshot);
+          },
+        ),
       },
       inventoryItem: {
         findUnique: vi.fn(({ where }: { where: { id: string } }) =>
@@ -614,15 +617,14 @@ describe('InventoryService mutations', () => {
         luck: 0,
       });
 
-    const rngFactoryMock = {
-      create: vi.fn(() => ({ next: () => rngNext })),
-    };
+    seedrandomMock.mockImplementation(
+      () => ({ quick: () => rngNext }) as unknown as { quick: () => number },
+    );
 
     return {
       service: new InventoryService(
         prismaMock as unknown as PrismaService,
         statsCacheService,
-        rngFactoryMock,
       ),
       prismaMock,
       statsCacheMock,
@@ -1034,37 +1036,43 @@ describe('InventoryService mutations', () => {
 
   it('enhance: 성공 시 레벨이 증가하고 자원이 차감된다', async () => {
     loadCatalogDataMock.mockResolvedValue(buildCatalog());
-    const { service, getItems, getDungeonLogs, getDungeonState, statsCacheMock, prismaMock } =
-      createPrismaMock({
-        dungeonState: { ...baseDungeonState, gold: 100 },
-        items: [
-          createItem({
-            id: SWORD_ID,
-            code: 'weapon-longsword',
-            slot: 'WEAPON',
-            isEquipped: true,
-            enhancementLevel: 0,
-            version: 1,
-          }),
-          createItem({
-            id: 'mat-1',
-            code: 'material-metal-scrap',
-            slot: 'MATERIAL',
-            rarity: 'COMMON',
-            quantity: 1,
-            version: 1,
-          }),
-          createItem({
-            id: 'mat-2',
-            code: 'material-metal-scrap',
-            slot: 'MATERIAL',
-            rarity: 'COMMON',
-            quantity: 1,
-            version: 1,
-          }),
-        ],
-        rngNext: 0.1,
-      });
+    const {
+      service,
+      getItems,
+      getDungeonLogs,
+      getDungeonState,
+      statsCacheMock,
+      prismaMock,
+    } = createPrismaMock({
+      dungeonState: { ...baseDungeonState, gold: 100 },
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          isEquipped: true,
+          enhancementLevel: 0,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-1',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-2',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+      ],
+      rngNext: 0.1,
+    });
 
     const response = await service.enhanceItem(USER_ID_1, {
       itemId: SWORD_ID,

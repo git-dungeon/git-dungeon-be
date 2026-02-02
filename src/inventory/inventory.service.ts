@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -18,6 +17,7 @@ import {
   type InventoryRarity as PrismaInventoryRarity,
 } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import seedrandom from 'seedrandom';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
@@ -45,10 +45,6 @@ import type {
 } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
-import {
-  SEEDED_RNG_FACTORY,
-  type SeededRandomFactory,
-} from '../dungeon/events/seeded-rng.provider';
 
 type InventoryLogAction =
   | 'EQUIP_ITEM'
@@ -87,8 +83,6 @@ export class InventoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly statsCacheService: StatsCacheService,
-    @Inject(SEEDED_RNG_FACTORY)
-    private readonly rngFactory: SeededRandomFactory,
   ) {}
 
   async getInventory(userId: string): Promise<InventoryResponse> {
@@ -519,8 +513,8 @@ export class InventoryService {
         nextLevel,
         currentInventoryVersion,
       );
-      const rng = this.rngFactory.create(rngSeed);
-      const success = rng.next() < successRate;
+      const rng = seedrandom(rngSeed);
+      const success = rng.quick() < successRate;
 
       const updated = await tx.inventoryItem.updateMany({
         where: {
