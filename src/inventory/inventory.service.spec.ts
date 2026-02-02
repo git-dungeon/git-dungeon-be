@@ -11,6 +11,7 @@ import { DungeonLogAction, DungeonLogCategory } from '@prisma/client';
 import type { PrismaService } from '../prisma/prisma.service';
 import { InventoryService } from './inventory.service';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
+import { loadCatalogData } from '../catalog';
 import {
   resetTypiaAssertMock,
   typiaAssertMock,
@@ -27,6 +28,12 @@ vi.mock('typia', async () => {
   const { typiaModuleMock } = await import('../test-support/mocks/typia');
   return typiaModuleMock;
 });
+
+vi.mock('../catalog', () => ({
+  loadCatalogData: vi.fn(),
+}));
+
+const loadCatalogDataMock = vi.mocked(loadCatalogData);
 
 describe('InventoryService', () => {
   const prismaMock = {
@@ -56,6 +63,7 @@ describe('InventoryService', () => {
     prismaMock.dungeonState.findUnique.mockReset();
     prismaMock.inventoryItem.findMany.mockReset();
     statsCacheMock.mockReset();
+    loadCatalogDataMock.mockReset();
     statsCacheMock.mockResolvedValue({
       hp: 0,
       maxHp: 0,
@@ -138,7 +146,11 @@ describe('InventoryService', () => {
       luck: 1,
     });
     expect(statsCacheMock).toHaveBeenCalledTimes(1);
-    expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock);
+    expect(statsCacheMock).toHaveBeenCalledWith(
+      USER_ID_1,
+      prismaMock,
+      { forceRefresh: undefined },
+    );
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
@@ -261,6 +273,7 @@ describe('InventoryService mutations', () => {
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
+      enhancementLevel: number;
       obtainedAt: Date;
       version: number;
       quantity: number;
@@ -273,6 +286,7 @@ describe('InventoryService mutations', () => {
     rarity: 'RARE',
     modifiers: [],
     isEquipped: false,
+    enhancementLevel: 0,
     obtainedAt: new Date('2025-10-30T09:00:00.000Z'),
     version: 1,
     quantity: 1,
@@ -282,6 +296,7 @@ describe('InventoryService mutations', () => {
   const createPrismaMock = ({
     dungeonState,
     items,
+    rngNext = 0.5,
   }: {
     dungeonState: {
       userId: string;
@@ -290,6 +305,7 @@ describe('InventoryService mutations', () => {
       atk: number;
       def: number;
       luck: number;
+      gold?: number;
     };
     items: Array<{
       id: string;
@@ -299,20 +315,37 @@ describe('InventoryService mutations', () => {
       rarity: string;
       modifiers: unknown;
       isEquipped: boolean;
+      enhancementLevel?: number;
       obtainedAt: Date;
       version: number;
       quantity: number;
     }>;
+    rngNext?: number;
   }) => {
     let inventoryItems = [...items];
+    let dungeonStateSnapshot = {
+      ...dungeonState,
+      gold: dungeonState.gold ?? 0,
+    };
     const dungeonLogCreates: unknown[] = [];
     const prismaMock = {
       dungeonState: {
         findUnique: vi.fn(({ where }: { where: { userId: string } }) =>
           Promise.resolve(
-            where.userId === dungeonState.userId ? dungeonState : null,
+            where.userId === dungeonStateSnapshot.userId
+              ? dungeonStateSnapshot
+              : null,
           ),
         ),
+        update: vi.fn(({ data }: { data: { gold?: { decrement: number } } }) => {
+          if (data.gold?.decrement) {
+            dungeonStateSnapshot = {
+              ...dungeonStateSnapshot,
+              gold: dungeonStateSnapshot.gold - data.gold.decrement,
+            };
+          }
+          return Promise.resolve(dungeonStateSnapshot);
+        }),
       },
       inventoryItem: {
         findUnique: vi.fn(({ where }: { where: { id: string } }) =>
@@ -386,6 +419,7 @@ describe('InventoryService mutations', () => {
             data: {
               isEquipped?: boolean;
               version?: { increment: number };
+              enhancementLevel?: number;
               quantity?:
                 | number
                 | { increment?: number; decrement?: number; set?: number };
@@ -417,6 +451,9 @@ describe('InventoryService mutations', () => {
                   ...(data.isEquipped !== undefined
                     ? { isEquipped: data.isEquipped }
                     : {}),
+                  ...(data.enhancementLevel !== undefined
+                    ? { enhancementLevel: data.enhancementLevel }
+                    : {}),
                   ...(data.quantity !== undefined
                     ? { quantity: nextQuantity }
                     : {}),
@@ -436,7 +473,11 @@ describe('InventoryService mutations', () => {
             data,
           }: {
             where: { id: string };
-            data: { isEquipped?: boolean; quantity?: number; version?: number };
+            data: {
+              isEquipped?: boolean;
+              quantity?: number;
+              version?: number | { increment: number };
+            };
           }) => {
             const targetIndex = inventoryItems.findIndex(
               (item) => item.id === where.id,
@@ -455,7 +496,14 @@ describe('InventoryService mutations', () => {
               ...(data.quantity !== undefined
                 ? { quantity: data.quantity }
                 : {}),
-              ...(data.version !== undefined ? { version: data.version } : {}),
+              ...(data.version !== undefined
+                ? {
+                    version:
+                      typeof data.version === 'number'
+                        ? data.version
+                        : target.version + data.version.increment,
+                  }
+                : {}),
             };
 
             inventoryItems = inventoryItems.map((item, index) =>
@@ -567,7 +615,7 @@ describe('InventoryService mutations', () => {
       });
 
     const rngFactoryMock = {
-      create: vi.fn(() => ({ next: () => 0.5 })),
+      create: vi.fn(() => ({ next: () => rngNext })),
     };
 
     return {
@@ -578,6 +626,7 @@ describe('InventoryService mutations', () => {
       ),
       prismaMock,
       statsCacheMock,
+      getDungeonState: () => dungeonStateSnapshot,
       getItems: () => inventoryItems,
       getDungeonLogs: () => dungeonLogCreates,
     };
@@ -590,7 +639,43 @@ describe('InventoryService mutations', () => {
     atk: 3,
     def: 2,
     luck: 1,
+    gold: 0,
   };
+
+  const buildEnhancementConfig = () => ({
+    maxLevel: 10,
+    successRates: {
+      '1': 0.5,
+    },
+    goldCosts: {
+      '1': 10,
+    },
+    materialCounts: {
+      '1': 2,
+    },
+    materialsBySlot: {
+      weapon: 'material-metal-scrap',
+      armor: 'material-cloth-scrap',
+      helmet: 'material-leather-scrap',
+      ring: 'material-mithril-dust',
+    },
+  });
+
+  const buildCatalog = () => ({
+    version: 1,
+    updatedAt: '2026-02-01T00:00:00.000Z',
+    items: [],
+    buffs: [],
+    monsters: [],
+    dropTables: [],
+    enhancement: buildEnhancementConfig(),
+    assetsBaseUrl: null,
+    spriteMap: null,
+  });
+
+  beforeEach(() => {
+    loadCatalogDataMock.mockReset();
+  });
 
   it('equip: 기존 슬롯 해제 후 대상 아이템을 장착하고 버전을 증가시키며 로그를 남긴다', async () => {
     const { service, getItems, getDungeonLogs } = createPrismaMock({
@@ -917,6 +1002,218 @@ describe('InventoryService mutations', () => {
         category: DungeonLogCategory.STATUS,
       }),
     );
+  });
+
+  it('dismantle: 강화 레벨 환급을 포함해 재료를 지급한다', async () => {
+    const { service } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          rarity: 'RARE',
+          enhancementLevel: 3,
+          isEquipped: false,
+          version: 1,
+        }),
+      ],
+    });
+
+    const response = await service.dismantleItem(USER_ID_1, {
+      itemId: SWORD_ID,
+      expectedVersion: 1,
+      inventoryVersion: 1,
+    });
+
+    const material = response.items.find(
+      (item) => item.code === 'material-metal-scrap',
+    );
+    expect(material?.quantity).toBe(6);
+  });
+
+  it('enhance: 성공 시 레벨이 증가하고 자원이 차감된다', async () => {
+    loadCatalogDataMock.mockResolvedValue(buildCatalog());
+    const { service, getItems, getDungeonLogs, getDungeonState, statsCacheMock, prismaMock } =
+      createPrismaMock({
+        dungeonState: { ...baseDungeonState, gold: 100 },
+        items: [
+          createItem({
+            id: SWORD_ID,
+            code: 'weapon-longsword',
+            slot: 'WEAPON',
+            isEquipped: true,
+            enhancementLevel: 0,
+            version: 1,
+          }),
+          createItem({
+            id: 'mat-1',
+            code: 'material-metal-scrap',
+            slot: 'MATERIAL',
+            rarity: 'COMMON',
+            quantity: 1,
+            version: 1,
+          }),
+          createItem({
+            id: 'mat-2',
+            code: 'material-metal-scrap',
+            slot: 'MATERIAL',
+            rarity: 'COMMON',
+            quantity: 1,
+            version: 1,
+          }),
+        ],
+        rngNext: 0.1,
+      });
+
+    const response = await service.enhanceItem(USER_ID_1, {
+      itemId: SWORD_ID,
+      expectedVersion: 1,
+      inventoryVersion: 1,
+    });
+
+    expect(response.version).toBe(2);
+    const enhanced = response.items.find((item) => item.id === SWORD_ID);
+    expect(enhanced?.enhancementLevel).toBe(1);
+    expect(
+      response.items.some((item) => item.code === 'material-metal-scrap'),
+    ).toBe(false);
+    expect(getItems().some((item) => item.id === 'mat-1')).toBe(false);
+    expect(getDungeonState().gold).toBe(90);
+    expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
+      forceRefresh: true,
+    });
+
+    const logs = getDungeonLogs();
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.ENHANCE_ITEM,
+        category: DungeonLogCategory.STATUS,
+      }),
+    );
+  });
+
+  it('enhance: 실패 시 레벨 유지 및 자원 차감', async () => {
+    loadCatalogDataMock.mockResolvedValue(buildCatalog());
+    const { service, getItems, getDungeonState } = createPrismaMock({
+      dungeonState: { ...baseDungeonState, gold: 100 },
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          enhancementLevel: 0,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-1',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-2',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+      ],
+      rngNext: 0.9,
+    });
+
+    const response = await service.enhanceItem(USER_ID_1, {
+      itemId: SWORD_ID,
+      expectedVersion: 1,
+      inventoryVersion: 1,
+    });
+
+    const enhanced = response.items.find((item) => item.id === SWORD_ID);
+    expect(enhanced?.enhancementLevel).toBe(0);
+    expect(getItems().some((item) => item.id === 'mat-1')).toBe(false);
+    expect(getDungeonState().gold).toBe(90);
+  });
+
+  it('enhance: 골드가 부족하면 400을 던져야 한다', async () => {
+    loadCatalogDataMock.mockResolvedValue(buildCatalog());
+    const { service } = createPrismaMock({
+      dungeonState: { ...baseDungeonState, gold: 5 },
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          enhancementLevel: 0,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-1',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-2',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+      ],
+    });
+
+    await expect(
+      service.enhanceItem(USER_ID_1, {
+        itemId: SWORD_ID,
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      }),
+    ).rejects.toMatchObject({
+      constructor: BadRequestException,
+      response: { code: 'INVENTORY_INSUFFICIENT_GOLD' },
+    });
+  });
+
+  it('enhance: 재료가 부족하면 400을 던져야 한다', async () => {
+    loadCatalogDataMock.mockResolvedValue(buildCatalog());
+    const { service } = createPrismaMock({
+      dungeonState: { ...baseDungeonState, gold: 100 },
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          enhancementLevel: 0,
+          version: 1,
+        }),
+        createItem({
+          id: 'mat-1',
+          code: 'material-metal-scrap',
+          slot: 'MATERIAL',
+          rarity: 'COMMON',
+          quantity: 1,
+          version: 1,
+        }),
+      ],
+    });
+
+    await expect(
+      service.enhanceItem(USER_ID_1, {
+        itemId: SWORD_ID,
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      }),
+    ).rejects.toMatchObject({
+      constructor: BadRequestException,
+      response: { code: 'INVENTORY_INSUFFICIENT_MATERIALS' },
+    });
   });
 
   it('다른 사용자의 아이템이면 404를 던져야 한다', async () => {

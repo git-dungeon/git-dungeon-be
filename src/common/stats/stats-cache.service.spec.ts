@@ -190,6 +190,66 @@ describe('StatsCacheService', () => {
     );
   });
 
+  it('강화 레벨 보너스를 합산한다', async () => {
+    prismaMock.dungeonState.findUnique.mockResolvedValue({
+      ...baseState,
+      statsVersion: 1,
+      equipmentBonus: null,
+    });
+    prismaMock.inventoryItem.findMany.mockResolvedValue([
+      {
+        id: 'item-1',
+        code: 'weapon-longsword',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 2,
+        slot: 'WEAPON',
+      },
+      {
+        id: 'item-2',
+        code: 'armor-chain',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 1,
+        slot: 'ARMOR',
+      },
+      {
+        id: 'item-3',
+        code: 'ring-topaz',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 3,
+        slot: 'RING',
+      },
+    ]);
+    loadCatalogDataMock.mockResolvedValue(buildCatalog(1));
+
+    const result = await service.ensureStatsCache(baseState.userId);
+
+    expect(result).toEqual({
+      hp: 0,
+      maxHp: 0,
+      atk: 2,
+      def: 1,
+      luck: 3,
+    });
+    expect(prismaMock.dungeonState.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseState.userId },
+        data: {
+          equipmentBonus: {
+            hp: 0,
+            maxHp: 0,
+            atk: 2,
+            def: 1,
+            luck: 3,
+          },
+          statsVersion: 1,
+        },
+      }),
+    );
+  });
+
   it('캐시된 보너스가 없으면 버전이 같아도 갱신한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
       ...baseState,
