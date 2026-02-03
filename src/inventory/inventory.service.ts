@@ -894,9 +894,14 @@ export class InventoryService {
     tx: Prisma.TransactionClient,
     userId: string,
     materialItems: InventoryItem[],
-    quantity: number,
+    quantity?: number | null,
   ): Promise<Array<{ itemId: string; code: string; quantity: number }>> {
-    let remaining = quantity;
+    const required = quantity ?? 1;
+    if (!Number.isFinite(required) || required <= 0) {
+      return [];
+    }
+
+    let remaining = required;
     const consumed: Array<{ itemId: string; code: string; quantity: number }> =
       [];
 
@@ -905,7 +910,7 @@ export class InventoryService {
         break;
       }
 
-      const currentQuantity = item.quantity;
+      const currentQuantity = item.quantity ?? 1;
       if (currentQuantity <= remaining) {
         const deleted = await tx.inventoryItem.deleteMany({
           where: {
