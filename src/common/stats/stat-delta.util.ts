@@ -51,10 +51,9 @@ export function extractEnhancementStatModifiers(input: {
  */
 export function addStatsDelta(left: StatsDelta, right: StatsDelta): StatsDelta {
   const result: StatsDelta = {};
-  const allKeys = new Set([
-    ...Object.keys(left),
-    ...Object.keys(right),
-  ]) as Set<keyof StatsDelta>;
+  const allKeys = new Set([...Object.keys(left), ...Object.keys(right)]) as Set<
+    keyof StatsDelta
+  >;
 
   for (const key of allKeys) {
     const value = (left[key] ?? 0) + (right[key] ?? 0);

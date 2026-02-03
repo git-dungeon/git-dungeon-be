@@ -25,6 +25,11 @@ const WATCHED_FILES: WatchedFile[] = [
     path: 'config/catalog/enhancement.json',
     bumpVersion: true,
   },
+  {
+    kind: 'dismantle',
+    path: 'config/catalog/dismantle.json',
+    bumpVersion: true,
+  },
   { kind: 'event-config', path: 'config/dungeon/event-config.json' },
   { kind: 'i18n-en', path: 'config/catalog/i18n/en.json' },
   { kind: 'i18n-ko', path: 'config/catalog/i18n/ko.json' },

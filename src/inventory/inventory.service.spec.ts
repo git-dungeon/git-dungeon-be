@@ -671,12 +671,28 @@ describe('InventoryService mutations', () => {
     monsters: [],
     dropTables: [],
     enhancement: buildEnhancementConfig(),
+    dismantle: {
+      baseMaterialQuantityByRarity: {
+        common: 1,
+        uncommon: 2,
+        rare: 3,
+        epic: 4,
+        legendary: 5,
+      },
+      refundByEnhancementLevel: {
+        '0': 0,
+        '1': 0,
+        '2': 1,
+        '3': 3,
+      },
+    },
     assetsBaseUrl: null,
     spriteMap: null,
   });
 
   beforeEach(() => {
     loadCatalogDataMock.mockReset();
+    loadCatalogDataMock.mockResolvedValue(buildCatalog());
   });
 
   it('equip: 기존 슬롯 해제 후 대상 아이템을 장착하고 버전을 증가시키며 로그를 남긴다', async () => {
@@ -758,19 +774,18 @@ describe('InventoryService mutations', () => {
         forceRefresh: true,
       });
 
-      const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+      const logs = getDungeonLogs();
       expect(logs).toHaveLength(1);
-      expect(logs[0]).toEqual(
-        expect.objectContaining({
-          action: DungeonLogAction.EQUIP_ITEM,
-          delta: expect.objectContaining({
-            type: 'EQUIP_ITEM',
-            detail: expect.objectContaining({
-              stats: expectedStats,
-            }),
-          }),
-        }),
-      );
+
+      const log = logs[0] as {
+        action: string;
+        delta?: { type?: string; detail?: { stats?: unknown } };
+      };
+      expect(log.action).toBe(DungeonLogAction.EQUIP_ITEM);
+      expect(log.delta).toMatchObject({
+        type: 'EQUIP_ITEM',
+        detail: { stats: expectedStats },
+      });
     },
   );
 
@@ -808,20 +823,19 @@ describe('InventoryService mutations', () => {
       inventoryVersion: 2,
     });
 
-    const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+    const logs = getDungeonLogs();
     expect(logs).toHaveLength(1);
+
+    const log = logs[0] as {
+      action: string;
+      delta?: { type?: string; detail?: { stats?: unknown } };
+    };
+    expect(log.action).toBe(DungeonLogAction.EQUIP_ITEM);
     // (5 + 3) - (2 + 1) = +5
-    expect(logs[0]).toEqual(
-      expect.objectContaining({
-        action: DungeonLogAction.EQUIP_ITEM,
-        delta: expect.objectContaining({
-          type: 'EQUIP_ITEM',
-          detail: expect.objectContaining({
-            stats: { atk: 5 },
-          }),
-        }),
-      }),
-    );
+    expect(log.delta).toMatchObject({
+      type: 'EQUIP_ITEM',
+      detail: { stats: { atk: 5 } },
+    });
   });
 
   it('equip: 버전 불일치 시 412를 던져야 한다', async () => {
@@ -935,44 +949,43 @@ describe('InventoryService mutations', () => {
         forceRefresh: true,
       });
 
-      const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+      const logs = getDungeonLogs();
       expect(logs).toHaveLength(1);
-      expect(logs[0]).toEqual(
-        expect.objectContaining({
-          action: DungeonLogAction.UNEQUIP_ITEM,
-          delta: expect.objectContaining({
-            type: 'UNEQUIP_ITEM',
-            detail: expect.objectContaining({
-              stats: expectedStats,
-            }),
-          }),
-        }),
-      );
+
+      const log = logs[0] as {
+        action: string;
+        delta?: { type?: string; detail?: { stats?: unknown } };
+      };
+      expect(log.action).toBe(DungeonLogAction.UNEQUIP_ITEM);
+      expect(log.delta).toMatchObject({
+        type: 'UNEQUIP_ITEM',
+        detail: { stats: expectedStats },
+      });
     },
   );
 
   it('discard: 장착 상태여도 삭제하고 버전을 증가시키며 로그를 남긴다', async () => {
     const { service, getItems, getDungeonLogs, statsCacheMock, prismaMock } =
       createPrismaMock({
-      dungeonState: baseDungeonState,
-      items: [
-        createItem({
-          id: RING_ID,
-          code: 'ring-topaz',
-          slot: 'RING',
-          rarity: 'UNCOMMON',
-          isEquipped: true,
-          version: 4,
-        }),
-        createItem({
-          id: POTION_ID,
-          code: 'potion-healing',
-          slot: 'CONSUMABLE',
-          rarity: 'COMMON',
-          version: 2,
-        }),
-      ],
-    });
+        dungeonState: baseDungeonState,
+        items: [
+          createItem({
+            id: RING_ID,
+            code: 'ring-topaz',
+            slot: 'RING',
+            rarity: 'UNCOMMON',
+            isEquipped: true,
+            version: 4,
+          }),
+          createItem({
+            id: POTION_ID,
+            code: 'potion-healing',
+            slot: 'CONSUMABLE',
+            rarity: 'COMMON',
+            version: 2,
+          }),
+        ],
+      });
 
     const response = await service.discardItem(USER_ID_1, {
       itemId: RING_ID,
@@ -1179,6 +1192,18 @@ describe('InventoryService mutations', () => {
       ],
     });
 
+    loadCatalogDataMock.mockResolvedValue({
+      ...buildCatalog(),
+      dismantle: {
+        ...buildCatalog().dismantle,
+        refundByEnhancementLevel: {
+          ...buildCatalog().dismantle.refundByEnhancementLevel,
+          // 카탈로그를 SSOT로 사용한다는 것을 검증하기 위해, 공식과 다른 값을 넣는다.
+          '3': 100,
+        },
+      },
+    });
+
     const response = await service.dismantleItem(USER_ID_1, {
       itemId: SWORD_ID,
       expectedVersion: 1,
@@ -1188,7 +1213,8 @@ describe('InventoryService mutations', () => {
     const material = response.items.find(
       (item) => item.code === 'material-metal-scrap',
     );
-    expect(material?.quantity).toBe(6);
+    // rare 기본(3) + refund(100) = 103
+    expect(material?.quantity).toBe(103);
   });
 
   it('enhance: 성공 시 레벨이 증가하고 자원이 차감된다', async () => {

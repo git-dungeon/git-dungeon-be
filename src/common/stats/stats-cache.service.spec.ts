@@ -60,6 +60,18 @@ describe('StatsCacheService', () => {
     monsters: [],
     dropTables: [],
     enhancement: buildEnhancementConfig(),
+    dismantle: {
+      baseMaterialQuantityByRarity: {
+        common: 1,
+        uncommon: 2,
+        rare: 3,
+        epic: 4,
+        legendary: 5,
+      },
+      refundByEnhancementLevel: {
+        '0': 0,
+      },
+    },
   });
 
   it('버전이 같고 캐시된 보너스가 유효하면 업데이트 없이 반환한다', async () => {

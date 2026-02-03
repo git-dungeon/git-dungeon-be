@@ -155,6 +155,18 @@ describe('EmbeddingService', () => {
       monsters: [],
       dropTables: [],
       enhancement: buildEnhancementConfig(),
+      dismantle: {
+        baseMaterialQuantityByRarity: {
+          common: 1,
+          uncommon: 2,
+          rare: 3,
+          epic: 4,
+          legendary: 5,
+        },
+        refundByEnhancementLevel: {
+          '0': 0,
+        },
+      },
       assetsBaseUrl: null,
       spriteMap: {
         'sprite/weapon-longsword': 'https://cdn.example.com/weapon.png',
@@ -234,6 +246,18 @@ describe('EmbeddingService', () => {
       monsters: [],
       dropTables: [],
       enhancement: buildEnhancementConfig(),
+      dismantle: {
+        baseMaterialQuantityByRarity: {
+          common: 1,
+          uncommon: 2,
+          rare: 3,
+          epic: 4,
+          legendary: 5,
+        },
+        refundByEnhancementLevel: {
+          '0': 0,
+        },
+      },
       assetsBaseUrl: null,
       spriteMap: {},
     });
@@ -266,6 +290,18 @@ describe('EmbeddingService', () => {
       monsters: [],
       dropTables: [],
       enhancement: buildEnhancementConfig(),
+      dismantle: {
+        baseMaterialQuantityByRarity: {
+          common: 1,
+          uncommon: 2,
+          rare: 3,
+          epic: 4,
+          legendary: 5,
+        },
+        refundByEnhancementLevel: {
+          '0': 0,
+        },
+      },
       assetsBaseUrl: null,
       spriteMap: {},
     });

@@ -77,6 +77,11 @@ export interface CatalogEnhancementConfig {
   materialsBySlot: Record<EnhancementSlot, string>;
 }
 
+export interface CatalogDismantleConfig {
+  baseMaterialQuantityByRarity: Record<CatalogRarity, number>;
+  refundByEnhancementLevel: Record<string, number>;
+}
+
 export interface CatalogData {
   version: number & tags.Minimum<0>;
   updatedAt: string & tags.Format<'date-time'>;
@@ -85,6 +90,7 @@ export interface CatalogData {
   monsters: CatalogMonster[];
   dropTables: CatalogDropTable[];
   enhancement: CatalogEnhancementConfig;
+  dismantle: CatalogDismantleConfig;
   assetsBaseUrl?: string | null;
   spriteMap?: Record<string, string> | null;
 }

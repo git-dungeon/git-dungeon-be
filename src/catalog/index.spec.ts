@@ -22,6 +22,7 @@ describe('catalog load', () => {
       monsters: 'monsters.json',
       drops: 'drops.json',
       enhancement: 'enhancement.json',
+      dismantle: 'dismantle.json',
     };
 
     const enhancementConfig = {
@@ -65,12 +66,31 @@ describe('catalog load', () => {
         updatedAt: '2026-02-03T00:00:00.000Z',
         enhancement: enhancementConfig,
       });
+      await writeJson(join(baseDir, filePaths.dismantle), {
+        version: 1,
+        updatedAt: '2026-02-01T00:00:00.000Z',
+        dismantle: {
+          baseMaterialQuantityByRarity: {
+            common: 1,
+            uncommon: 2,
+            rare: 3,
+            epic: 4,
+            legendary: 5,
+          },
+          refundByEnhancementLevel: {
+            '0': 0,
+            '1': 0,
+            '2': 1,
+          },
+        },
+      });
 
       const catalog = await loadCatalogData(baseDir, filePaths);
 
       expect(catalog.version).toBe(3);
       expect(catalog.updatedAt).toBe('2026-02-03T00:00:00.000Z');
       expect(catalog.enhancement).toEqual(enhancementConfig);
+      expect(catalog.dismantle.baseMaterialQuantityByRarity.rare).toBe(3);
     } finally {
       await rm(baseDir, { recursive: true, force: true });
     }

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "updatedAt": "2026-02-03T02:18:18.769Z",
+  "dismantle": {
+    "baseMaterialQuantityByRarity": {
+      "common": 1,
+      "uncommon": 2,
+      "rare": 3,
+      "epic": 4,
+      "legendary": 5
+    },
+    "refundByEnhancementLevel": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 3,
+      "4": 5,
+      "5": 7,
+      "6": 10,
+      "7": 14,
+      "8": 18,
+      "9": 22,
+      "10": 27
+    }
+  }
+}

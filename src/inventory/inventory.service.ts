@@ -30,7 +30,10 @@ import {
 } from '../common/stats/stat-delta.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { loadCatalogData } from '../catalog';
-import type { CatalogEnhancementConfig } from '../catalog/catalog.schema';
+import type {
+  CatalogDismantleConfig,
+  CatalogEnhancementConfig,
+} from '../catalog/catalog.schema';
 import type {
   EquipmentItem,
   EquipmentStats,
@@ -338,10 +341,23 @@ export class InventoryService {
       const targetSlot = target.slot.toLowerCase() as InventorySlot;
       const targetRarity = target.rarity.toLowerCase() as InventoryRarity;
 
-      const materialCode = this.resolveMaterialCode(targetSlot);
-      const materialQuantity = this.resolveMaterialQuantity(targetRarity);
+      const dismantleConfig = await this.loadDismantleConfig();
+      const enhancementConfig = await this.loadEnhancementConfig();
+
+      if (!this.isEquippableSlot(targetSlot)) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INVALID_REQUEST',
+          message: '분해할 수 없는 슬롯입니다.',
+        });
+      }
+
+      const materialCode = enhancementConfig.materialsBySlot[targetSlot];
+      const materialQuantity =
+        dismantleConfig.baseMaterialQuantityByRarity[targetRarity] ??
+        this.resolveMaterialQuantity(targetRarity);
       const enhancementLevel = target.enhancementLevel ?? 0;
       const enhancementRefund =
+        dismantleConfig.refundByEnhancementLevel[String(enhancementLevel)] ??
         this.calculateEnhancementRefund(enhancementLevel);
       const totalMaterialQuantity = materialQuantity + enhancementRefund;
       const materialRarity = this.resolveMaterialRarity(materialCode);
@@ -811,6 +827,11 @@ export class InventoryService {
   private async loadEnhancementConfig(): Promise<CatalogEnhancementConfig> {
     const catalog = await loadCatalogData();
     return catalog.enhancement;
+  }
+
+  private async loadDismantleConfig(): Promise<CatalogDismantleConfig> {
+    const catalog = await loadCatalogData();
+    return catalog.dismantle;
   }
 
   private resolveEnhancementCost(
