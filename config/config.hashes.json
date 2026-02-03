@@ -3,6 +3,8 @@
   "config/catalog/buffs.json": "788517ddb3fd589130c1263aed4be1180745932715d4a9586a209a488c445a05",
   "config/catalog/monsters.json": "6c9601833d879b8d841a0bf17d834db491cffec61cd37f038faf5ea78e550b8b",
   "config/catalog/drops.json": "1a2e25ee3676f3087cc456a9a7f99e7c25ffc382368caa08dd1f877c8da417fe",
+  "config/catalog/enhancement.json": "9d2f8d267632214cace5bd3c4fbb26c452d69684a28531ea5f59e61e32668f14",
+  "config/catalog/dismantle.json": "8e452c8f62887ed1d151bae699d3490ada77d3f7127a4cc34d1cfb204b70ea0b",
   "config/dungeon/event-config.json": "da007fe7493af36c4114bd6f92cd1bc0baf41c244bb52c68a4cb8afb2268d8c3",
   "config/catalog/i18n/en.json": "368f187e5cd65c30db4300a9d5870f637660a28e1c28b8792f8b6c5b559610c5",
   "config/catalog/i18n/ko.json": "5cea63fda8a11eecfd2e9211a58100cf96b2c4419eace432d0428532d77b2062"

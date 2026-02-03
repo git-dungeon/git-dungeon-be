@@ -55,3 +55,33 @@ export const calculateEquipmentBonus = (
 
   return bonus;
 };
+
+export const calculateEnhancementBonus = (
+  items: Array<{ slot: string; enhancementLevel?: number | null }>,
+): EquipmentStats => {
+  const bonus = createEmptyEquipmentStats();
+
+  for (const item of items) {
+    const level = item.enhancementLevel ?? 0;
+    if (level <= 0) {
+      continue;
+    }
+
+    switch (item.slot.toUpperCase()) {
+      case 'WEAPON':
+        bonus.atk += level;
+        break;
+      case 'ARMOR':
+      case 'HELMET':
+        bonus.def += level;
+        break;
+      case 'RING':
+        bonus.luck += level;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return bonus;
+};

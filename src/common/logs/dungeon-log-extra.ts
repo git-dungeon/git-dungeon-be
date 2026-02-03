@@ -107,6 +107,33 @@ export type InventoryMutationDetails = {
   };
 };
 
+export type EnhanceItemDetails = {
+  type: 'ENHANCE_ITEM';
+  details: {
+    item: {
+      id: string;
+      code: string;
+      slot: string;
+      rarity: string;
+      name?: string | null;
+      modifiers?: InventoryModifier[];
+    };
+    enhancement?: {
+      before: number;
+      after: number;
+      success: boolean;
+      chance: number;
+    };
+    cost?: {
+      gold: number;
+      materials: Array<{
+        code: string;
+        quantity?: number;
+      }>;
+    };
+  };
+};
+
 export type LevelUpDetails = {
   type: 'LEVEL_UP';
   details: {
@@ -187,6 +214,7 @@ export type DungeonLogDetails =
   | DeathDetails
   | AcquireItemDetails
   | InventoryMutationDetails
+  | EnhanceItemDetails
   | LevelUpDetails
   | StatAppliedDetails
   | BuffDetails

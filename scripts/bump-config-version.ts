@@ -20,6 +20,16 @@ const WATCHED_FILES: WatchedFile[] = [
   { kind: 'buffs', path: 'config/catalog/buffs.json', bumpVersion: true },
   { kind: 'monsters', path: 'config/catalog/monsters.json', bumpVersion: true },
   { kind: 'drops', path: 'config/catalog/drops.json', bumpVersion: true },
+  {
+    kind: 'enhancement',
+    path: 'config/catalog/enhancement.json',
+    bumpVersion: true,
+  },
+  {
+    kind: 'dismantle',
+    path: 'config/catalog/dismantle.json',
+    bumpVersion: true,
+  },
   { kind: 'event-config', path: 'config/dungeon/event-config.json' },
   { kind: 'i18n-en', path: 'config/catalog/i18n/en.json' },
   { kind: 'i18n-ko', path: 'config/catalog/i18n/ko.json' },

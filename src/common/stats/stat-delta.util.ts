@@ -21,6 +21,51 @@ export function extractFlatStatModifiers(
 }
 
 /**
+ * 강화 레벨에서 flat 스탯 보너스를 추출합니다.
+ * (weapon: atk, armor/helmet: def, ring: luck)
+ */
+export function extractEnhancementStatModifiers(input: {
+  slot: string;
+  enhancementLevel?: number | null;
+}): StatsDelta {
+  const level = input.enhancementLevel ?? 0;
+  if (level <= 0) {
+    return {};
+  }
+
+  switch (input.slot.toLowerCase()) {
+    case 'weapon':
+      return { atk: level };
+    case 'armor':
+    case 'helmet':
+      return { def: level };
+    case 'ring':
+      return { luck: level };
+    default:
+      return {};
+  }
+}
+
+/**
+ * 두 StatsDelta를 더합니다.
+ */
+export function addStatsDelta(left: StatsDelta, right: StatsDelta): StatsDelta {
+  const result: StatsDelta = {};
+  const allKeys = new Set([...Object.keys(left), ...Object.keys(right)]) as Set<
+    keyof StatsDelta
+  >;
+
+  for (const key of allKeys) {
+    const value = (left[key] ?? 0) + (right[key] ?? 0);
+    if (value !== 0) {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
  * 두 스탯 delta의 차이를 계산합니다.
  * equip - unequip = 순 변화량
  */

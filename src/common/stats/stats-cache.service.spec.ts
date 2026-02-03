@@ -39,6 +39,19 @@ describe('StatsCacheService', () => {
     luck: 10,
   };
 
+  const buildEnhancementConfig = () => ({
+    maxLevel: 10,
+    successRates: {},
+    goldCosts: {},
+    materialCounts: {},
+    materialsBySlot: {
+      weapon: 'material-metal-scrap',
+      armor: 'material-cloth-scrap',
+      helmet: 'material-leather-scrap',
+      ring: 'material-mithril-dust',
+    },
+  });
+
   const buildCatalog = (version: number) => ({
     version,
     updatedAt: '2026-01-21T00:00:00.000Z',
@@ -46,6 +59,19 @@ describe('StatsCacheService', () => {
     buffs: [],
     monsters: [],
     dropTables: [],
+    enhancement: buildEnhancementConfig(),
+    dismantle: {
+      baseMaterialQuantityByRarity: {
+        common: 1,
+        uncommon: 2,
+        rare: 3,
+        epic: 4,
+        legendary: 5,
+      },
+      refundByEnhancementLevel: {
+        '0': 0,
+      },
+    },
   });
 
   it('버전이 같고 캐시된 보너스가 유효하면 업데이트 없이 반환한다', async () => {
@@ -171,6 +197,66 @@ describe('StatsCacheService', () => {
             luck: 0,
           },
           statsVersion: 5,
+        },
+      }),
+    );
+  });
+
+  it('강화 레벨 보너스를 합산한다', async () => {
+    prismaMock.dungeonState.findUnique.mockResolvedValue({
+      ...baseState,
+      statsVersion: 1,
+      equipmentBonus: null,
+    });
+    prismaMock.inventoryItem.findMany.mockResolvedValue([
+      {
+        id: 'item-1',
+        code: 'weapon-longsword',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 2,
+        slot: 'WEAPON',
+      },
+      {
+        id: 'item-2',
+        code: 'armor-chain',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 1,
+        slot: 'ARMOR',
+      },
+      {
+        id: 'item-3',
+        code: 'ring-topaz',
+        modifiers: [],
+        modifierVersion: 1,
+        enhancementLevel: 3,
+        slot: 'RING',
+      },
+    ]);
+    loadCatalogDataMock.mockResolvedValue(buildCatalog(1));
+
+    const result = await service.ensureStatsCache(baseState.userId);
+
+    expect(result).toEqual({
+      hp: 0,
+      maxHp: 0,
+      atk: 2,
+      def: 1,
+      luck: 3,
+    });
+    expect(prismaMock.dungeonState.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: baseState.userId },
+        data: {
+          equipmentBonus: {
+            hp: 0,
+            maxHp: 0,
+            atk: 2,
+            def: 1,
+            luck: 3,
+          },
+          statsVersion: 1,
         },
       }),
     );

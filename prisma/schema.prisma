@@ -174,6 +174,7 @@ enum DungeonLogAction {
   UNEQUIP_ITEM
   DISCARD_ITEM
   DISMANTLE_ITEM
+  ENHANCE_ITEM
   BUFF_APPLIED
   BUFF_EXPIRED
   STAT_APPLIED
@@ -233,6 +234,7 @@ model InventoryItem {
   isEquipped Boolean         @default(false)
   quantity   Int             @default(1)
   modifierVersion Int        @default(0)
+  enhancementLevel Int       @default(0)
   obtainedAt DateTime        @default(now())
   version    Int             @default(1)
   createdAt  DateTime        @default(now())

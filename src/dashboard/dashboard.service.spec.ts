@@ -81,6 +81,59 @@ describe('DashboardService', () => {
     expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
+  it('강화 레벨이 스탯(equipmentBonus)에 반영되어야 한다', async () => {
+    prismaMock.dungeonState.findUnique.mockResolvedValue({
+      userId: USER_ID_1,
+      level: 5,
+      exp: 120,
+      levelUpPoints: 0,
+      unopenedChests: 0,
+      hp: 100,
+      maxHp: 120,
+      atk: 25,
+      def: 10,
+      luck: 7,
+      floor: 3,
+      maxFloor: 10,
+      floorProgress: 50,
+      gold: 500,
+      ap: 8,
+      currentAction: 'idle',
+      currentActionStartedAt: new Date('2025-10-27T07:00:00.000Z'),
+      createdAt: new Date('2025-10-27T06:00:00.000Z'),
+      updatedAt: new Date('2025-10-27T07:00:00.000Z'),
+      version: 1,
+    });
+
+    prismaMock.inventoryItem.findMany.mockResolvedValue([
+      {
+        id: INVENTORY_ITEM_ID_1,
+        code: 'SWORD_1',
+        slot: 'WEAPON',
+        rarity: 'COMMON',
+        modifiers: [],
+        enhancementLevel: 3,
+        isEquipped: true,
+        obtainedAt: new Date('2025-10-26T12:00:00.000Z'),
+        version: 1,
+      },
+    ]);
+
+    const result = await service.getState(USER_ID_1);
+
+    expect(result).toEqual(
+      createDashboardStateResponse({
+        atk: 28,
+        stats: {
+          base: { hp: 120, maxHp: 120, atk: 25, def: 10, luck: 7 },
+          equipmentBonus: { hp: 0, maxHp: 0, atk: 3, def: 0, luck: 0 },
+          total: { hp: 120, maxHp: 120, atk: 28, def: 10, luck: 7 },
+        },
+      }),
+    );
+    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
+  });
+
   it('레벨이 없으면 expToLevel이 null이어야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
       userId: USER_ID_1,

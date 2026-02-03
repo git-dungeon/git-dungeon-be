@@ -17,15 +17,23 @@ import {
   type InventoryRarity as PrismaInventoryRarity,
 } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
+import seedrandom from 'seedrandom';
 import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
 import {
   extractFlatStatModifiers,
+  extractEnhancementStatModifiers,
+  addStatsDelta,
   calculateStatsDiff,
   isEmptyStatsDelta,
 } from '../common/stats/stat-delta.util';
 import { PrismaService } from '../prisma/prisma.service';
+import { loadCatalogData } from '../catalog';
+import type {
+  CatalogDismantleConfig,
+  CatalogEnhancementConfig,
+} from '../catalog/catalog.schema';
 import type {
   EquipmentItem,
   EquipmentStats,
@@ -38,6 +46,7 @@ import type {
 import type {
   DungeonLogDelta,
   InventoryDelta,
+  StatsDelta,
 } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
@@ -46,7 +55,8 @@ type InventoryLogAction =
   | 'EQUIP_ITEM'
   | 'UNEQUIP_ITEM'
   | 'DISCARD_ITEM'
-  | 'DISMANTLE_ITEM';
+  | 'DISMANTLE_ITEM'
+  | 'ENHANCE_ITEM';
 
 const EQUIPPABLE_SLOTS: EquippableSlot[] = [
   'helmet',
@@ -148,6 +158,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -205,6 +216,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -291,6 +303,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: target.isEquipped,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -328,8 +341,31 @@ export class InventoryService {
       const targetSlot = target.slot.toLowerCase() as InventorySlot;
       const targetRarity = target.rarity.toLowerCase() as InventoryRarity;
 
-      const materialCode = this.resolveMaterialCode(targetSlot);
-      const materialQuantity = this.resolveMaterialQuantity(targetRarity);
+      const dismantleConfig = await this.loadDismantleConfig();
+      const enhancementConfig = await this.loadEnhancementConfig();
+
+      if (!this.isEquippableSlot(targetSlot)) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INVALID_REQUEST',
+          message: '분해할 수 없는 슬롯입니다.',
+        });
+      }
+
+      const materialCode = enhancementConfig.materialsBySlot[targetSlot];
+      if (!materialCode) {
+        throw new InternalServerErrorException({
+          code: 'INVENTORY_INVALID_RESPONSE',
+          message: '분해 설정을 불러올 수 없습니다.',
+        });
+      }
+      const materialQuantity =
+        dismantleConfig.baseMaterialQuantityByRarity[targetRarity] ??
+        this.resolveMaterialQuantity(targetRarity);
+      const enhancementLevel = target.enhancementLevel ?? 0;
+      const enhancementRefund =
+        dismantleConfig.refundByEnhancementLevel[String(enhancementLevel)] ??
+        this.calculateEnhancementRefund(enhancementLevel);
+      const totalMaterialQuantity = materialQuantity + enhancementRefund;
       const materialRarity = this.resolveMaterialRarity(materialCode);
 
       const deleted = await tx.inventoryItem.deleteMany({
@@ -361,7 +397,7 @@ export class InventoryService {
           existingMaterials.reduce(
             (sum, item) => sum + (item.quantity ?? 1),
             0,
-          ) + materialQuantity;
+          ) + totalMaterialQuantity;
 
         await tx.inventoryItem.update({
           where: { id: existingMaterial.id },
@@ -388,7 +424,7 @@ export class InventoryService {
             rarity: materialRarity,
             modifiers: [],
             isEquipped: false,
-            quantity: materialQuantity,
+            quantity: totalMaterialQuantity,
             version: nextVersion,
           },
         });
@@ -405,10 +441,10 @@ export class InventoryService {
             code: materialCode,
             slot: 'material',
             rarity: materialRarityLabel,
-            quantity: materialQuantity,
+            quantity: totalMaterialQuantity,
           },
         ],
-        materials: [{ code: materialCode, quantity: materialQuantity }],
+        materials: [{ code: materialCode, quantity: totalMaterialQuantity }],
       });
 
       const response = await this.buildInventoryResponse(tx, userId, {
@@ -419,14 +455,180 @@ export class InventoryService {
     });
   }
 
+  async enhanceItem(
+    userId: string,
+    payload: {
+      itemId: string;
+      expectedVersion: number;
+      inventoryVersion: number;
+    },
+  ): Promise<InventoryResponse> {
+    return this.prisma.$transaction(async (tx) => {
+      const target = await tx.inventoryItem.findUnique({
+        where: { id: payload.itemId },
+      });
+
+      this.assertOwnedItem(target, userId);
+      this.assertItemVersion(target, payload.expectedVersion);
+      const currentInventoryVersion = await this.assertInventoryVersion(
+        tx,
+        userId,
+        payload.inventoryVersion,
+      );
+
+      const targetSlot = target.slot.toLowerCase() as InventorySlot;
+      if (!this.isEquippableSlot(targetSlot)) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INVALID_REQUEST',
+          message: '강화할 수 없는 슬롯입니다.',
+        });
+      }
+
+      const enhancementLevel = target.enhancementLevel ?? 0;
+      const enhancementConfig = await this.loadEnhancementConfig();
+
+      if (enhancementLevel >= enhancementConfig.maxLevel) {
+        throw new BadRequestException({
+          code: 'INVENTORY_MAX_ENHANCEMENT',
+          message: '강화 레벨이 최대치입니다.',
+        });
+      }
+
+      const nextLevel = enhancementLevel + 1;
+      const enhancementSlot = targetSlot;
+      const { successRate, goldCost, materialCount, materialCode } =
+        this.resolveEnhancementCost(
+          enhancementConfig,
+          nextLevel,
+          enhancementSlot,
+        );
+
+      const state = await tx.dungeonState.findUnique({ where: { userId } });
+      if (!state) {
+        throw new UnauthorizedException({
+          code: 'INVENTORY_UNAUTHORIZED',
+          message: '인벤토리를 조회할 수 없습니다.',
+        });
+      }
+
+      if (state.gold < goldCost) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_GOLD',
+          message: '골드가 부족합니다.',
+        });
+      }
+
+      const materialItems = await tx.inventoryItem.findMany({
+        where: { userId, code: materialCode, slot: 'MATERIAL' },
+        orderBy: { obtainedAt: 'asc' },
+      });
+      const totalMaterialQuantity = materialItems.reduce(
+        (sum, item) => sum + (item.quantity ?? 1),
+        0,
+      );
+
+      if (totalMaterialQuantity < materialCount) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_MATERIALS',
+          message: '강화 재료가 부족합니다.',
+        });
+      }
+
+      const rngSeed = this.buildEnhancementSeed(
+        userId,
+        target.id,
+        nextLevel,
+        currentInventoryVersion,
+      );
+      const rng = seedrandom(rngSeed);
+      const success = rng.quick() < successRate;
+
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: target.id,
+          userId,
+          version: payload.expectedVersion,
+        },
+        data: {
+          enhancementLevel: success ? nextLevel : enhancementLevel,
+          version: { increment: 1 },
+        },
+      });
+
+      if (updated.count === 0) {
+        throw new PreconditionFailedException({
+          code: 'INVENTORY_VERSION_MISMATCH',
+          message: '아이템 버전이 일치하지 않습니다.',
+        });
+      }
+
+      const goldDecremented = await tx.dungeonState.updateMany({
+        where: {
+          userId,
+          gold: { gte: goldCost },
+        },
+        data: { gold: { decrement: goldCost } },
+      });
+
+      if (goldDecremented.count === 0) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_GOLD',
+          message: '골드가 부족합니다.',
+        });
+      }
+
+      const consumedMaterials = await this.consumeMaterials(
+        tx,
+        userId,
+        materialItems,
+        materialCount,
+      );
+
+      const enhancementStatsDelta = this.buildEnhancementStatsDelta({
+        slot: targetSlot,
+        success,
+        isEquipped: target.isEquipped,
+      });
+
+      await this.appendInventoryLog(tx, userId, {
+        action: DungeonLogAction.ENHANCE_ITEM,
+        item: {
+          ...this.mapInventoryItem(target),
+          enhancementLevel: success ? nextLevel : enhancementLevel,
+        },
+        materials: [{ code: materialCode, quantity: materialCount }],
+        consumedMaterials,
+        enhancement: {
+          before: enhancementLevel,
+          after: success ? nextLevel : enhancementLevel,
+          success,
+          chance: successRate,
+          gold: goldCost,
+          materials: [{ code: materialCode, quantity: materialCount }],
+          statsDelta: enhancementStatsDelta,
+        },
+      });
+
+      const response = await this.buildInventoryResponse(tx, userId, {
+        forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
+      });
+
+      return this.assertInventoryResponse(userId, response);
+    });
+  }
+
   private async buildInventoryResponse(
     prismaClient: PrismaService | Prisma.TransactionClient,
     userId: string,
-    options?: { forcedInventoryVersion?: number },
+    options?: { forcedInventoryVersion?: number; forceStatsRefresh?: boolean },
   ): Promise<InventoryResponse> {
     const equipmentBonus = await this.statsCacheService.ensureStatsCache(
       userId,
       prismaClient,
+      {
+        forceRefresh: options?.forceStatsRefresh,
+      },
     );
     const [dungeonState, inventoryItems] = await Promise.all([
       prismaClient.dungeonState.findUnique({ where: { userId } }),
@@ -580,6 +782,7 @@ export class InventoryService {
       createdAt: item.obtainedAt.toISOString(),
       isEquipped: item.isEquipped,
       quantity: item.quantity ?? 1,
+      enhancementLevel: item.enhancementLevel ?? 0,
       version: item.version,
     };
   }
@@ -637,6 +840,172 @@ export class InventoryService {
     return 'COMMON';
   }
 
+  private async loadEnhancementConfig(): Promise<CatalogEnhancementConfig> {
+    const catalog = await loadCatalogData();
+    return catalog.enhancement;
+  }
+
+  private async loadDismantleConfig(): Promise<CatalogDismantleConfig> {
+    const catalog = await loadCatalogData();
+    return catalog.dismantle;
+  }
+
+  private resolveEnhancementCost(
+    config: CatalogEnhancementConfig,
+    nextLevel: number,
+    slot: EquippableSlot,
+  ): {
+    successRate: number;
+    goldCost: number;
+    materialCount: number;
+    materialCode: string;
+  } {
+    const levelKey = String(nextLevel);
+    const successRate = config.successRates[levelKey];
+    const goldCost = config.goldCosts[levelKey];
+    const materialCount = config.materialCounts[levelKey];
+    const materialCode = config.materialsBySlot[slot];
+
+    if (
+      successRate === undefined ||
+      goldCost === undefined ||
+      materialCount === undefined ||
+      !materialCode
+    ) {
+      throw new InternalServerErrorException({
+        code: 'INVENTORY_INVALID_RESPONSE',
+        message: '강화 설정을 불러올 수 없습니다.',
+      });
+    }
+
+    return { successRate, goldCost, materialCount, materialCode };
+  }
+
+  private buildEnhancementSeed(
+    userId: string,
+    itemId: string,
+    nextLevel: number,
+    inventoryVersion: number,
+  ): string {
+    return `${userId}:enhance:${itemId}:${nextLevel}:${inventoryVersion}`;
+  }
+
+  private async consumeMaterials(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    materialItems: InventoryItem[],
+    quantity?: number | null,
+  ): Promise<Array<{ itemId: string; code: string; quantity: number }>> {
+    const required = quantity ?? 1;
+    if (!Number.isFinite(required) || required <= 0) {
+      return [];
+    }
+
+    let remaining = required;
+    const consumed: Array<{ itemId: string; code: string; quantity: number }> =
+      [];
+
+    for (const item of materialItems) {
+      if (remaining <= 0) {
+        break;
+      }
+
+      const currentQuantity = item.quantity ?? 1;
+      if (currentQuantity <= remaining) {
+        const deleted = await tx.inventoryItem.deleteMany({
+          where: {
+            id: item.id,
+            userId,
+            code: item.code,
+            slot: 'MATERIAL',
+            version: item.version,
+            quantity: currentQuantity,
+          },
+        });
+        if (deleted.count === 0) {
+          throw new ConflictException({
+            code: 'INVENTORY_CONCURRENCY_CONFLICT',
+            message: '강화 재료 처리 중 동시성 충돌이 발생했습니다.',
+          });
+        }
+        remaining -= currentQuantity;
+        consumed.push({
+          itemId: item.id,
+          code: item.code,
+          quantity: currentQuantity,
+        });
+        continue;
+      }
+
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: item.id,
+          userId,
+          code: item.code,
+          slot: 'MATERIAL',
+          version: item.version,
+          quantity: { gte: remaining },
+        },
+        data: {
+          quantity: { decrement: remaining },
+          version: { increment: 1 },
+        },
+      });
+      if (updated.count === 0) {
+        throw new ConflictException({
+          code: 'INVENTORY_CONCURRENCY_CONFLICT',
+          message: '강화 재료 처리 중 동시성 충돌이 발생했습니다.',
+        });
+      }
+      consumed.push({
+        itemId: item.id,
+        code: item.code,
+        quantity: remaining,
+      });
+      remaining = 0;
+    }
+
+    if (remaining > 0) {
+      throw new InternalServerErrorException({
+        code: 'INVENTORY_INVALID_RESPONSE',
+        message: '강화 재료 처리에 실패했습니다.',
+      });
+    }
+
+    return consumed;
+  }
+
+  private calculateEnhancementRefund(level: number): number {
+    if (level <= 0) {
+      return 0;
+    }
+
+    const total = (level * (level + 1)) / 2;
+    return Math.floor(total / 2);
+  }
+
+  private buildEnhancementStatsDelta(input: {
+    slot: InventorySlot;
+    success: boolean;
+    isEquipped: boolean;
+  }): StatsDelta | undefined {
+    if (!input.success || !input.isEquipped) {
+      return undefined;
+    }
+
+    switch (input.slot) {
+      case 'weapon':
+        return { atk: 1 };
+      case 'armor':
+      case 'helmet':
+        return { def: 1 };
+      case 'ring':
+        return { luck: 1 };
+      default:
+        return undefined;
+    }
+  }
+
   private mapEquipped(items: EquipmentItem[]): EquippedItems {
     return items.reduce<EquippedItems>((acc, item) => {
       if (item.isEquipped && this.isEquippableSlot(item.slot)) {
@@ -674,6 +1043,20 @@ export class InventoryService {
       replaced?: EquipmentItem;
       added?: InventoryDelta['added'];
       materials?: Array<{ code: string; quantity?: number }>;
+      consumedMaterials?: Array<{
+        itemId: string;
+        code: string;
+        quantity?: number;
+      }>;
+      enhancement?: {
+        before: number;
+        after: number;
+        success: boolean;
+        chance: number;
+        gold: number;
+        materials: Array<{ code: string; quantity?: number }>;
+        statsDelta?: StatsDelta;
+      };
     },
   ): Promise<void> {
     const delta: DungeonLogDelta = this.buildInventoryDelta(input);
@@ -701,11 +1084,25 @@ export class InventoryService {
     item: EquipmentItem;
     replaced?: EquipmentItem;
     added?: InventoryDelta['added'];
+    consumedMaterials?: Array<{
+      itemId: string;
+      code: string;
+      quantity?: number;
+    }>;
+    enhancement?: {
+      statsDelta?: StatsDelta;
+    };
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
-      const equipStats = extractFlatStatModifiers(input.item.modifiers);
+      const equipStats = addStatsDelta(
+        extractFlatStatModifiers(input.item.modifiers),
+        extractEnhancementStatModifiers(input.item),
+      );
       const unequipStats = input.replaced
-        ? extractFlatStatModifiers(input.replaced.modifiers)
+        ? addStatsDelta(
+            extractFlatStatModifiers(input.replaced.modifiers),
+            extractEnhancementStatModifiers(input.replaced),
+          )
         : {};
       const statsDiff = calculateStatsDiff(equipStats, unequipStats);
 
@@ -732,7 +1129,10 @@ export class InventoryService {
     }
 
     if (input.action === DungeonLogAction.UNEQUIP_ITEM) {
-      const unequipStats = extractFlatStatModifiers(input.item.modifiers);
+      const unequipStats = addStatsDelta(
+        extractFlatStatModifiers(input.item.modifiers),
+        extractEnhancementStatModifiers(input.item),
+      );
       // 해제 시 스탯은 감소 (음수)
       const statsDiff: Record<string, number> = {};
       for (const [key, value] of Object.entries(unequipStats)) {
@@ -774,6 +1174,18 @@ export class InventoryService {
       };
     }
 
+    if (input.action === DungeonLogAction.ENHANCE_ITEM) {
+      return {
+        type: 'ENHANCE_ITEM',
+        detail: {
+          inventory: {
+            removed: input.consumedMaterials ?? [],
+          },
+          stats: input.enhancement?.statsDelta,
+        },
+      };
+    }
+
     return {
       type: 'DISCARD_ITEM',
       detail: {
@@ -802,7 +1214,45 @@ export class InventoryService {
     item: EquipmentItem;
     replaced?: EquipmentItem;
     materials?: Array<{ code: string; quantity?: number }>;
+    enhancement?: {
+      before: number;
+      after: number;
+      success: boolean;
+      chance: number;
+      gold: number;
+      materials: Array<{ code: string; quantity?: number }>;
+    };
   }): DungeonLogDetails {
+    if (input.action === DungeonLogAction.ENHANCE_ITEM) {
+      return {
+        type: 'ENHANCE_ITEM',
+        details: {
+          item: {
+            id: input.item.id,
+            code: input.item.code,
+            slot: input.item.slot,
+            rarity: input.item.rarity,
+            name: input.item.name ?? null,
+            modifiers: input.item.modifiers,
+          },
+          enhancement: input.enhancement
+            ? {
+                before: input.enhancement.before,
+                after: input.enhancement.after,
+                success: input.enhancement.success,
+                chance: input.enhancement.chance,
+              }
+            : undefined,
+          cost: input.enhancement
+            ? {
+                gold: input.enhancement.gold,
+                materials: input.enhancement.materials,
+              }
+            : undefined,
+        },
+      };
+    }
+
     return {
       type:
         input.action === DungeonLogAction.EQUIP_ITEM
