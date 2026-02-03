@@ -723,6 +723,107 @@ describe('InventoryService mutations', () => {
     );
   });
 
+  it.each([
+    ['WEAPON', 3, { atk: 3 }],
+    ['ARMOR', 2, { def: 2 }],
+    ['HELMET', 4, { def: 4 }],
+    ['RING', 5, { luck: 5 }],
+  ] as const)(
+    'equip: 강화 레벨이 로그 statsDelta에 포함되어야 한다 (%s)',
+    async (slot, enhancementLevel, expectedStats) => {
+      const { service, getDungeonLogs, statsCacheMock, prismaMock } =
+        createPrismaMock({
+          dungeonState: baseDungeonState,
+          items: [
+            createItem({
+              id: SWORD_ID,
+              code: 'weapon-longsword',
+              slot,
+              rarity: 'RARE',
+              modifiers: [],
+              isEquipped: false,
+              enhancementLevel,
+              version: 1,
+            }),
+          ],
+        });
+
+      await service.equipItem(USER_ID_1, {
+        itemId: SWORD_ID,
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
+        forceRefresh: true,
+      });
+
+      const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+      expect(logs).toHaveLength(1);
+      expect(logs[0]).toEqual(
+        expect.objectContaining({
+          action: DungeonLogAction.EQUIP_ITEM,
+          delta: expect.objectContaining({
+            type: 'EQUIP_ITEM',
+            detail: expect.objectContaining({
+              stats: expectedStats,
+            }),
+          }),
+        }),
+      );
+    },
+  );
+
+  it('equip: 슬롯 교체 시 강화 보너스를 포함한 차이만큼 statsDelta가 기록되어야 한다', async () => {
+    const { service, getDungeonLogs } = createPrismaMock({
+      dungeonState: baseDungeonState,
+      items: [
+        createItem({
+          id: SWORD_ID,
+          code: 'weapon-longsword',
+          slot: 'WEAPON',
+          rarity: 'RARE',
+          modifiers: [{ kind: 'stat', stat: 'atk', mode: 'flat', value: 5 }],
+          enhancementLevel: 3,
+          isEquipped: false,
+          version: 1,
+        }),
+        createItem({
+          id: DAGGER_ID,
+          code: 'weapon-dagger',
+          slot: 'WEAPON',
+          rarity: 'COMMON',
+          modifiers: [{ kind: 'stat', stat: 'atk', mode: 'flat', value: 2 }],
+          enhancementLevel: 1,
+          isEquipped: true,
+          obtainedAt: new Date('2025-10-30T08:00:00.000Z'),
+          version: 2,
+        }),
+      ],
+    });
+
+    await service.equipItem(USER_ID_1, {
+      itemId: SWORD_ID,
+      expectedVersion: 1,
+      inventoryVersion: 2,
+    });
+
+    const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+    expect(logs).toHaveLength(1);
+    // (5 + 3) - (2 + 1) = +5
+    expect(logs[0]).toEqual(
+      expect.objectContaining({
+        action: DungeonLogAction.EQUIP_ITEM,
+        delta: expect.objectContaining({
+          type: 'EQUIP_ITEM',
+          detail: expect.objectContaining({
+            stats: { atk: 5 },
+          }),
+        }),
+      }),
+    );
+  });
+
   it('equip: 버전 불일치 시 412를 던져야 한다', async () => {
     const { service } = createPrismaMock({
       dungeonState: baseDungeonState,
@@ -799,8 +900,60 @@ describe('InventoryService mutations', () => {
     );
   });
 
+  it.each([
+    ['WEAPON', 3, { atk: -3 }],
+    ['ARMOR', 2, { def: -2 }],
+    ['HELMET', 4, { def: -4 }],
+    ['RING', 5, { luck: -5 }],
+  ] as const)(
+    'unequip: 강화 레벨이 로그 statsDelta에 포함되어야 한다 (%s)',
+    async (slot, enhancementLevel, expectedStats) => {
+      const { service, getDungeonLogs, statsCacheMock, prismaMock } =
+        createPrismaMock({
+          dungeonState: baseDungeonState,
+          items: [
+            createItem({
+              id: SWORD_ID,
+              code: 'weapon-longsword',
+              slot,
+              rarity: 'RARE',
+              modifiers: [],
+              isEquipped: true,
+              enhancementLevel,
+              version: 1,
+            }),
+          ],
+        });
+
+      await service.unequipItem(USER_ID_1, {
+        itemId: SWORD_ID,
+        expectedVersion: 1,
+        inventoryVersion: 1,
+      });
+
+      expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
+        forceRefresh: true,
+      });
+
+      const logs = getDungeonLogs() as Array<{ delta?: unknown }>;
+      expect(logs).toHaveLength(1);
+      expect(logs[0]).toEqual(
+        expect.objectContaining({
+          action: DungeonLogAction.UNEQUIP_ITEM,
+          delta: expect.objectContaining({
+            type: 'UNEQUIP_ITEM',
+            detail: expect.objectContaining({
+              stats: expectedStats,
+            }),
+          }),
+        }),
+      );
+    },
+  );
+
   it('discard: 장착 상태여도 삭제하고 버전을 증가시키며 로그를 남긴다', async () => {
-    const { service, getItems, getDungeonLogs } = createPrismaMock({
+    const { service, getItems, getDungeonLogs, statsCacheMock, prismaMock } =
+      createPrismaMock({
       dungeonState: baseDungeonState,
       items: [
         createItem({
@@ -825,6 +978,10 @@ describe('InventoryService mutations', () => {
       itemId: RING_ID,
       expectedVersion: 4,
       inventoryVersion: 4,
+    });
+
+    expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
+      forceRefresh: true,
     });
 
     expect(response.items.find((item) => item.id === RING_ID)).toBeUndefined();

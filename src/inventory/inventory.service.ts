@@ -23,6 +23,8 @@ import { parseInventoryModifiers } from '../common/inventory/inventory-modifier'
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
 import {
   extractFlatStatModifiers,
+  extractEnhancementStatModifiers,
+  addStatsDelta,
   calculateStatsDiff,
   isEmptyStatsDelta,
 } from '../common/stats/stat-delta.util';
@@ -153,6 +155,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -210,6 +213,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: true,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -296,6 +300,7 @@ export class InventoryService {
 
       const response = await this.buildInventoryResponse(tx, userId, {
         forcedInventoryVersion: currentInventoryVersion + 1,
+        forceStatsRefresh: target.isEquipped,
       });
 
       return this.assertInventoryResponse(userId, response);
@@ -1021,9 +1026,15 @@ export class InventoryService {
     };
   }): DungeonLogDelta {
     if (input.action === DungeonLogAction.EQUIP_ITEM) {
-      const equipStats = extractFlatStatModifiers(input.item.modifiers);
+      const equipStats = addStatsDelta(
+        extractFlatStatModifiers(input.item.modifiers),
+        extractEnhancementStatModifiers(input.item),
+      );
       const unequipStats = input.replaced
-        ? extractFlatStatModifiers(input.replaced.modifiers)
+        ? addStatsDelta(
+            extractFlatStatModifiers(input.replaced.modifiers),
+            extractEnhancementStatModifiers(input.replaced),
+          )
         : {};
       const statsDiff = calculateStatsDiff(equipStats, unequipStats);
 
@@ -1050,7 +1061,10 @@ export class InventoryService {
     }
 
     if (input.action === DungeonLogAction.UNEQUIP_ITEM) {
-      const unequipStats = extractFlatStatModifiers(input.item.modifiers);
+      const unequipStats = addStatsDelta(
+        extractFlatStatModifiers(input.item.modifiers),
+        extractEnhancementStatModifiers(input.item),
+      );
       // 해제 시 스탯은 감소 (음수)
       const statsDiff: Record<string, number> = {};
       for (const [key, value] of Object.entries(unequipStats)) {
