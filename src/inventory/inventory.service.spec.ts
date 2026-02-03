@@ -349,6 +349,37 @@ describe('InventoryService mutations', () => {
             return Promise.resolve(dungeonStateSnapshot);
           },
         ),
+        updateMany: vi.fn(
+          ({
+            where,
+            data,
+          }: {
+            where: { userId: string; gold?: { gte: number } };
+            data: { gold?: { decrement: number } };
+          }) => {
+            if (where.userId !== dungeonStateSnapshot.userId) {
+              return Promise.resolve({ count: 0 });
+            }
+
+            const minGold = where.gold?.gte;
+            if (
+              typeof minGold === 'number' &&
+              dungeonStateSnapshot.gold < minGold
+            ) {
+              return Promise.resolve({ count: 0 });
+            }
+
+            const decrement = data.gold?.decrement;
+            if (typeof decrement === 'number') {
+              dungeonStateSnapshot = {
+                ...dungeonStateSnapshot,
+                gold: dungeonStateSnapshot.gold - decrement,
+              };
+            }
+
+            return Promise.resolve({ count: 1 });
+          },
+        ),
       },
       inventoryItem: {
         findUnique: vi.fn(({ where }: { where: { id: string } }) =>

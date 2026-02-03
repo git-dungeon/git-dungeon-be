@@ -352,6 +352,12 @@ export class InventoryService {
       }
 
       const materialCode = enhancementConfig.materialsBySlot[targetSlot];
+      if (!materialCode) {
+        throw new InternalServerErrorException({
+          code: 'INVENTORY_INVALID_RESPONSE',
+          message: '분해 설정을 불러올 수 없습니다.',
+        });
+      }
       const materialQuantity =
         dismantleConfig.baseMaterialQuantityByRarity[targetRarity] ??
         this.resolveMaterialQuantity(targetRarity);
@@ -556,17 +562,27 @@ export class InventoryService {
         });
       }
 
+      const goldDecremented = await tx.dungeonState.updateMany({
+        where: {
+          userId,
+          gold: { gte: goldCost },
+        },
+        data: { gold: { decrement: goldCost } },
+      });
+
+      if (goldDecremented.count === 0) {
+        throw new BadRequestException({
+          code: 'INVENTORY_INSUFFICIENT_GOLD',
+          message: '골드가 부족합니다.',
+        });
+      }
+
       const consumedMaterials = await this.consumeMaterials(
         tx,
         userId,
         materialItems,
         materialCount,
       );
-
-      await tx.dungeonState.update({
-        where: { userId },
-        data: { gold: { decrement: goldCost } },
-      });
 
       const enhancementStatsDelta = this.buildEnhancementStatsDelta({
         slot: targetSlot,
@@ -889,11 +905,24 @@ export class InventoryService {
         break;
       }
 
-      const currentQuantity = item.quantity ?? 1;
+      const currentQuantity = item.quantity;
       if (currentQuantity <= remaining) {
-        await tx.inventoryItem.deleteMany({
-          where: { id: item.id, userId },
+        const deleted = await tx.inventoryItem.deleteMany({
+          where: {
+            id: item.id,
+            userId,
+            code: item.code,
+            slot: 'MATERIAL',
+            version: item.version,
+            quantity: currentQuantity,
+          },
         });
+        if (deleted.count === 0) {
+          throw new ConflictException({
+            code: 'INVENTORY_CONCURRENCY_CONFLICT',
+            message: '강화 재료 처리 중 동시성 충돌이 발생했습니다.',
+          });
+        }
         remaining -= currentQuantity;
         consumed.push({
           itemId: item.id,
@@ -903,13 +932,26 @@ export class InventoryService {
         continue;
       }
 
-      await tx.inventoryItem.update({
-        where: { id: item.id },
+      const updated = await tx.inventoryItem.updateMany({
+        where: {
+          id: item.id,
+          userId,
+          code: item.code,
+          slot: 'MATERIAL',
+          version: item.version,
+          quantity: { gte: remaining },
+        },
         data: {
-          quantity: currentQuantity - remaining,
+          quantity: { decrement: remaining },
           version: { increment: 1 },
         },
       });
+      if (updated.count === 0) {
+        throw new ConflictException({
+          code: 'INVENTORY_CONCURRENCY_CONFLICT',
+          message: '강화 재료 처리 중 동시성 충돌이 발생했습니다.',
+        });
+      }
       consumed.push({
         itemId: item.id,
         code: item.code,
