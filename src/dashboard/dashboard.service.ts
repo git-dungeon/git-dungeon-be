@@ -8,6 +8,7 @@ import typia, { TypeGuardError } from 'typia';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   addEquipmentStats,
+  calculateEnhancementBonus,
   calculateEquipmentBonus,
 } from '../common/inventory/equipment-stats';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
@@ -48,10 +49,12 @@ export class DashboardService {
       def: state.def,
       luck: state.luck,
     };
-    const equipmentBonus = calculateEquipmentBonus(
+    const modifierBonus = calculateEquipmentBonus(
       baseStats,
       equippedItems.map((item) => parseInventoryModifiers(item.modifiers)),
     );
+    const enhancementBonus = calculateEnhancementBonus(equippedItems);
+    const equipmentBonus = addEquipmentStats(modifierBonus, enhancementBonus);
     const totalStats = addEquipmentStats(baseStats, equipmentBonus);
     const maxHp = Math.max(0, totalStats.maxHp);
     const currentHp = Math.max(0, Math.min(state.hp, maxHp));

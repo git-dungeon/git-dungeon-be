@@ -4,8 +4,8 @@ import { loadCatalogData } from '../../catalog';
 import type { CatalogItem } from '../../catalog/catalog.schema';
 import {
   addEquipmentStats,
+  calculateEnhancementBonus,
   calculateEquipmentBonus,
-  createEmptyEquipmentStats,
 } from '../inventory/equipment-stats';
 import {
   parseInventoryModifiers,
@@ -139,36 +139,6 @@ export class StatsCacheService {
 
     return equipmentBonus;
   }
-}
-
-function calculateEnhancementBonus(
-  items: Array<Pick<InventoryItem, 'slot' | 'enhancementLevel'>>,
-): EquipmentStats {
-  const bonus = createEmptyEquipmentStats();
-
-  for (const item of items) {
-    const level = item.enhancementLevel ?? 0;
-    if (level <= 0) {
-      continue;
-    }
-
-    switch (item.slot) {
-      case 'WEAPON':
-        bonus.atk += level;
-        break;
-      case 'ARMOR':
-      case 'HELMET':
-        bonus.def += level;
-        break;
-      case 'RING':
-        bonus.luck += level;
-        break;
-      default:
-        break;
-    }
-  }
-
-  return bonus;
 }
 
 function buildCatalogItemMap(items: CatalogItem[]): Map<string, CatalogItem> {
