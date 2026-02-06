@@ -94,7 +94,10 @@ export const assertNullableNumber = (
   return assertNumber(value, path, options);
 };
 
-export const assertIsoDateTimeString = (value: unknown, path: string): string => {
+export const assertIsoDateTimeString = (
+  value: unknown,
+  path: string,
+): string => {
   const text = assertString(value, path, { minLength: 1 });
   if (Number.isNaN(Date.parse(text))) {
     fail(path, 'ISO date-time string', value);

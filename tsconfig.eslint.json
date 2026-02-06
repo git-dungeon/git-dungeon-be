@@ -8,8 +8,7 @@
     "src/**/*.ts",
     "prisma/**/*.ts",
     "scripts/**/*.ts",
-    "config/**/*.ts",
-    "nestia.config.ts"
+    "config/**/*.ts"
   ],
   "exclude": []
 }

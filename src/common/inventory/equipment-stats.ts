@@ -51,7 +51,7 @@ export const calculateEquipmentBonus = (
     bonus[stat] = flatValue + Math.floor((base + flatValue) * percentValue);
   });
 
-  bonus.maxHp = bonus.hp as EquipmentStats['maxHp'];
+  bonus.maxHp = bonus.hp;
 
   return bonus;
 };

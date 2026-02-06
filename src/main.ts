@@ -4,13 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { INestApplication, Logger as NestLogger } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
 import type { OpenAPIObject } from '@nestjs/swagger';
-import { NestiaSwaggerComposer } from '@nestia/sdk';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import type { Auth } from 'better-auth';
 import type { Express } from 'express';
 import { AppModule } from './app.module';
 import { BETTER_AUTH_TOKEN } from './auth/auth.constants';
 import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-express.util';
+import { resolveOpenApiSpecPath } from './common/openapi-validation/openapi-validation.constants';
+import { loadOpenApiDocument } from './common/openapi-validation/openapi-loader';
 
 async function bootstrap() {
   const bootstrapLogger = new NestLogger('Bootstrap');
@@ -111,17 +112,12 @@ async function bootstrap() {
       raiseBetterAuthError('middleware mounting exited without completion');
     }
 
-    // Setup Swagger UI at runtime
+    // OpenAPI SSOT 문서를 Swagger UI에 연결한다.
     try {
-      const document = (await NestiaSwaggerComposer.document(app, {
-        openapi: '3.0',
-        servers: [
-          {
-            url: `http://localhost:${port}`,
-            description: 'Local Server',
-          },
-        ],
-      })) as OpenAPIObject;
+      const specPath = resolveOpenApiSpecPath();
+      const document = (await loadOpenApiDocument(
+        specPath,
+      )) as unknown as OpenAPIObject;
       SwaggerModule.setup('api', app, document);
       logger.log(
         'Swagger UI is available at http://localhost:' + port + '/api',

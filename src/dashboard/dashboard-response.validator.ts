@@ -83,7 +83,10 @@ export const assertDashboardStateResponse = (
   assertStatBlock(stats.equipmentBonus, '$.state.stats.equipmentBonus');
   assertStatBlock(stats.total, '$.state.stats.total');
 
-  const equippedItems = assertArray(state.equippedItems, '$.state.equippedItems');
+  const equippedItems = assertArray(
+    state.equippedItems,
+    '$.state.equippedItems',
+  );
   equippedItems.forEach((item, index) => {
     assertEquipmentItem(item, `$.state.equippedItems[${index}]`);
   });
