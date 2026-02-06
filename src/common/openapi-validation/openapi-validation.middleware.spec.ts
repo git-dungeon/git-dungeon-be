@@ -131,4 +131,132 @@ describe('OpenApiValidationMiddleware', () => {
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({ ok: true });
   });
+
+  it('path parameter 라우트도 OpenAPI 템플릿으로 매칭되어야 한다', async () => {
+    const document = normalizeOpenApiDocumentForAjv({
+      openapi: '3.1.0',
+      info: { title: 'test', version: '0.0.0' },
+      paths: {
+        '/api/logs/{logId}': {
+          get: {
+            parameters: [
+              {
+                in: 'query',
+                name: 'limit',
+                required: false,
+                schema: { type: 'integer', minimum: 1, maximum: 50 },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const index = buildOpenApiOperationIndex(
+      document as unknown as Record<string, unknown>,
+    );
+    const validator = new OpenApiRequestValidator(index);
+    const runtime = { validator };
+    const middleware = new OpenApiValidationMiddleware(runtime);
+
+    const app = express();
+    app.use((req, _res, next) => {
+      (req as Request & { id: string }).id =
+        '00000000-0000-4000-8000-000000000001';
+      next();
+    });
+    app.use((req, res, next) =>
+      middleware.use(req as Request & { id?: string }, res, next),
+    );
+    app.get('/api/logs/:logId', (_req, res) =>
+      res.status(200).json({ ok: true }),
+    );
+
+    const response = await request(app).get('/api/logs/abc123').query({
+      limit: 0,
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({
+      success: false,
+      error: { code: 'VALIDATION_ERROR' },
+    });
+  });
+
+  it('report 모드에서는 검증 실패를 차단하지 않아야 한다', async () => {
+    const document = normalizeOpenApiDocumentForAjv({
+      openapi: '3.1.0',
+      info: { title: 'test', version: '0.0.0' },
+      paths: {
+        '/api/inventory/equip': {
+          post: {
+            requestBody: {
+              required: true,
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    additionalProperties: false,
+                    properties: {
+                      itemId: { type: 'string', format: 'uuid' },
+                    },
+                    required: ['itemId'],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const index = buildOpenApiOperationIndex(
+      document as unknown as Record<string, unknown>,
+    );
+    const validator = new OpenApiRequestValidator(index);
+    const runtime = { validator, mode: 'report' as const };
+    const middleware = new OpenApiValidationMiddleware(runtime);
+
+    const app = express();
+    app.use(express.json());
+    app.use((req, _res, next) => {
+      (req as Request & { id: string }).id =
+        '00000000-0000-4000-8000-000000000001';
+      next();
+    });
+    app.use((req, res, next) =>
+      middleware.use(req as Request & { id?: string }, res, next),
+    );
+    app.post('/api/inventory/equip', (_req, res) =>
+      res.status(200).json({ ok: true }),
+    );
+
+    const response = await request(app).post('/api/inventory/equip').send({
+      itemId: 'weapon-longsword',
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ ok: true });
+  });
+
+  it('off 모드에서는 validator 미초기화 상태에서도 통과시켜야 한다', async () => {
+    const runtime = { mode: 'off' as const };
+    const middleware = new OpenApiValidationMiddleware(runtime);
+
+    const app = express();
+    app.use((req, _res, next) => {
+      (req as Request & { id: string }).id =
+        '00000000-0000-4000-8000-000000000001';
+      next();
+    });
+    app.use((req, res, next) =>
+      middleware.use(req as Request & { id?: string }, res, next),
+    );
+    app.get('/api/ping', (_req, res) => res.status(200).json({ ok: true }));
+
+    const response = await request(app).get('/api/ping');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ ok: true });
+  });
 });

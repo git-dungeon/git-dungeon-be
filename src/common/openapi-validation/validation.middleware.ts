@@ -1,6 +1,7 @@
 import { Inject, Injectable, type NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { errorResponse } from '../http/api-response';
+import type { OpenApiValidationMode } from './openapi-validation.constants';
 import type { OpenApiOperationSpec } from './openapi-operation-index';
 import type { OpenApiRequestValidator } from './request-validator';
 import { resolveOpenApiValidationErrorShape } from './validation-error-code';
@@ -13,6 +14,7 @@ export type OpenApiValidationContext = {
 
 export interface OpenApiValidationRuntime {
   validator?: OpenApiRequestValidator;
+  mode?: OpenApiValidationMode;
 }
 
 export const OPENAPI_VALIDATION_RUNTIME = 'OPENAPI_VALIDATION_RUNTIME';
@@ -25,8 +27,19 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
   ) {}
 
   use(req: Request & { id?: string }, res: Response, next: NextFunction): void {
+    const mode = this.runtime.mode ?? 'enforce';
+    if (mode === 'off') {
+      next();
+      return;
+    }
+
     const validator = this.runtime.validator;
     if (!validator) {
+      if (mode === 'report') {
+        next();
+        return;
+      }
+
       res.status(500).json(
         errorResponse(
           {
@@ -63,6 +76,11 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
 
     const result = this.validateRequest(operation, req, validator);
     if (result.ok) {
+      next();
+      return;
+    }
+
+    if (mode === 'report') {
       next();
       return;
     }

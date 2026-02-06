@@ -11,9 +11,32 @@ type LoggerLike = {
   warn?: (message: string) => void;
 };
 
+type PathTemplateMatcher = {
+  method: string;
+  regexp: RegExp;
+  spec: OpenApiOperationSpec;
+};
+
 export type OpenApiValidationResult = {
   ok: boolean;
   issues?: ReturnType<typeof formatAjvIssues>;
+};
+
+const normalizeRequestPath = (path: string): string => {
+  if (!path.startsWith('/')) {
+    return `/${path}`;
+  }
+  return path;
+};
+
+const escapeRegExp = (value: string): string => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const buildPathTemplateRegExp = (path: string): RegExp => {
+  const escaped = escapeRegExp(path);
+  const pattern = escaped.replace(/\\\{[^/{}]+\\\}/g, '[^/]+');
+  return new RegExp(`^${pattern}$`);
 };
 
 export class OpenApiRequestValidator {
@@ -21,6 +44,7 @@ export class OpenApiRequestValidator {
   private readonly queryValidators = new Map<string, ValidateFunction>();
   private readonly paramsValidators = new Map<string, ValidateFunction>();
   private readonly bodyValidators = new Map<string, ValidateFunction>();
+  private readonly templateMatchers: PathTemplateMatcher[] = [];
 
   constructor(
     private readonly index: OperationIndex,
@@ -37,6 +61,13 @@ export class OpenApiRequestValidator {
 
     for (const spec of index.values()) {
       this.compileOperation(spec);
+      if (spec.path.includes('{') && spec.path.includes('}')) {
+        this.templateMatchers.push({
+          method: spec.method,
+          regexp: buildPathTemplateRegExp(spec.path),
+          spec,
+        });
+      }
     }
   }
 
@@ -44,7 +75,19 @@ export class OpenApiRequestValidator {
     method: string,
     path: string,
   ): OpenApiOperationSpec | undefined {
-    return this.index.get(buildIndexKey(method, path));
+    const normalizedPath = normalizeRequestPath(path);
+    const exact = this.index.get(buildIndexKey(method, normalizedPath));
+    if (exact) {
+      return exact;
+    }
+
+    const normalizedMethod = method.toLowerCase();
+    return this.templateMatchers.find((matcher) => {
+      return (
+        matcher.method === normalizedMethod &&
+        matcher.regexp.test(normalizedPath)
+      );
+    })?.spec;
   }
 
   validateQuery(
