@@ -14,24 +14,12 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { DEFAULT_THROTTLE_LIMIT } from '../config/rate-limit.constant';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-
 // 테스트 한도를 5로 고정 (플래키 방지)
 // 주의: vi.mock은 호이스팅되므로 리터럴 값만 사용 가능
 vi.mock('../config/rate-limit.constant', () => ({
   DEFAULT_THROTTLE_TTL_MS: 60_000,
   DEFAULT_THROTTLE_LIMIT: 5, // 테스트 전용 고정값
 }));
-
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
 
 describe('AuthController RateLimit (E2E)', () => {
   it(`/auth/github 요청이 ${DEFAULT_THROTTLE_LIMIT}회 초과 시 AUTH_RATE_LIMITED를 반환`, async () => {

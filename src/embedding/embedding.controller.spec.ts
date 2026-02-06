@@ -4,13 +4,6 @@ import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
 import { EmbeddingController } from './embedding.controller';
 import type { EmbeddingService } from './embedding.service';
 
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('EmbeddingController', () => {
   const REQUEST_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 

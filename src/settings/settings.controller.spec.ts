@@ -9,12 +9,6 @@ import type { PrismaService } from '../prisma/prisma.service';
 import { SettingsController } from './settings.controller';
 import type { SettingsProfileResponse } from './dto/settings-profile.response';
 import { SettingsService } from './settings.service';
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
 
 describe('SettingsService', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';

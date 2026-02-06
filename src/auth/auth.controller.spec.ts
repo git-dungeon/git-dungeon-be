@@ -19,41 +19,6 @@ import { AuthService } from './auth.service';
 import { AuthSessionController } from './auth-session.controller';
 import { AuthSessionService } from './auth-session.service';
 
-vi.mock('typia', () => ({
-  __esModule: true,
-  default: {
-    assert: <T>(value: T) => value,
-  },
-  assert: <T>(value: T) => value,
-}));
-
-vi.mock('@nestia/core', async () => {
-  const decorators = await import('@nestjs/common');
-
-  const wrap =
-    <T extends (...params: never[]) => unknown>(decorator: T) =>
-    (...params: Parameters<T>): ReturnType<T> =>
-      decorator(...params) as ReturnType<T>;
-
-  const typedExceptionMock = vi.fn(() => () => undefined);
-
-  return {
-    __esModule: true,
-    TypedRoute: {
-      Get: wrap(decorators.Get),
-      Post: wrap(decorators.Post),
-      Put: wrap(decorators.Put),
-      Patch: wrap(decorators.Patch),
-      Delete: wrap(decorators.Delete),
-    },
-    TypedBody: wrap(decorators.Body),
-    TypedParam: wrap(decorators.Param),
-    TypedQuery: wrap(decorators.Query),
-    TypedHeaders: wrap(decorators.Headers),
-    TypedException: typedExceptionMock,
-  } as const;
-});
-
 const setupTestEnv = () => {
   process.env.NODE_ENV = 'test';
   process.env.AUTH_GITHUB_CLIENT_ID = 'test-client-id';

@@ -11,18 +11,6 @@ import {
   createDashboardStateResponse,
 } from '../test-support/fixtures';
 import { createTestingApp } from '../test-support/app';
-import { resetTypiaAssertMock } from '../test-support/mocks/typia';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
 
 describe('DashboardController (E2E)', () => {
   const setupApp = async (options?: { guards?: CanActivate[] }) => {
@@ -48,10 +36,6 @@ describe('DashboardController (E2E)', () => {
 
     return { app, dashboardServiceMock, authSessionServiceMock };
   };
-
-  afterEach(() => {
-    resetTypiaAssertMock();
-  });
 
   it('/api/state 성공 응답을 반환해야 한다', async () => {
     const { app, dashboardServiceMock, authSessionServiceMock } =

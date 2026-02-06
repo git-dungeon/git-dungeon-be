@@ -15,17 +15,6 @@ import { LogsController } from './logs.controller';
 import { LogsService } from './logs.service';
 import { encodeLogsCursor } from './logs-cursor.util';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('LogsController (E2E)', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
   const LOG_ID_1 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
