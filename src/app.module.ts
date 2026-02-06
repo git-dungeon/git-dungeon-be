@@ -11,6 +11,8 @@ import {
 } from './config/rate-limit.constant';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
+import { OpenApiValidationModule } from './common/openapi-validation/openapi-validation.module';
+import { OpenApiValidationMiddleware } from './common/openapi-validation/validation.middleware';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -71,6 +73,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
         },
       ],
     }),
+    OpenApiValidationModule.forRoot(),
     PrismaModule,
     AuthModule,
     SettingsModule,
@@ -96,6 +99,8 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestContextMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestContextMiddleware, OpenApiValidationMiddleware)
+      .forRoutes('*');
   }
 }
