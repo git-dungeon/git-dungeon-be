@@ -1,6 +1,5 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { TypedQuery, TypedRoute } from '@nestia/core';
 import type { Request, Response } from 'express';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
@@ -22,7 +21,7 @@ import { LogTypeEnum } from './logs.types';
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<DungeonLogsPayload>>('logs')
+  @Get('logs')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   @ApiQuery({
@@ -48,7 +47,7 @@ export class LogsController {
     @CurrentAuthSession() session: ActiveSessionResult,
     @Req() request: Request & { id: string },
     @Res({ passthrough: true }) response: Response,
-    @TypedQuery() query: LogsQueryDto,
+    @Query() query: LogsQueryDto,
   ): Promise<ApiSuccessResponse<DungeonLogsPayload>> {
     applyNoCacheHeaders(response);
 

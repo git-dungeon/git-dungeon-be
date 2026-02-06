@@ -1,13 +1,15 @@
 import {
   BadRequestException,
+  Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { TypedBody, TypedRoute } from '@nestia/core';
 import type { Request, Response } from 'express';
 import {
   successResponseWithGeneratedAt,
@@ -32,7 +34,7 @@ export class InventoryController {
 
   constructor(private readonly inventoryService: InventoryService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<InventoryResponse>>('inventory')
+  @Get('inventory')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async getInventory(
@@ -52,13 +54,13 @@ export class InventoryController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/equip')
+  @Post('inventory/equip')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async equipInventoryItem(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: InventoryItemMutationRequest,
+    @Body() body: InventoryItemMutationRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
@@ -76,13 +78,13 @@ export class InventoryController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/unequip')
+  @Post('inventory/unequip')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async unequipInventoryItem(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: InventoryItemMutationRequest,
+    @Body() body: InventoryItemMutationRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
@@ -100,13 +102,13 @@ export class InventoryController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/discard')
+  @Post('inventory/discard')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async discardInventoryItem(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: InventoryItemMutationRequest,
+    @Body() body: InventoryItemMutationRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
@@ -124,13 +126,13 @@ export class InventoryController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/dismantle')
+  @Post('inventory/dismantle')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async dismantleInventoryItem(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: InventoryItemMutationRequest,
+    @Body() body: InventoryItemMutationRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<InventoryResponse>> {
@@ -148,13 +150,13 @@ export class InventoryController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<InventoryResponse>>('inventory/enhance')
+  @Post('inventory/enhance')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async enhanceInventoryItem(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: InventoryItemMutationRequest,
+    @Body() body: InventoryItemMutationRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<InventoryResponse>> {

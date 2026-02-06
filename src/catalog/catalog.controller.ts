@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   InternalServerErrorException,
   Logger,
   Query,
@@ -8,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { TypedRoute } from '@nestia/core';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import {
   successResponseWithGeneratedAt,
@@ -26,7 +26,7 @@ type CatalogPublicData = Omit<CatalogData, 'dropTables'>;
 export class CatalogController {
   private readonly logger = new Logger(CatalogController.name);
 
-  @TypedRoute.Get<ApiSuccessResponse<CatalogPublicData>>('catalog')
+  @Get('catalog')
   @ApiQuery({
     name: 'locale',
     required: false,

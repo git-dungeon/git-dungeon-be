@@ -1,12 +1,12 @@
 import {
   Controller,
+  Post,
   Req,
   Res,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TypedRoute } from '@nestia/core';
 import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import {
@@ -24,7 +24,7 @@ import { ChestService } from './chest.service';
 export class ChestController {
   constructor(private readonly chestService: ChestService) {}
 
-  @TypedRoute.Post<ApiSuccessResponse<ChestOpenResponse>>('chest/open')
+  @Post('chest/open')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async openChest(

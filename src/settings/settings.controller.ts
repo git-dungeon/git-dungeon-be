@@ -1,14 +1,10 @@
-import { Controller, Inject, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TypedException, TypedRoute } from '@nestia/core';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
-import type {
-  ApiErrorResponse,
-  ApiSuccessResponse,
-} from '../common/http/api-response';
+import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import type { SettingsProfileResponse } from './dto/settings-profile.response';
 import { SettingsService } from './settings.service';
@@ -20,15 +16,7 @@ export class SettingsController {
     private readonly settingsService: SettingsService,
   ) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<SettingsProfileResponse>>('profile')
-  @TypedException<ApiErrorResponse>({
-    status: 401,
-    description: '세션 쿠키가 없거나 만료된 경우',
-  })
-  @TypedException<ApiErrorResponse>({
-    status: 500,
-    description: '프로필 응답을 생성하지 못한 경우',
-  })
+  @Get('profile')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async getProfile(

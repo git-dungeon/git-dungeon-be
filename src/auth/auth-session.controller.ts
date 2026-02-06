@@ -1,13 +1,14 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  Post,
   Req,
   Res,
 } from '@nestjs/common';
 import type { CookieOptions, Response } from 'express';
-import { TypedRoute } from '@nestia/core';
 import { AuthSessionService } from './auth-session.service';
 import type {
   ActiveSessionResult,
@@ -28,7 +29,7 @@ type TrackedAuthenticatedRequest = AuthenticatedRequest & { id?: string };
 export class AuthSessionController {
   constructor(private readonly authSessionService: AuthSessionService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<AuthSessionView>>('session')
+  @Get('session')
   @Authenticated()
   getSession(
     @Req() request: TrackedAuthenticatedRequest,
@@ -55,7 +56,7 @@ export class AuthSessionController {
     return authSession;
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<{ success: boolean }>>('logout')
+  @Post('logout')
   @Authenticated()
   @HttpCode(HttpStatus.OK)
   async logout(
@@ -75,7 +76,7 @@ export class AuthSessionController {
     );
   }
 
-  @TypedRoute.Get<ApiSuccessResponse<{ username: string | null }>>('whoami')
+  @Get('whoami')
   @Authenticated()
   whoAmI(
     @CurrentAuthSession() session: ActiveSessionResult,
