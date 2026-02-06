@@ -1,21 +1,26 @@
 import type { InventoryModifier } from '../../common/inventory/inventory-modifier';
 
-export type InventorySlot =
-  | 'helmet'
-  | 'armor'
-  | 'weapon'
-  | 'ring'
-  | 'consumable'
-  | 'material';
+export const INVENTORY_SLOTS = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+  'consumable',
+  'material',
+] as const;
+export type InventorySlot = (typeof INVENTORY_SLOTS)[number];
 
-export type EquippableSlot = 'helmet' | 'armor' | 'weapon' | 'ring';
+export const EQUIPPABLE_SLOTS = ['helmet', 'armor', 'weapon', 'ring'] as const;
+export type EquippableSlot = (typeof EQUIPPABLE_SLOTS)[number];
 
-export type InventoryRarity =
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'epic'
-  | 'legendary';
+export const INVENTORY_RARITIES = [
+  'common',
+  'uncommon',
+  'rare',
+  'epic',
+  'legendary',
+] as const;
+export type InventoryRarity = (typeof INVENTORY_RARITIES)[number];
 
 export interface EquipmentItem {
   id: string;

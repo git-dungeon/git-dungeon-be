@@ -13,6 +13,13 @@ import { createBetterAuthExpressMiddleware } from './auth/utils/better-auth-expr
 import { resolveOpenApiSpecPath } from './common/openapi-validation/openapi-validation.constants';
 import { loadOpenApiDocument } from './common/openapi-validation/openapi-loader';
 
+const asOpenApiObject = (value: unknown): OpenAPIObject => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('OpenAPI document must be an object');
+  }
+  return value as OpenAPIObject;
+};
+
 async function bootstrap() {
   const bootstrapLogger = new NestLogger('Bootstrap');
   let app: INestApplication | undefined;
@@ -115,9 +122,7 @@ async function bootstrap() {
     // OpenAPI SSOT 문서를 Swagger UI에 연결한다.
     try {
       const specPath = resolveOpenApiSpecPath();
-      const document = (await loadOpenApiDocument(
-        specPath,
-      )) as unknown as OpenAPIObject;
+      const document = asOpenApiObject(await loadOpenApiDocument(specPath));
       SwaggerModule.setup('api', app, document);
       logger.log(
         'Swagger UI is available at http://localhost:' + port + '/api',

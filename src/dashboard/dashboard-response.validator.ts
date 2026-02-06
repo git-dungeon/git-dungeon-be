@@ -67,7 +67,7 @@ export const assertDashboardStateResponse = (
   assertNumber(state.ap, '$.state.ap', { integer: true, min: 0 });
   assertNullableString(state.currentAction ?? null, '$.state.currentAction');
   assertNullableIsoDateTimeString(
-    state.currentActionStartedAt,
+    state.currentActionStartedAt ?? null,
     '$.state.currentActionStartedAt',
   );
   assertIsoDateTimeString(state.createdAt, '$.state.createdAt');

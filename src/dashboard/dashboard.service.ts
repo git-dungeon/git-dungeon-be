@@ -137,7 +137,7 @@ export class DashboardService {
   }
 
   private calculateExpToLevel(level: number | null | undefined): number | null {
-    if (!level || level < 0) {
+    if (level == null || level <= 0) {
       return null;
     }
 

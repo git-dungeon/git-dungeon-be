@@ -61,7 +61,7 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
       path,
     };
 
-    const result = this.validateRequest(operation, req);
+    const result = this.validateRequest(operation, req, validator);
     if (result.ok) {
       next();
       return;
@@ -91,24 +91,22 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
   private validateRequest(
     operation: OpenApiOperationSpec,
     req: Request,
+    validator: OpenApiRequestValidator,
   ):
     | { ok: true }
     | { ok: false; issues: unknown; source: 'query' | 'params' | 'body' } {
-    const query = this.runtime.validator?.validateQuery(operation, req.query);
-    if (query && !query.ok) {
+    const query = validator.validateQuery(operation, req.query);
+    if (!query.ok) {
       return { ok: false, issues: query.issues, source: 'query' };
     }
 
-    const params = this.runtime.validator?.validateParams(
-      operation,
-      req.params,
-    );
-    if (params && !params.ok) {
+    const params = validator.validateParams(operation, req.params);
+    if (!params.ok) {
       return { ok: false, issues: params.issues, source: 'params' };
     }
 
-    const body = this.runtime.validator?.validateBody(operation, req.body);
-    if (body && !body.ok) {
+    const body = validator.validateBody(operation, req.body);
+    if (!body.ok) {
       return { ok: false, issues: body.issues, source: 'body' };
     }
 

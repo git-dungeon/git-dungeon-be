@@ -1,5 +1,12 @@
-import type { InventoryModifier } from '../common/inventory/inventory-modifier';
-import type { InventorySlot } from '../inventory/dto/inventory.response';
+import {
+  INVENTORY_MODES,
+  INVENTORY_STATS,
+  type InventoryModifier,
+} from '../common/inventory/inventory-modifier';
+import {
+  INVENTORY_SLOTS,
+  type InventorySlot,
+} from '../inventory/dto/inventory.response';
 import {
   RuntimeValidationError,
   assertArray,
@@ -121,15 +128,6 @@ export type CatalogValidationResult =
       errors: CatalogValidationIssue[];
     };
 
-const INVENTORY_SLOTS: readonly InventorySlot[] = [
-  'helmet',
-  'armor',
-  'weapon',
-  'ring',
-  'consumable',
-  'material',
-];
-
 const assertNumberRecord = (value: unknown, path: string): void => {
   const record = assertRecord(value, path);
   Object.entries(record).forEach(([key, entry]) => {
@@ -142,6 +140,36 @@ const assertStringRecord = (value: unknown, path: string): void => {
   Object.entries(record).forEach(([key, entry]) => {
     assertString(entry, `${path}.${key}`, { minLength: 1 });
   });
+};
+
+const assertOptionalNullableString = (value: unknown, path: string): void => {
+  if (value === undefined || value === null) {
+    return;
+  }
+  assertString(value, path, { minLength: 1 });
+};
+
+const CATALOG_MODIFIER_KINDS = ['stat', 'effect'] as const;
+
+const assertCatalogModifier = (value: unknown, path: string): void => {
+  const modifier = assertRecord(value, path);
+  const kind = assertOneOf(
+    modifier.kind,
+    `${path}.kind`,
+    CATALOG_MODIFIER_KINDS,
+  );
+
+  if (kind === 'stat') {
+    assertOneOf(modifier.stat, `${path}.stat`, INVENTORY_STATS);
+    assertOneOf(modifier.mode ?? 'flat', `${path}.mode`, INVENTORY_MODES);
+    assertNumber(modifier.value, `${path}.value`);
+    return;
+  }
+
+  assertString(modifier.effectCode, `${path}.effectCode`, { minLength: 1 });
+  if (modifier.params !== undefined && modifier.params !== null) {
+    assertRecord(modifier.params, `${path}.params`);
+  }
 };
 
 const assertCatalogDataShape = (input: unknown): CatalogData => {
@@ -158,10 +186,31 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
     assertString(entry.name, `$.items[${index}].name`, { minLength: 1 });
     assertOneOf(entry.slot, `$.items[${index}].slot`, INVENTORY_SLOTS);
     assertOneOf(entry.rarity, `$.items[${index}].rarity`, CATALOG_RARITIES);
-    assertArray(entry.modifiers, `$.items[${index}].modifiers`);
+    const modifiers = assertArray(
+      entry.modifiers,
+      `$.items[${index}].modifiers`,
+    );
+    modifiers.forEach((modifier, modifierIndex) => {
+      assertCatalogModifier(
+        modifier,
+        `$.items[${index}].modifiers[${modifierIndex}]`,
+      );
+    });
+    assertOptionalNullableString(
+      entry.descriptionKey,
+      `$.items[${index}].descriptionKey`,
+    );
+    assertOptionalNullableString(
+      entry.effectCode,
+      `$.items[${index}].effectCode`,
+    );
     assertString(entry.spriteId, `$.items[${index}].spriteId`, {
       minLength: 1,
     });
+    assertOptionalNullableString(
+      entry.description,
+      `$.items[${index}].description`,
+    );
   });
 
   const buffs = assertArray(root.buffs, '$.buffs');
@@ -173,6 +222,10 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
     assertString(entry.effectCode, `$.buffs[${index}].effectCode`, {
       minLength: 1,
     });
+    assertOptionalNullableString(
+      entry.descriptionKey,
+      `$.buffs[${index}].descriptionKey`,
+    );
     if (entry.durationTurns !== undefined && entry.durationTurns !== null) {
       assertNumber(entry.durationTurns, `$.buffs[${index}].durationTurns`, {
         integer: true,
@@ -185,6 +238,11 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
         min: 1,
       });
     }
+    assertOptionalNullableString(entry.spriteId, `$.buffs[${index}].spriteId`);
+    assertOptionalNullableString(
+      entry.description,
+      `$.buffs[${index}].description`,
+    );
   });
 
   const monsters = assertArray(root.monsters, '$.monsters');
@@ -195,6 +253,10 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
       minLength: 1,
     });
     assertString(entry.name, `$.monsters[${index}].name`, { minLength: 1 });
+    assertOptionalNullableString(
+      entry.descriptionKey,
+      `$.monsters[${index}].descriptionKey`,
+    );
     assertNumber(entry.hp, `$.monsters[${index}].hp`, {
       integer: true,
       min: 1,
@@ -214,6 +276,18 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
       entry.rarity,
       `$.monsters[${index}].rarity`,
       CATALOG_MONSTER_RARITIES,
+    );
+    assertOptionalNullableString(
+      entry.dropTableId,
+      `$.monsters[${index}].dropTableId`,
+    );
+    assertOptionalNullableString(
+      entry.description,
+      `$.monsters[${index}].description`,
+    );
+    assertOptionalNullableString(
+      entry.variantOf,
+      `$.monsters[${index}].variantOf`,
     );
   });
 
@@ -251,6 +325,20 @@ const assertCatalogDataShape = (input: unknown): CatalogData => {
           dropEntry.maxQuantity,
           `$.dropTables[${tableIndex}].drops[${dropIndex}].maxQuantity`,
           { integer: true, min: 1 },
+        );
+      }
+      if (
+        typeof dropEntry.minQuantity === 'number' &&
+        typeof dropEntry.maxQuantity === 'number' &&
+        dropEntry.minQuantity > dropEntry.maxQuantity
+      ) {
+        throw new RuntimeValidationError(
+          `$.dropTables[${tableIndex}].drops[${dropIndex}]`,
+          'minQuantity <= maxQuantity',
+          {
+            minQuantity: dropEntry.minQuantity,
+            maxQuantity: dropEntry.maxQuantity,
+          },
         );
       }
     });
@@ -310,6 +398,10 @@ export const assertCatalogData = (input: unknown): CatalogData => {
   return assertCatalogDataShape(input);
 };
 
+/**
+ * Catalog 데이터를 검증한다.
+ * fail-fast 방식으로 동작해 첫 번째 검증 실패만 반환한다.
+ */
 export const validateCatalogData = (
   input: unknown,
 ): CatalogValidationResult => {

@@ -22,19 +22,29 @@ type OpenApiValidatorCache = {
   operations: number;
 };
 
-let cachedSpecPath: string | undefined;
-let cachedValidatorPromise: Promise<OpenApiValidatorCache> | undefined;
+const validatorCacheState: {
+  specPath?: string;
+  validatorPromise?: Promise<OpenApiValidatorCache>;
+} = {};
+
+export const resetOpenApiValidationCacheForTest = (): void => {
+  validatorCacheState.specPath = undefined;
+  validatorCacheState.validatorPromise = undefined;
+};
 
 const getOrCreateRequestValidator = async (
   specPath: string,
   warn: (message: string) => void,
 ): Promise<OpenApiValidatorCache> => {
-  if (cachedSpecPath === specPath && cachedValidatorPromise) {
-    return cachedValidatorPromise;
+  if (
+    validatorCacheState.specPath === specPath &&
+    validatorCacheState.validatorPromise
+  ) {
+    return validatorCacheState.validatorPromise;
   }
 
-  cachedSpecPath = specPath;
-  cachedValidatorPromise = (async () => {
+  validatorCacheState.specPath = specPath;
+  validatorCacheState.validatorPromise = (async () => {
     const document = await loadOpenApiDocument(specPath);
     const normalized = normalizeOpenApiDocumentForAjv(document);
     const index = buildOpenApiOperationIndex(
@@ -48,9 +58,9 @@ const getOrCreateRequestValidator = async (
   })();
 
   try {
-    return await cachedValidatorPromise;
+    return await validatorCacheState.validatorPromise;
   } catch (error) {
-    cachedValidatorPromise = undefined;
+    validatorCacheState.validatorPromise = undefined;
     throw error;
   }
 };

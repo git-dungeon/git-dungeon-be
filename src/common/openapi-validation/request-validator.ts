@@ -1,4 +1,4 @@
-import Ajv, { type ValidateFunction } from 'ajv';
+import Ajv, { type AnySchema, type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import {
   buildIndexKey,
@@ -51,67 +51,84 @@ export class OpenApiRequestValidator {
     spec: OpenApiOperationSpec,
     query: unknown,
   ): OpenApiValidationResult {
-    if (!spec.querySchema) {
-      return { ok: true };
-    }
-
-    const key = buildIndexKey(spec.method, spec.path);
-    const validator = this.queryValidators.get(key);
-    if (!validator) {
-      return { ok: true };
-    }
-
-    const ok = validator(query);
-    if (ok) {
-      return { ok: true };
-    }
-
-    return {
-      ok: false,
-      issues: formatAjvIssues(validator.errors),
-    };
+    return this.validateWithMap(
+      spec,
+      spec.querySchema,
+      this.queryValidators,
+      query,
+    );
   }
 
   validateParams(
     spec: OpenApiOperationSpec,
     params: unknown,
   ): OpenApiValidationResult {
-    if (!spec.paramsSchema) {
-      return { ok: true };
-    }
-
-    const key = buildIndexKey(spec.method, spec.path);
-    const validator = this.paramsValidators.get(key);
-    if (!validator) {
-      return { ok: true };
-    }
-
-    const ok = validator(params);
-    if (ok) {
-      return { ok: true };
-    }
-
-    return {
-      ok: false,
-      issues: formatAjvIssues(validator.errors),
-    };
+    return this.validateWithMap(
+      spec,
+      spec.paramsSchema,
+      this.paramsValidators,
+      params,
+    );
   }
 
   validateBody(
     spec: OpenApiOperationSpec,
     body: unknown,
   ): OpenApiValidationResult {
-    if (!spec.bodySchema) {
+    return this.validateWithMap(
+      spec,
+      spec.bodySchema,
+      this.bodyValidators,
+      body,
+    );
+  }
+
+  private compileOperation(spec: OpenApiOperationSpec): void {
+    const key = buildIndexKey(spec.method, spec.path);
+
+    const tryCompile = (
+      label: 'query' | 'params' | 'body',
+      schema: unknown,
+      target: Map<string, ValidateFunction>,
+    ): void => {
+      try {
+        target.set(key, this.ajv.compile(schema as AnySchema));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger?.warn?.(
+          `OpenAPI validator compile failed for ${key} (${label}): ${message}`,
+        );
+      }
+    };
+
+    if (spec.querySchema) {
+      tryCompile('query', spec.querySchema, this.queryValidators);
+    }
+    if (spec.paramsSchema) {
+      tryCompile('params', spec.paramsSchema, this.paramsValidators);
+    }
+    if (spec.bodySchema) {
+      tryCompile('body', spec.bodySchema, this.bodyValidators);
+    }
+  }
+
+  private validateWithMap(
+    spec: OpenApiOperationSpec,
+    schema: unknown,
+    validators: Map<string, ValidateFunction>,
+    payload: unknown,
+  ): OpenApiValidationResult {
+    if (!schema) {
       return { ok: true };
     }
 
     const key = buildIndexKey(spec.method, spec.path);
-    const validator = this.bodyValidators.get(key);
+    const validator = validators.get(key);
     if (!validator) {
       return { ok: true };
     }
 
-    const ok = validator(body);
+    const ok = validator(payload);
     if (ok) {
       return { ok: true };
     }
@@ -120,26 +137,5 @@ export class OpenApiRequestValidator {
       ok: false,
       issues: formatAjvIssues(validator.errors),
     };
-  }
-
-  private compileOperation(spec: OpenApiOperationSpec): void {
-    const key = buildIndexKey(spec.method, spec.path);
-
-    try {
-      if (spec.querySchema) {
-        this.queryValidators.set(key, this.ajv.compile(spec.querySchema));
-      }
-      if (spec.paramsSchema) {
-        this.paramsValidators.set(key, this.ajv.compile(spec.paramsSchema));
-      }
-      if (spec.bodySchema) {
-        this.bodyValidators.set(key, this.ajv.compile(spec.bodySchema));
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger?.warn?.(
-        `OpenAPI validator compile failed for ${key}: ${message}`,
-      );
-    }
   }
 }

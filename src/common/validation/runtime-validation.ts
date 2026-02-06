@@ -13,6 +13,9 @@ const fail = (path: string, expected: string, value: unknown): never => {
   throw new RuntimeValidationError(path, expected, value);
 };
 
+const ISO_8601_RE =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
+
 export const assertRecord = (
   value: unknown,
   path: string,
@@ -99,7 +102,7 @@ export const assertIsoDateTimeString = (
   path: string,
 ): string => {
   const text = assertString(value, path, { minLength: 1 });
-  if (Number.isNaN(Date.parse(text))) {
+  if (!ISO_8601_RE.test(text) || Number.isNaN(Date.parse(text))) {
     fail(path, 'ISO date-time string', value);
   }
   return text;
@@ -120,6 +123,9 @@ export const assertOneOf = <T extends string>(
   path: string,
   candidates: readonly T[],
 ): T => {
+  if (candidates.length === 0) {
+    fail(path, 'non-empty candidates', candidates);
+  }
   const text = assertString(value, path, { minLength: 1 });
   if (!candidates.includes(text as T)) {
     fail(path, `one of [${candidates.join(', ')}]`, value);

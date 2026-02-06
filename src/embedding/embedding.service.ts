@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { loadCatalogData } from '../catalog';
 import type { CatalogData, CatalogItem } from '../catalog/catalog.schema';
 import type { InventoryModifier } from '../common/inventory/inventory-modifier';
@@ -7,6 +11,7 @@ import { DashboardService } from '../dashboard/dashboard.service';
 import type { InventoryResponse } from '../inventory/dto/inventory.response';
 import { InventoryService } from '../inventory/inventory.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import type {
   EmbeddingPreviewEffect,
   EmbeddingPreviewEquipmentItem,
@@ -23,6 +28,8 @@ import { assertEmbeddingPreviewPayload } from './embedding-preview.validator';
 
 @Injectable()
 export class EmbeddingService {
+  private readonly logger = new Logger(EmbeddingService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly dashboardService: DashboardService,
@@ -64,7 +71,32 @@ export class EmbeddingService {
       overview,
     };
 
-    return assertEmbeddingPreviewPayload(payload);
+    try {
+      return assertEmbeddingPreviewPayload(payload);
+    } catch (error) {
+      if (error instanceof RuntimeValidationError) {
+        this.logger.error(
+          'EmbeddingPreviewPayload validation failed',
+          JSON.stringify({
+            path: error.path,
+            expected: error.expected,
+            value: error.value,
+            userId,
+          }),
+        );
+
+        throw new InternalServerErrorException({
+          code: 'EMBEDDING_PREVIEW_INVALID_RESPONSE',
+          message: '임베딩 프리뷰 응답 스키마가 유효하지 않습니다.',
+          details: {
+            path: error.path,
+            expected: error.expected,
+          },
+        });
+      }
+
+      throw error;
+    }
   }
 
   async getPreviewSvg(query: EmbeddingPreviewQueryDto): Promise<string> {

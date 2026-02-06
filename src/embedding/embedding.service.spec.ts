@@ -1,8 +1,10 @@
 /// <reference types="vitest" />
+import { InternalServerErrorException } from '@nestjs/common';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { DashboardService } from '../dashboard/dashboard.service';
 import type { InventoryService } from '../inventory/inventory.service';
 import type { InventoryResponse } from '../inventory/dto/inventory.response';
+import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import {
   createDashboardStateResponse,
   createInventoryResponse,
@@ -12,6 +14,7 @@ import {
 import { EmbeddingService } from './embedding.service';
 import { loadCatalogData } from '../catalog';
 import type { EmbedRendererService } from './embed-renderer.service';
+import * as embeddingPreviewValidator from './embedding-preview.validator';
 
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),
@@ -321,5 +324,68 @@ describe('EmbeddingService', () => {
       }),
     );
     expect(result).toBe('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+  });
+
+  it('프리뷰 응답 검증 실패 시 InternalServerErrorException으로 변환해야 한다', async () => {
+    const validatorSpy = vi
+      .spyOn(embeddingPreviewValidator, 'assertEmbeddingPreviewPayload')
+      .mockImplementation(() => {
+        throw new RuntimeValidationError('$.overview.level', 'integer', null);
+      });
+    const loggerSpy = vi.spyOn(
+      (
+        service as unknown as {
+          logger: { error: (...params: unknown[]) => void };
+        }
+      ).logger,
+      'error',
+    );
+    loggerSpy.mockImplementation(() => undefined);
+
+    loadCatalogDataMock.mockResolvedValue({
+      version: 1,
+      updatedAt: '2025-10-30T10:00:00.000Z',
+      items: [],
+      buffs: [],
+      monsters: [],
+      dropTables: [],
+      enhancement: buildEnhancementConfig(),
+      dismantle: {
+        baseMaterialQuantityByRarity: {
+          common: 1,
+          uncommon: 2,
+          rare: 3,
+          epic: 4,
+          legendary: 5,
+        },
+        refundByEnhancementLevel: {
+          '0': 0,
+        },
+      },
+      assetsBaseUrl: null,
+      spriteMap: {},
+    });
+    dashboardServiceMock.getState.mockResolvedValue(
+      createDashboardStateResponse(),
+    );
+    inventoryServiceMock.getInventory.mockResolvedValue(
+      createInventoryResponse(),
+    );
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: TEST_USER_ID_1,
+      name: 'Mock User',
+      image: null,
+    });
+
+    await expect(
+      service.getPreview({ userId: TEST_USER_ID_1 }),
+    ).rejects.toMatchObject({
+      constructor: InternalServerErrorException,
+      response: { code: 'EMBEDDING_PREVIEW_INVALID_RESPONSE' },
+    });
+
+    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    validatorSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 });

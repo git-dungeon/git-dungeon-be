@@ -1,4 +1,12 @@
-import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
+import type {
+  EmbeddingPreviewLanguage,
+  EmbeddingPreviewPayload,
+  EmbeddingPreviewRarity,
+  EmbeddingPreviewSize,
+  EmbeddingPreviewSlot,
+  EmbeddingPreviewStat,
+  EmbeddingPreviewTheme,
+} from './dto/embedding-preview.response';
 import {
   assertArray,
   assertBoolean,
@@ -10,18 +18,39 @@ import {
   assertString,
 } from '../common/validation/runtime-validation';
 
-const PREVIEW_THEME = ['light', 'dark'] as const;
-const PREVIEW_SIZE = ['compact', 'wide'] as const;
-const PREVIEW_LANGUAGE = ['ko', 'en'] as const;
-const PREVIEW_SLOT = ['helmet', 'armor', 'weapon', 'ring'] as const;
+const PREVIEW_THEME = [
+  'light',
+  'dark',
+] as const satisfies readonly EmbeddingPreviewTheme[];
+const PREVIEW_SIZE = [
+  'compact',
+  'wide',
+] as const satisfies readonly EmbeddingPreviewSize[];
+const PREVIEW_LANGUAGE = [
+  'ko',
+  'en',
+] as const satisfies readonly EmbeddingPreviewLanguage[];
+const PREVIEW_SLOT = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+] as const satisfies readonly EmbeddingPreviewSlot[];
 const PREVIEW_RARITY = [
   'common',
   'uncommon',
   'rare',
   'epic',
   'legendary',
-] as const;
-const PREVIEW_STAT = ['hp', 'maxHp', 'atk', 'def', 'luck', 'ap'] as const;
+] as const satisfies readonly EmbeddingPreviewRarity[];
+const PREVIEW_STAT = [
+  'hp',
+  'maxHp',
+  'atk',
+  'def',
+  'luck',
+  'ap',
+] as const satisfies readonly EmbeddingPreviewStat[];
 
 const assertStatBlock = (value: unknown, path: string): void => {
   const stats = assertRecord(value, path);
@@ -48,7 +77,9 @@ const assertEquipmentItem = (value: unknown, path: string): void => {
     assertNumber(mod.value, `${path}.modifiers[${index}].value`);
   });
 
-  if (item.effect !== null) {
+  if (item.effect === null) {
+    // noop
+  } else {
     const effect = assertRecord(item.effect, `${path}.effect`);
     assertString(effect.type, `${path}.effect.type`, { minLength: 1 });
     assertString(effect.description, `${path}.effect.description`, {
@@ -81,7 +112,9 @@ export const assertEmbeddingPreviewPayload = (
   });
   assertNumber(overview.gold, '$.overview.gold', { integer: true });
   assertNumber(overview.ap, '$.overview.ap', { integer: true, min: 0 });
-  if (overview.maxAp !== null) {
+  if (overview.maxAp === null) {
+    // noop
+  } else {
     assertNumber(overview.maxAp, '$.overview.maxAp', { integer: true, min: 0 });
   }
 

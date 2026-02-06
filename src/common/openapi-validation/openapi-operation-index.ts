@@ -90,12 +90,28 @@ export const buildOpenApiOperationIndex = (
         requestBody?: unknown;
       };
 
-      const parameters = [
-        ...sharedParameters,
-        ...(Array.isArray(op.parameters)
-          ? (op.parameters as OpenApiParameter[])
-          : []),
-      ];
+      const opParameters = Array.isArray(op.parameters)
+        ? (op.parameters as OpenApiParameter[])
+        : [];
+      const mergedParameters = new Map<string, OpenApiParameter>();
+      const setParameter = (parameter: OpenApiParameter): void => {
+        if (
+          !parameter ||
+          typeof parameter !== 'object' ||
+          typeof parameter.in !== 'string' ||
+          typeof parameter.name !== 'string'
+        ) {
+          return;
+        }
+        mergedParameters.set(`${parameter.in}:${parameter.name}`, parameter);
+      };
+      sharedParameters.forEach((parameter) => {
+        setParameter(parameter);
+      });
+      opParameters.forEach((parameter) => {
+        setParameter(parameter);
+      });
+      const parameters = [...mergedParameters.values()];
 
       const querySchema = buildObjectSchemaFromParameters(
         parameters.filter((p) => p.in === 'query'),
@@ -157,7 +173,7 @@ const buildObjectSchemaFromParameters = (
   }
 
   const properties: Record<string, unknown> = {};
-  const required: string[] = [];
+  const required = new Set<string>();
 
   for (const param of params) {
     if (!param || typeof param !== 'object') {
@@ -172,7 +188,7 @@ const buildObjectSchemaFromParameters = (
       properties[param.name] = param.schema;
     }
     if (param.required) {
-      required.push(param.name);
+      required.add(param.name);
     }
   }
 
@@ -182,8 +198,8 @@ const buildObjectSchemaFromParameters = (
     additionalProperties: options.allowAdditional,
   };
 
-  if (required.length > 0) {
-    schema.required = required;
+  if (required.size > 0) {
+    schema.required = [...required];
   }
 
   return schema;
