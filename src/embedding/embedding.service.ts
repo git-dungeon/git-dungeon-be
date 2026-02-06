@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import typia from 'typia';
 import { loadCatalogData } from '../catalog';
 import type { CatalogData, CatalogItem } from '../catalog/catalog.schema';
 import type { InventoryModifier } from '../common/inventory/inventory-modifier';
@@ -20,6 +19,7 @@ import type {
 } from './dto/embedding-preview.response';
 import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
 import { EmbedRendererService } from './embed-renderer.service';
+import { assertEmbeddingPreviewPayload } from './embedding-preview.validator';
 
 @Injectable()
 export class EmbeddingService {
@@ -64,7 +64,7 @@ export class EmbeddingService {
       overview,
     };
 
-    return typia.assert<EmbeddingPreviewPayload>(payload);
+    return assertEmbeddingPreviewPayload(payload);
   }
 
   async getPreviewSvg(query: EmbeddingPreviewQueryDto): Promise<string> {

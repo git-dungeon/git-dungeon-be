@@ -1,4 +1,3 @@
-import { tags } from 'typia';
 import type {
   EmbeddingPreviewLanguage,
   EmbeddingPreviewSize,
@@ -12,7 +11,7 @@ export type {
 } from './embedding-preview.response';
 
 export interface EmbeddingPreviewQueryDto {
-  userId: string & tags.Format<'uuid'>;
+  userId: string;
   theme?: EmbeddingPreviewTheme;
   size?: EmbeddingPreviewSize;
   language?: EmbeddingPreviewLanguage;

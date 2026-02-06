@@ -1,31 +1,29 @@
-import typia, { tags } from 'typia';
-
 export interface Environment {
   nodeEnv: 'development' | 'test' | 'production';
   port: number;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   logPretty: boolean;
   dungeonInitialAp: number;
-  corsAllowedOrigins: (string & tags.MinLength<1>)[];
+  corsAllowedOrigins: string[];
   corsAllowCredentials: boolean;
-  publicBaseUrl: string & tags.MinLength<1>;
-  databaseUrl: string & tags.MinLength<1>;
-  databaseShadowUrl: string & tags.MinLength<1>;
+  publicBaseUrl: string;
+  databaseUrl: string;
+  databaseShadowUrl: string;
   databaseLogQueries: boolean;
   databaseSkipConnection: boolean;
-  authGithubClientId: string & tags.MinLength<1>;
-  authGithubClientSecret: string & tags.MinLength<1>;
-  authGithubRedirectUri: string & tags.MinLength<1>;
-  authGithubScope: string & tags.MinLength<1>;
+  authGithubClientId: string;
+  authGithubClientSecret: string;
+  authGithubRedirectUri: string;
+  authGithubScope: string;
   githubSyncPat: string;
   githubSyncPats: string[];
-  githubSyncEndpoint: string & tags.MinLength<1>;
-  githubSyncUserAgent: string & tags.MinLength<1>;
+  githubSyncEndpoint: string;
+  githubSyncUserAgent: string;
   githubSyncRateLimitFallbackRemaining: number;
-  githubSyncCron: string & tags.MinLength<1>;
+  githubSyncCron: string;
   githubSyncBatchSize: number;
   githubSyncManualCooldownMs: number;
-  redisUrl: string & tags.MinLength<1>;
+  redisUrl: string;
   // deprecated: use queue* for retry config
   githubTokenLockTtlMs: number;
   githubTokenRateLimitCacheMs: number;
@@ -76,6 +74,17 @@ const parseStringArray = (
 
   return items.length > 0 ? items : defaults;
 };
+
+const NODE_ENVS = ['development', 'test', 'production'] as const;
+const LOG_LEVELS = [
+  'fatal',
+  'error',
+  'warn',
+  'info',
+  'debug',
+  'trace',
+  'silent',
+] as const;
 
 export const loadEnvironment = (): Environment => {
   const nodeEnv = (process.env.NODE_ENV ?? 'development').toLowerCase();
@@ -220,67 +229,130 @@ export const loadEnvironment = (): Environment => {
   return assertEnvironment(raw);
 };
 
-const assertEnvironmentWithoutTypia = (value: unknown): Environment => {
-  if (!value || typeof value !== 'object') {
-    throw new Error(
-      'Environment validation failed: expected an object (typia transform missing)',
-    );
+const assertEnvironment = (value: unknown): Environment => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Environment validation failed: expected object');
   }
 
-  const obj = value as Record<string, unknown>;
-  const missingOrInvalid: string[] = [];
+  const env = value as Record<string, unknown>;
+  const errors: string[] = [];
 
-  const requireNonEmptyString = (key: string) => {
-    const v = obj[key];
-    if (typeof v !== 'string' || v.trim().length === 0) {
-      missingOrInvalid.push(key);
+  const requireNonEmptyString = (key: keyof Environment) => {
+    const target = env[key];
+    if (typeof target !== 'string' || target.trim().length === 0) {
+      errors.push(String(key));
     }
   };
 
-  [
-    'publicBaseUrl',
-    'databaseUrl',
-    'databaseShadowUrl',
-    'authGithubClientId',
-    'authGithubClientSecret',
-    'authGithubRedirectUri',
-    'authGithubScope',
-    'githubSyncEndpoint',
-    'githubSyncUserAgent',
-    'githubSyncCron',
-    'redisUrl',
-  ].forEach(requireNonEmptyString);
+  const requireString = (key: keyof Environment) => {
+    const target = env[key];
+    if (typeof target !== 'string') {
+      errors.push(String(key));
+    }
+  };
 
-  const corsAllowedOrigins = obj.corsAllowedOrigins;
+  const requireBoolean = (key: keyof Environment) => {
+    if (typeof env[key] !== 'boolean') {
+      errors.push(String(key));
+    }
+  };
+
+  const requireNumber = (key: keyof Environment, min?: number) => {
+    const target = env[key];
+    if (typeof target !== 'number' || !Number.isFinite(target)) {
+      errors.push(String(key));
+      return;
+    }
+    if (min !== undefined && target < min) {
+      errors.push(String(key));
+    }
+  };
+
+  const requireOneOf = (key: keyof Environment, options: readonly string[]) => {
+    const target = env[key];
+    if (typeof target !== 'string' || !options.includes(target)) {
+      errors.push(String(key));
+    }
+  };
+
+  requireOneOf('nodeEnv', NODE_ENVS);
+  requireOneOf('logLevel', LOG_LEVELS);
+
+  requireNumber('port', 1);
+  requireBoolean('logPretty');
+  requireNumber('dungeonInitialAp', 0);
+  requireBoolean('corsAllowCredentials');
+
+  const corsAllowedOrigins = env.corsAllowedOrigins;
   if (
     !Array.isArray(corsAllowedOrigins) ||
     corsAllowedOrigins.length === 0 ||
     corsAllowedOrigins.some(
-      (v) => typeof v !== 'string' || v.trim().length === 0,
+      (item) => typeof item !== 'string' || item.trim().length === 0,
     )
   ) {
-    missingOrInvalid.push('corsAllowedOrigins');
+    errors.push('corsAllowedOrigins');
   }
 
-  if (missingOrInvalid.length > 0) {
+  requireNonEmptyString('publicBaseUrl');
+  requireNonEmptyString('databaseUrl');
+  requireNonEmptyString('databaseShadowUrl');
+  requireBoolean('databaseLogQueries');
+  requireBoolean('databaseSkipConnection');
+
+  requireNonEmptyString('authGithubClientId');
+  requireNonEmptyString('authGithubClientSecret');
+  requireNonEmptyString('authGithubRedirectUri');
+  requireNonEmptyString('authGithubScope');
+
+  requireString('githubSyncPat');
+
+  const githubSyncPats = env.githubSyncPats;
+  if (
+    !Array.isArray(githubSyncPats) ||
+    githubSyncPats.some(
+      (item) => typeof item !== 'string' || item.trim().length === 0,
+    )
+  ) {
+    errors.push('githubSyncPats');
+  }
+
+  requireNonEmptyString('githubSyncEndpoint');
+  requireNonEmptyString('githubSyncUserAgent');
+  requireNumber('githubSyncRateLimitFallbackRemaining', 0);
+  requireNonEmptyString('githubSyncCron');
+  requireNumber('githubSyncBatchSize', 1);
+  requireNumber('githubSyncManualCooldownMs', 0);
+
+  requireNonEmptyString('redisUrl');
+  requireNumber('githubTokenLockTtlMs', 0);
+  requireNumber('githubTokenRateLimitCacheMs', 0);
+  requireNumber('githubTokenCooldownMs', 0);
+  requireBoolean('redisSkipConnection');
+
+  requireNonEmptyString('dungeonBatchCron');
+  requireNumber('dungeonBatchMaxUsersPerTick', 1);
+  requireNumber('dungeonBatchMaxActionsPerUser', 1);
+  requireNumber('dungeonBatchMinAp', 0);
+  requireNumber('dungeonBatchInactiveDays', 0);
+  requireNumber('dungeonBatchLockTtlMs', 0);
+  requireNumber('dungeonBatchLockBackoffMs', 0);
+  requireNumber('dungeonBatchLockMaxRetry', 0);
+
+  requireNumber('queueRetryMax', 0);
+  requireNumber('queueRetryBackoffBaseMs', 0);
+  requireNumber('queueRetryTtlMs', 0);
+  requireNumber('queueDlqTtlDays', 0);
+  requireNumber('queueRetryConcurrency', 1);
+
+  requireString('alertWebhookUrl');
+  requireNumber('alertFailureThreshold', 1);
+
+  if (errors.length > 0) {
     throw new Error(
-      `Environment validation failed (typia transform missing): ${missingOrInvalid.join(
-        ', ',
-      )}`,
+      `Environment validation failed: ${Array.from(new Set(errors)).join(', ')}`,
     );
   }
 
   return value as Environment;
-};
-
-const assertEnvironment = (value: unknown): Environment => {
-  try {
-    return typia.assert<Environment>(value);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '';
-    if (message.includes('no transform has been configured')) {
-      return assertEnvironmentWithoutTypia(value);
-    }
-    throw error;
-  }
 };

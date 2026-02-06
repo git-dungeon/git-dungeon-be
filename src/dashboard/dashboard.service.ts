@@ -4,7 +4,6 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import typia, { TypeGuardError } from 'typia';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   addEquipmentStats,
@@ -12,11 +11,13 @@ import {
   calculateEquipmentBonus,
 } from '../common/inventory/equipment-stats';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
+import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import type {
   DashboardStateResponse,
   EquipmentItem,
   StatBlock,
 } from './dto/dashboard-state.response';
+import { assertDashboardStateResponse } from './dashboard-response.validator';
 
 @Injectable()
 export class DashboardService {
@@ -65,11 +66,11 @@ export class DashboardService {
       def: number;
       luck: number;
     }): StatBlock => ({
-      hp: stats.hp as StatBlock['hp'],
-      maxHp: stats.maxHp as StatBlock['maxHp'],
-      atk: stats.atk as StatBlock['atk'],
-      def: stats.def as StatBlock['def'],
-      luck: stats.luck as StatBlock['luck'],
+      hp: stats.hp,
+      maxHp: stats.maxHp,
+      atk: stats.atk,
+      def: stats.def,
+      luck: stats.luck,
     });
 
     const stats = {
@@ -108,9 +109,9 @@ export class DashboardService {
     };
 
     try {
-      return typia.assert<DashboardStateResponse>(response);
+      return assertDashboardStateResponse(response);
     } catch (error) {
-      if (error instanceof TypeGuardError) {
+      if (error instanceof RuntimeValidationError) {
         this.logger.error(
           'DashboardStateResponse validation failed',
           JSON.stringify({

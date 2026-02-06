@@ -13,22 +13,12 @@ import { InventoryService } from './inventory.service';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 import { loadCatalogData } from '../catalog';
 import seedrandom from 'seedrandom';
-import {
-  resetTypiaAssertMock,
-  typiaAssertMock,
-} from '../test-support/mocks/typia';
-import { MockTypeGuardError } from '../test-support/mocks/typia';
 
 const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
 const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
 const ITEM_ID_WEAPON = '11111111-1111-4111-8111-111111111111';
 const ITEM_ID_BACKPACK = '22222222-2222-4222-8222-222222222222';
 const ITEM_ID_GENERIC = '33333333-3333-4333-8333-333333333333';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
 
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),
@@ -74,7 +64,6 @@ describe('InventoryService', () => {
       def: 0,
       luck: 0,
     });
-    resetTypiaAssertMock();
   });
 
   it('인벤토리를 조회해 summary/버전이 계산되어야 한다', async () => {
@@ -152,7 +141,6 @@ describe('InventoryService', () => {
     expect(statsCacheMock).toHaveBeenCalledWith(USER_ID_1, prismaMock, {
       forceRefresh: undefined,
     });
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('인벤토리가 없으면 버전 0과 빈 슬롯을 반환해야 한다', async () => {
@@ -217,7 +205,7 @@ describe('InventoryService', () => {
     });
   });
 
-  it('typia 검증 실패 시 로깅 후 INVENTORY_INVALID_RESPONSE 예외를 던져야 한다', async () => {
+  it('응답 검증 실패 시 로깅 후 INVENTORY_INVALID_RESPONSE 예외를 던져야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
       userId: USER_ID_1,
       hp: 10,
@@ -226,7 +214,21 @@ describe('InventoryService', () => {
       def: 3,
       luck: 1,
     });
-    prismaMock.inventoryItem.findMany.mockResolvedValue([]);
+    prismaMock.inventoryItem.findMany.mockResolvedValue([
+      {
+        id: ITEM_ID_WEAPON,
+        userId: USER_ID_1,
+        code: 'weapon-longsword',
+        slot: 'WEAPON',
+        rarity: 'RARE',
+        modifiers: [],
+        isEquipped: false,
+        obtainedAt: new Date('2025-10-30T09:00:00.000Z'),
+        version: 1,
+        quantity: 0,
+        enhancementLevel: 0,
+      },
+    ]);
     statsCacheMock.mockResolvedValue({
       hp: 0,
       maxHp: 0,
@@ -244,10 +246,6 @@ describe('InventoryService', () => {
       'error',
     );
     loggerSpy.mockImplementation(() => undefined);
-
-    typiaAssertMock.mockImplementationOnce(() => {
-      throw new MockTypeGuardError('items', 'InventoryResponse', null);
-    });
 
     await expect(service.getInventory(USER_ID_1)).rejects.toMatchObject({
       constructor: InternalServerErrorException,

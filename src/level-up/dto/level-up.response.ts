@@ -1,5 +1,3 @@
-import type { tags } from 'typia';
-
 export type LevelUpStat = 'hp' | 'atk' | 'def' | 'luck';
 
 export type LevelUpRarity =
@@ -10,28 +8,28 @@ export type LevelUpRarity =
   | 'legendary';
 
 export interface LevelUpOption {
-  stat: LevelUpStat & tags.Example<'atk'>;
-  rarity: LevelUpRarity & tags.Example<'rare'>;
-  value: number & tags.Minimum<1> & tags.Example<3>;
+  stat: LevelUpStat;
+  rarity: LevelUpRarity;
+  value: number;
 }
 
 export interface LevelUpSelectionResponse {
-  points: number & tags.Minimum<0> & tags.Example<2>;
-  rollIndex: number & tags.Minimum<0> & tags.Example<0>;
+  points: number;
+  rollIndex: number;
   options: LevelUpOption[];
 }
 
 export interface LevelUpStatBlock {
-  hp: number & tags.Example<32>;
-  maxHp: number & tags.Example<40>;
-  atk: number & tags.Example<18>;
-  def: number & tags.Example<14>;
-  luck: number & tags.Example<6>;
+  hp: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  luck: number;
 }
 
 export interface LevelUpApplyResponse {
-  points: number & tags.Minimum<0> & tags.Example<1>;
-  rollIndex: number & tags.Minimum<0> & tags.Example<1>;
+  points: number;
+  rollIndex: number;
   applied: LevelUpOption;
   stats: LevelUpStatBlock;
 }

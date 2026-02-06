@@ -9,18 +9,9 @@ import {
   TEST_INVENTORY_ITEM_ID_1,
   TEST_USER_ID_1,
 } from '../test-support/fixtures';
-import {
-  resetTypiaAssertMock,
-  typiaAssertMock,
-} from '../test-support/mocks/typia';
 import { EmbeddingService } from './embedding.service';
 import { loadCatalogData } from '../catalog';
 import type { EmbedRendererService } from './embed-renderer.service';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
 
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),
@@ -68,7 +59,6 @@ describe('EmbeddingService', () => {
     inventoryServiceMock.getInventory.mockReset();
     embedRendererServiceMock.renderPreviewSvg.mockReset();
     loadCatalogDataMock.mockReset();
-    resetTypiaAssertMock();
   });
 
   it('overview를 매핑하고 장착 슬롯만 포함해야 한다', async () => {
@@ -233,8 +223,6 @@ describe('EmbeddingService', () => {
       createdAt: '2025-10-30T09:00:00.000Z',
       isEquipped: true,
     });
-
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('theme/size/language 기본값을 사용해야 한다', async () => {
