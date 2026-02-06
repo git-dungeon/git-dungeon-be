@@ -6,10 +6,7 @@ import {
   Module,
   type OnModuleInit,
 } from '@nestjs/common';
-import {
-  resolveOpenApiValidationMode,
-  resolveOpenApiSpecPath,
-} from './openapi-validation.constants';
+import { resolveOpenApiSpecPath } from './openapi-validation.constants';
 import { loadOpenApiDocument } from './openapi-loader';
 import { normalizeOpenApiDocumentForAjv } from './openapi-normalizer';
 import { buildOpenApiOperationIndex } from './openapi-operation-index';
@@ -78,13 +75,6 @@ class OpenApiValidationBootstrap implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const mode = resolveOpenApiValidationMode();
-    this.runtime.mode = mode;
-    if (mode === 'off') {
-      this.logger.log('OpenAPI request validation is disabled (mode=off).');
-      return;
-    }
-
     const specPath = resolveOpenApiSpecPath();
     try {
       const { validator, operations } = await getOrCreateRequestValidator(
@@ -93,17 +83,10 @@ class OpenApiValidationBootstrap implements OnModuleInit {
       );
       this.runtime.validator = validator;
       this.logger.log(
-        `OpenAPI request validation initialized (mode=${mode}, operations=${operations}, specPath=${specPath})`,
+        `OpenAPI request validation initialized (operations=${operations}, specPath=${specPath})`,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (mode === 'report') {
-        this.logger.warn(
-          `OpenAPI request validation initialization failed in report mode: ${message} (specPath=${specPath})`,
-        );
-        return;
-      }
-
       this.logger.error(
         `OpenAPI request validation initialization failed: ${message} (specPath=${specPath})`,
       );
@@ -120,9 +103,7 @@ export class OpenApiValidationModule {
       providers: [
         {
           provide: OPENAPI_VALIDATION_RUNTIME,
-          useValue: {
-            mode: resolveOpenApiValidationMode(),
-          } satisfies OpenApiValidationRuntime,
+          useValue: {} satisfies OpenApiValidationRuntime,
         },
         OpenApiValidationMiddleware,
         OpenApiValidationBootstrap,

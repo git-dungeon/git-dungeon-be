@@ -138,9 +138,9 @@ export class OpenApiRequestValidator {
         target.set(key, this.ajv.compile(schema as AnySchema));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        this.logger?.warn?.(
-          `OpenAPI validator compile failed for ${key} (${label}): ${message}`,
-        );
+        const fullMessage = `OpenAPI validator compile failed for ${key} (${label}): ${message}`;
+        this.logger?.warn?.(fullMessage);
+        throw new Error(fullMessage);
       }
     };
 
