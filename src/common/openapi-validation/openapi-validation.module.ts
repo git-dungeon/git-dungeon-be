@@ -6,11 +6,7 @@ import {
   Module,
   type OnModuleInit,
 } from '@nestjs/common';
-import { PinoLogger } from 'nestjs-pino';
-import {
-  resolveOpenApiSpecPath,
-  resolveOpenApiValidationMode,
-} from './openapi-validation.constants';
+import { resolveOpenApiSpecPath } from './openapi-validation.constants';
 import { loadOpenApiDocument } from './openapi-loader';
 import { normalizeOpenApiDocumentForAjv } from './openapi-normalizer';
 import { buildOpenApiOperationIndex } from './openapi-operation-index';
@@ -21,54 +17,70 @@ import {
   type OpenApiValidationRuntime,
 } from './validation.middleware';
 
+type OpenApiValidatorCache = {
+  validator: OpenApiRequestValidator;
+  operations: number;
+};
+
+let cachedSpecPath: string | undefined;
+let cachedValidatorPromise: Promise<OpenApiValidatorCache> | undefined;
+
+const getOrCreateRequestValidator = async (
+  specPath: string,
+  warn: (message: string) => void,
+): Promise<OpenApiValidatorCache> => {
+  if (cachedSpecPath === specPath && cachedValidatorPromise) {
+    return cachedValidatorPromise;
+  }
+
+  cachedSpecPath = specPath;
+  cachedValidatorPromise = (async () => {
+    const document = await loadOpenApiDocument(specPath);
+    const normalized = normalizeOpenApiDocumentForAjv(document);
+    const index = buildOpenApiOperationIndex(
+      normalized as unknown as Record<string, unknown>,
+    );
+
+    return {
+      validator: new OpenApiRequestValidator(index, { warn }),
+      operations: index.size,
+    };
+  })();
+
+  try {
+    return await cachedValidatorPromise;
+  } catch (error) {
+    cachedValidatorPromise = undefined;
+    throw error;
+  }
+};
+
 @Injectable()
 class OpenApiValidationBootstrap implements OnModuleInit {
-  private readonly fallbackLogger = new Logger(OpenApiValidationBootstrap.name);
+  private readonly logger = new Logger(OpenApiValidationBootstrap.name);
 
   constructor(
-    private readonly pinoLogger: PinoLogger,
     @Inject(OPENAPI_VALIDATION_RUNTIME)
     private readonly runtime: OpenApiValidationRuntime,
   ) {}
 
   async onModuleInit(): Promise<void> {
-    const mode = resolveOpenApiValidationMode();
-    this.runtime.mode = mode;
-
-    if (mode === 'off') {
-      return;
-    }
-
     const specPath = resolveOpenApiSpecPath();
     try {
-      const document = await loadOpenApiDocument(specPath);
-      const normalized = normalizeOpenApiDocumentForAjv(document);
-      const index = buildOpenApiOperationIndex(
-        normalized as unknown as Record<string, unknown>,
+      const { validator, operations } = await getOrCreateRequestValidator(
+        specPath,
+        (message) => this.logger.warn(message),
       );
-      this.runtime.validator = new OpenApiRequestValidator(index, {
-        warn: (message) => this.pinoLogger.warn(message),
-      });
-      this.pinoLogger.info(
-        { mode, specPath, operations: index.size },
-        'OpenAPI request validation initialized',
+      this.runtime.validator = validator;
+      this.logger.log(
+        `OpenAPI request validation initialized (operations=${operations}, specPath=${specPath})`,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (this.pinoLogger?.warn) {
-        this.pinoLogger.warn(
-          { mode, specPath, err: error },
-          `OpenAPI request validation disabled: ${message}`,
-        );
-      } else {
-        this.fallbackLogger.warn(
-          `OpenAPI request validation disabled: ${message}`,
-        );
-      }
-
-      if (mode === 'enforce') {
-        throw error;
-      }
+      this.logger.warn(
+        `OpenAPI request validation initialization failed: ${message} (specPath=${specPath})`,
+      );
+      throw error;
     }
   }
 }
@@ -76,17 +88,15 @@ class OpenApiValidationBootstrap implements OnModuleInit {
 @Module({})
 export class OpenApiValidationModule {
   static forRoot(): DynamicModule {
-    const mode = resolveOpenApiValidationMode();
-
     return {
       module: OpenApiValidationModule,
       providers: [
         {
           provide: OPENAPI_VALIDATION_RUNTIME,
-          useValue: { mode } satisfies OpenApiValidationRuntime,
+          useValue: {} satisfies OpenApiValidationRuntime,
         },
         OpenApiValidationMiddleware,
-        ...(mode === 'off' ? [] : [OpenApiValidationBootstrap]),
+        OpenApiValidationBootstrap,
       ],
       exports: [OpenApiValidationMiddleware, OPENAPI_VALIDATION_RUNTIME],
     };

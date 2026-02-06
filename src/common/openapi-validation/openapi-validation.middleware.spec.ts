@@ -9,7 +9,7 @@ import { OpenApiRequestValidator } from './request-validator';
 import { OpenApiValidationMiddleware } from './validation.middleware';
 
 describe('OpenApiValidationMiddleware', () => {
-  it('enforce 모드에서 OpenAPI 스키마 위반 요청은 400을 반환해야 한다', async () => {
+  it('OpenAPI 스키마 위반 요청은 400을 반환해야 한다', async () => {
     const document = normalizeOpenApiDocumentForAjv({
       openapi: '3.1.0',
       info: { title: 'test', version: '0.0.0' },
@@ -42,7 +42,7 @@ describe('OpenApiValidationMiddleware', () => {
       document as unknown as Record<string, unknown>,
     );
     const validator = new OpenApiRequestValidator(index);
-    const runtime = { mode: 'enforce' as const, validator };
+    const runtime = { validator };
     const middleware = new OpenApiValidationMiddleware(runtime);
 
     const app = express();
@@ -73,8 +73,8 @@ describe('OpenApiValidationMiddleware', () => {
     });
   });
 
-  it('report 모드에서는 스키마 위반 요청도 통과시켜야 한다', async () => {
-    const document = {
+  it('OpenAPI에 없는 라우트는 검증 없이 통과시켜야 한다', async () => {
+    const document = normalizeOpenApiDocumentForAjv({
       openapi: '3.1.0',
       info: { title: 'test', version: '0.0.0' },
       paths: {
@@ -86,7 +86,10 @@ describe('OpenApiValidationMiddleware', () => {
                 'application/json': {
                   schema: {
                     type: 'object',
-                    properties: { itemId: { type: 'string', format: 'uuid' } },
+                    additionalProperties: false,
+                    properties: {
+                      itemId: { type: 'string', format: 'uuid' },
+                    },
                     required: ['itemId'],
                   },
                 },
@@ -95,13 +98,13 @@ describe('OpenApiValidationMiddleware', () => {
           },
         },
       },
-    };
+    });
 
     const index = buildOpenApiOperationIndex(
       document as unknown as Record<string, unknown>,
     );
     const validator = new OpenApiRequestValidator(index);
-    const runtime = { mode: 'report' as const, validator };
+    const runtime = { validator };
     const middleware = new OpenApiValidationMiddleware(runtime);
 
     const app = express();
@@ -114,11 +117,14 @@ describe('OpenApiValidationMiddleware', () => {
     app.use((req, res, next) =>
       middleware.use(req as Request & { id?: string }, res, next),
     );
+    app.post('/api/not-in-spec', (_req, res) =>
+      res.status(200).json({ ok: true }),
+    );
     app.post('/api/inventory/equip', (_req, res) =>
       res.status(200).json({ ok: true }),
     );
 
-    const response = await request(app).post('/api/inventory/equip').send({
+    const response = await request(app).post('/api/not-in-spec').send({
       itemId: 'weapon-longsword',
     });
 

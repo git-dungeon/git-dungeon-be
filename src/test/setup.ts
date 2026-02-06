@@ -1,7 +1,6 @@
 import { afterAll, vi } from 'vitest';
 
 vi.stubEnv('NODE_ENV', 'test');
-vi.stubEnv('OPENAPI_VALIDATION_MODE', 'off');
 vi.stubEnv(
   'DATABASE_URL',
   'postgresql://postgres:postgres@localhost:5432/git_dungeon_test',

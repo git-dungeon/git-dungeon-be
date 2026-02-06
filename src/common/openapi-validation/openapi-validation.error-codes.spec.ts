@@ -44,7 +44,7 @@ describe('OpenAPI(Ajv) validation error code mapping', () => {
     document as unknown as Record<string, unknown>,
   );
   const validator = new OpenApiRequestValidator(index);
-  const runtime = { mode: 'enforce' as const, validator };
+  const runtime = { validator };
   const middleware = new OpenApiValidationMiddleware(runtime);
 
   const buildApp = () => {

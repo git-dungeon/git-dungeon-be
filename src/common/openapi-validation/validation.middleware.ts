@@ -2,7 +2,6 @@ import { Inject, Injectable, type NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 import { errorResponse } from '../http/api-response';
 import type { OpenApiOperationSpec } from './openapi-operation-index';
-import { resolveOpenApiValidationMode } from './openapi-validation.constants';
 import type { OpenApiRequestValidator } from './request-validator';
 import { resolveOpenApiValidationErrorShape } from './validation-error-code';
 
@@ -12,12 +11,7 @@ export type OpenApiValidationContext = {
   path: string;
 };
 
-export type OpenApiValidationMode = ReturnType<
-  typeof resolveOpenApiValidationMode
->;
-
 export interface OpenApiValidationRuntime {
-  mode: OpenApiValidationMode;
   validator?: OpenApiRequestValidator;
 }
 
@@ -31,15 +25,25 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
   ) {}
 
   use(req: Request & { id?: string }, res: Response, next: NextFunction): void {
-    const mode = this.runtime.mode;
-    if (mode === 'off') {
-      next();
-      return;
-    }
-
     const validator = this.runtime.validator;
     if (!validator) {
-      next();
+      res.status(500).json(
+        errorResponse(
+          {
+            code: 'OPENAPI_VALIDATION_UNAVAILABLE',
+            message: 'OpenAPI validator is not initialized.',
+            details: {
+              requestId: req.id,
+              method: req.method.toLowerCase(),
+              path: req.path,
+            },
+          },
+          {
+            requestId: req.id,
+            generatedAt: new Date().toISOString(),
+          },
+        ),
+      );
       return;
     }
 
@@ -59,11 +63,6 @@ export class OpenApiValidationMiddleware implements NestMiddleware {
 
     const result = this.validateRequest(operation, req);
     if (result.ok) {
-      next();
-      return;
-    }
-
-    if (mode === 'report') {
       next();
       return;
     }
