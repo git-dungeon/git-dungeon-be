@@ -1,7 +1,6 @@
 import type { CanActivate, INestApplication } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
-import { AppModule } from '../app.module';
 
 export interface TestingAppOptions {
   overrideProviders?: Array<{
@@ -14,6 +13,8 @@ export interface TestingAppOptions {
 export const createTestingApp = async (
   options: TestingAppOptions = {},
 ): Promise<INestApplication> => {
+  const { AppModule } = await import('../app.module');
+
   const builder: TestingModuleBuilder = Test.createTestingModule({
     imports: [AppModule],
   });

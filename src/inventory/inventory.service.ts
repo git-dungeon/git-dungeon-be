@@ -18,7 +18,6 @@ import {
 } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import seedrandom from 'seedrandom';
-import typia, { TypeGuardError } from 'typia';
 import { parseInventoryModifiers } from '../common/inventory/inventory-modifier';
 import { addEquipmentStats } from '../common/inventory/equipment-stats';
 import {
@@ -50,6 +49,8 @@ import type {
 } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
+import { RuntimeValidationError } from '../common/validation/runtime-validation';
+import { assertInventoryResponsePayload } from './inventory-response.validator';
 
 type InventoryLogAction =
   | 'EQUIP_ITEM'
@@ -676,9 +677,9 @@ export class InventoryService {
     response: InventoryResponse,
   ): InventoryResponse {
     try {
-      return typia.assert<InventoryResponse>(response);
+      return assertInventoryResponsePayload(response);
     } catch (error) {
-      if (error instanceof TypeGuardError) {
+      if (error instanceof RuntimeValidationError) {
         this.logger.error(
           'InventoryResponse validation failed',
           JSON.stringify({

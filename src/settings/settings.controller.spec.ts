@@ -9,22 +9,6 @@ import type { PrismaService } from '../prisma/prisma.service';
 import { SettingsController } from './settings.controller';
 import type { SettingsProfileResponse } from './dto/settings-profile.response';
 import { SettingsService } from './settings.service';
-import {
-  MockTypeGuardError,
-  resetTypiaAssertMock,
-  typiaAssertMock,
-} from '../test-support/mocks/typia';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
 
 describe('SettingsService', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
@@ -39,7 +23,6 @@ describe('SettingsService', () => {
 
   beforeEach(() => {
     prismaMock.user.findUnique.mockReset();
-    resetTypiaAssertMock();
   });
 
   it('프로필 정보를 반환해야 한다', async () => {
@@ -75,8 +58,6 @@ describe('SettingsService', () => {
         },
       },
     });
-
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('GitHub 연결이 없으면 lastSyncAt이 null이어야 한다', async () => {
@@ -105,10 +86,10 @@ describe('SettingsService', () => {
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
-  it('Typia 검증 실패 시 예외를 변환해야 한다', async () => {
+  it('응답 검증 실패 시 예외를 변환해야 한다', async () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: USER_ID_1,
-      email: 'mock@example.com',
+      email: 42,
       name: 'Mock User',
       image: 'https://example.com/avatar.png',
       createdAt: new Date('2023-11-02T12:00:00.000Z'),
@@ -124,10 +105,6 @@ describe('SettingsService', () => {
       'error',
     );
     loggerSpy.mockImplementation(() => undefined);
-
-    typiaAssertMock.mockImplementationOnce(() => {
-      throw new MockTypeGuardError('profile.email', 'string', 42);
-    });
 
     await expect(
       service.getProfile(createActiveSession()),
@@ -181,8 +158,6 @@ describe('SettingsController', () => {
 
   beforeEach(() => {
     serviceMock.getProfile.mockReset();
-    typiaAssertMock.mockReset();
-    typiaAssertMock.mockImplementation((value) => value);
   });
 
   it('쿠키와 헤더를 설정하고 ApiResponse 구조로 반환해야 한다', async () => {

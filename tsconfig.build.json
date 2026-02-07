@@ -5,7 +5,6 @@
     "config",
     "dist",
     "generated",
-    "nestia.config.ts",
     "node_modules",
     "scripts",
     "test",

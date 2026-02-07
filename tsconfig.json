@@ -16,15 +16,6 @@
       "vitest/globals",
       "node"
     ],
-    "plugins": [
-      { "transform": "typia/lib/transform" },
-      {
-        "transform": "@nestia/core/lib/transform",
-        "validate": "validate",
-        "stringify": "assert"
-      },
-      { "transform": "@nestia/sdk/lib/transform" }
-    ],
     "rootDir": "./src",
     "skipLibCheck": true,
     "strict": true,
@@ -38,15 +29,11 @@
     "config",
     "dist",
     "generated",
-    "nestia.config.ts",
     "node_modules",
     "scripts",
     "vitest.config.ts"
   ],
   "include": [
     "src/**/*.ts"
-  ],
-  "ts-node": {
-    "compiler": "ts-patch/compiler"
-  }
+  ]
 }

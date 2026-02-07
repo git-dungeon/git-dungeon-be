@@ -7,21 +7,6 @@ import { createTestingApp } from '../test-support/app';
 import { SettingsService } from './settings.service';
 import { DEFAULT_THROTTLE_LIMIT } from '../config/rate-limit.constant';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('../config/rate-limit.constant', () => ({
-  DEFAULT_THROTTLE_TTL_MS: 60_000,
-  DEFAULT_THROTTLE_LIMIT: 5,
-}));
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('SettingsController (E2E)', () => {
   it('/api/settings/profile 요청이 제한되면 SETTINGS_RATE_LIMITED를 반환해야 한다', async () => {
     const settingsServiceMock = {

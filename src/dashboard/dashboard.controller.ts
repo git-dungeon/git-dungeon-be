@@ -1,6 +1,5 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TypedRoute } from '@nestia/core';
 import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import {
@@ -18,7 +17,7 @@ import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-thro
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<DashboardStateResponse>>('state')
+  @Get('state')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async getState(

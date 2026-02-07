@@ -1,29 +1,13 @@
-import { tags } from 'typia';
-import {
-  LOGS_DEFAULT_LIMIT,
-  LOGS_MAX_LIMIT,
-  LOGS_MIN_LIMIT,
-} from '../logs.constants';
 import { LogTypeEnum } from '../logs.types';
 
 /**
  * `GET /api/logs` 쿼리 파라미터 DTO.
- * 커서 기반 페이지네이션 규칙을 typia 태그로 강제한다.
+ * 런타임 제약 검증은 OpenAPI/Ajv 및 `validateLogsQuery`에서 처리한다.
  */
 export interface LogsQueryDto {
-  limit?: number &
-    tags.Minimum<typeof LOGS_MIN_LIMIT> &
-    tags.Maximum<typeof LOGS_MAX_LIMIT> &
-    tags.Default<typeof LOGS_DEFAULT_LIMIT> &
-    tags.Example<typeof LOGS_DEFAULT_LIMIT>;
-  cursor?: string &
-    tags.MinLength<1> &
-    tags.Example<'MjAyNS0xMi0xMFQwMDowMDowMC4wMDBafGQ1YzA0MGI0LTg0MzItNDljNC1hYzgwLTdlNmJhMTY4OGQ0ZQ'>;
-  type?: LogTypeEnum & tags.Example<'BATTLE'>;
-  from?: string &
-    tags.Format<'date-time'> &
-    tags.Example<'2026-01-01T00:00:00.000Z'>;
-  to?: string &
-    tags.Format<'date-time'> &
-    tags.Example<'2026-01-31T23:59:59.999Z'>;
+  limit?: number;
+  cursor?: string;
+  type?: LogTypeEnum;
+  from?: string;
+  to?: string;
 }

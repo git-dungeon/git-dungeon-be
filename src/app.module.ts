@@ -11,6 +11,8 @@ import {
 } from './config/rate-limit.constant';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
+import { OpenApiValidationModule } from './common/openapi-validation/openapi-validation.module';
+import { OpenApiValidationMiddleware } from './common/openapi-validation/validation.middleware';
 import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -71,6 +73,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
         },
       ],
     }),
+    OpenApiValidationModule.forRoot(),
     PrismaModule,
     AuthModule,
     SettingsModule,
@@ -83,7 +86,6 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     LogsModule,
     EmbeddingModule,
     // 테스트에서는 크론/큐/LevelUp 초기화를 생략해 부트스트랩을 가볍게 유지하고 타임아웃 방지
-    // (LevelUpModule은 E2E 테스트에서 typia/mock 충돌로 타임아웃 유발)
     ...(isTestEnv ? [] : [DungeonBatchModule, LevelUpModule, ChestModule]),
   ],
   controllers: [AppController],
@@ -96,6 +98,8 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestContextMiddleware).forRoutes('*');
+    consumer
+      .apply(RequestContextMiddleware, OpenApiValidationMiddleware)
+      .forRoutes('*');
   }
 }

@@ -6,17 +6,6 @@ import { EmbeddingController } from './embedding.controller';
 import { EmbeddingService } from './embedding.service';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('EmbeddingController SVG (E2E)', () => {
   const setupApp = async () => {
     const embeddingServiceMock: Pick<

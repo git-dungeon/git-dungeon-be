@@ -7,17 +7,6 @@ import { RankingController } from './ranking.controller';
 import { RankingService } from './ranking.service';
 import { encodeRankingCursor } from './ranking-cursor.util';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('RankingController (E2E)', () => {
   const setupApp = async (options?: { guards?: CanActivate[] }) => {
     const rankingServiceMock = {

@@ -8,17 +8,6 @@ import { createActiveSession } from '../test-support/fixtures';
 import { createTestingApp } from '../test-support/app';
 import { GithubManualSyncService } from './github-sync.manual.service';
 
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
-vi.mock('@nestia/core', async () => {
-  const { createNestiaModuleMock } = await import(
-    '../test-support/mocks/nestia'
-  );
-  return createNestiaModuleMock();
-});
-
 describe('GithubSyncController (E2E)', () => {
   type Meta = { requestId?: string };
   type ApiSuccess<T> = { success: true; data: T; meta: Meta };

@@ -6,16 +6,6 @@ import {
 import type { PrismaService } from '../prisma/prisma.service';
 import { createDashboardStateResponse } from '../test-support/fixtures';
 import { DashboardService } from './dashboard.service';
-import {
-  MockTypeGuardError,
-  resetTypiaAssertMock,
-  typiaAssertMock,
-} from '../test-support/mocks/typia';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
 
 describe('DashboardService', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
@@ -35,7 +25,6 @@ describe('DashboardService', () => {
   beforeEach(() => {
     prismaMock.dungeonState.findUnique.mockReset();
     prismaMock.inventoryItem.findMany.mockReset();
-    resetTypiaAssertMock();
   });
 
   it('대시보드 상태를 반환해야 한다', async () => {
@@ -78,7 +67,6 @@ describe('DashboardService', () => {
     const result = await service.getState(USER_ID_1);
 
     expect(result).toEqual(createDashboardStateResponse());
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('강화 레벨이 스탯(equipmentBonus)에 반영되어야 한다', async () => {
@@ -131,7 +119,6 @@ describe('DashboardService', () => {
         },
       }),
     );
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('레벨이 없으면 expToLevel이 null이어야 한다', async () => {
@@ -163,7 +150,6 @@ describe('DashboardService', () => {
 
     expect(result.state.expToLevel).toBeNull();
     expect(result.state.equippedItems).toEqual([]);
-    expect(typiaAssertMock).toHaveBeenCalledTimes(1);
   });
 
   it('상태를 찾지 못하면 DASHBOARD_UNAUTHORIZED 예외를 던져야 한다', async () => {
@@ -176,10 +162,10 @@ describe('DashboardService', () => {
     });
   });
 
-  it('Typia 검증 실패 시 로깅 후 예외를 던져야 한다', async () => {
+  it('응답 검증 실패 시 로깅 후 예외를 던져야 한다', async () => {
     prismaMock.dungeonState.findUnique.mockResolvedValue({
       userId: USER_ID_1,
-      level: 5,
+      level: null,
       exp: 120,
       levelUpPoints: 0,
       unopenedChests: 0,
@@ -210,10 +196,6 @@ describe('DashboardService', () => {
       'error',
     );
     loggerSpy.mockImplementation(() => undefined);
-
-    typiaAssertMock.mockImplementationOnce(() => {
-      throw new MockTypeGuardError('state.level', 'number', null);
-    });
 
     await expect(service.getState(USER_ID_1)).rejects.toMatchObject({
       constructor: InternalServerErrorException,

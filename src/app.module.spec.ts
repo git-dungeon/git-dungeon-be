@@ -1,42 +1,7 @@
 import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import request from 'supertest';
-
-vi.mock('typia', () => ({
-  __esModule: true,
-  default: {
-    assert: <T>(value: T) => value,
-  },
-  assert: <T>(value: T) => value,
-}));
-
-vi.mock('@nestia/core', async () => {
-  const decorators = await import('@nestjs/common');
-
-  const wrap =
-    <T extends (...params: never[]) => unknown>(decorator: T) =>
-    (...params: Parameters<T>): ReturnType<T> =>
-      decorator(...params) as ReturnType<T>;
-
-  const typedExceptionMock = vi.fn(() => () => undefined);
-
-  return {
-    __esModule: true,
-    TypedRoute: {
-      Get: wrap(decorators.Get),
-      Post: wrap(decorators.Post),
-      Put: wrap(decorators.Put),
-      Patch: wrap(decorators.Patch),
-      Delete: wrap(decorators.Delete),
-    },
-    TypedBody: wrap(decorators.Body),
-    TypedParam: wrap(decorators.Param),
-    TypedQuery: wrap(decorators.Query),
-    TypedHeaders: wrap(decorators.Headers),
-    TypedException: typedExceptionMock,
-  } as const;
-});
 
 import { Logger } from 'nestjs-pino';
 

@@ -1,47 +1,49 @@
 import type { InventoryModifier } from '../../common/inventory/inventory-modifier';
-import { tags } from 'typia';
 
-export type InventorySlot =
-  | 'helmet'
-  | 'armor'
-  | 'weapon'
-  | 'ring'
-  | 'consumable'
-  | 'material';
+export const INVENTORY_SLOTS = [
+  'helmet',
+  'armor',
+  'weapon',
+  'ring',
+  'consumable',
+  'material',
+] as const;
+export type InventorySlot = (typeof INVENTORY_SLOTS)[number];
 
-export type EquippableSlot = 'helmet' | 'armor' | 'weapon' | 'ring';
+export const EQUIPPABLE_SLOTS = ['helmet', 'armor', 'weapon', 'ring'] as const;
+export type EquippableSlot = (typeof EQUIPPABLE_SLOTS)[number];
 
-export type InventoryRarity =
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'epic'
-  | 'legendary';
+export const INVENTORY_RARITIES = [
+  'common',
+  'uncommon',
+  'rare',
+  'epic',
+  'legendary',
+] as const;
+export type InventoryRarity = (typeof INVENTORY_RARITIES)[number];
 
 export interface EquipmentItem {
-  id: string &
-    tags.Format<'uuid'> &
-    tags.Example<'11111111-1111-4111-8111-111111111111'>;
-  code: string & tags.Example<'weapon-longsword'>;
-  name?: (string & tags.Example<'Longsword'>) | null;
-  slot: InventorySlot & tags.Example<'weapon'>;
-  rarity: InventoryRarity & tags.Example<'common'>;
+  id: string;
+  code: string;
+  name?: string | null;
+  slot: InventorySlot;
+  rarity: InventoryRarity;
   modifiers: InventoryModifier[];
-  effect?: (string & tags.Example<'bleed-1'>) | null;
-  sprite?: (string & tags.Example<'sprite/weapon-longsword.svg'>) | null;
-  createdAt: string & tags.Format<'date-time'>;
-  isEquipped: boolean & tags.Example<true>;
-  quantity: number & tags.Minimum<1> & tags.Example<2>;
-  enhancementLevel: number & tags.Minimum<0> & tags.Example<3>;
-  version: number & tags.Minimum<0>;
+  effect?: string | null;
+  sprite?: string | null;
+  createdAt: string;
+  isEquipped: boolean;
+  quantity: number;
+  enhancementLevel: number;
+  version: number;
 }
 
 export interface EquipmentStats {
-  hp: number & tags.Example<32>;
-  maxHp: number & tags.Example<40>;
-  atk: number & tags.Example<18>;
-  def: number & tags.Example<14>;
-  luck: number & tags.Example<6>;
+  hp: number;
+  maxHp: number;
+  atk: number;
+  def: number;
+  luck: number;
 }
 
 export interface EquipmentSummary {
@@ -53,7 +55,7 @@ export interface EquipmentSummary {
 export type EquippedItems = Partial<Record<EquippableSlot, EquipmentItem>>;
 
 export interface InventoryResponse {
-  version: number & tags.Minimum<0> & tags.Example<7>;
+  version: number;
   items: EquipmentItem[];
   equipped: EquippedItems;
   summary: EquipmentSummary;

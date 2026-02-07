@@ -1,13 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { loadCatalogData, type CatalogFilePaths } from './index';
-
-vi.mock('typia', async () => {
-  const { typiaModuleMock } = await import('../test-support/mocks/typia');
-  return typiaModuleMock;
-});
 
 const writeJson = async (filePath: string, payload: unknown) => {
   await writeFile(filePath, JSON.stringify(payload));

@@ -4,10 +4,11 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import typia, { TypeGuardError } from 'typia';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
+import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import { PrismaService } from '../prisma/prisma.service';
 import type { SettingsProfileResponse } from './dto/settings-profile.response';
+import { assertSettingsProfileResponse } from './settings-profile.validator';
 
 @Injectable()
 export class SettingsService {
@@ -80,9 +81,9 @@ export class SettingsService {
     };
 
     try {
-      return typia.assert<SettingsProfileResponse>(response);
+      return assertSettingsProfileResponse(response);
     } catch (error) {
-      if (error instanceof TypeGuardError) {
+      if (error instanceof RuntimeValidationError) {
         // 로거로만 에러의 상세를 남기고, 외부로는 일반적인 에러만 반환한다.
         this.logger.error(
           `SettingsProfileResponse validation failed: ${JSON.stringify({

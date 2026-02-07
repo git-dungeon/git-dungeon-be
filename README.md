@@ -1,7 +1,7 @@
 # Git Dungeon Backend
 
 NestJS 기반 게임 API 서버입니다.  
-Typia + Nestia로 타입 안전한 SDK/컨트랙트를 생성하고, Pino + RequestId로 일관된 JSON 로그를 남깁니다.  
+OpenAPI(SSOT) 기반 Ajv 요청 검증으로 계약을 강제하고, Pino + RequestId로 일관된 JSON 로그를 남깁니다.  
 BullMQ + Redis로 배치/큐 작업을 처리하고, Prisma + PostgreSQL을 사용해 데이터베이스를 관리합니다.
 
 > 운영·배포·트러블슈팅 가이드는 [`RUNBOOK.md`](./RUNBOOK.md)를 참고하세요.
@@ -42,7 +42,7 @@ pnpm start:prod
 
 ## 기술 스택
 
-- NestJS, Typia/Nestia, Pino(RequestId), BullMQ + Redis
+- NestJS, OpenAPI(SSOT) + Ajv, Pino(RequestId), BullMQ + Redis
 - Prisma + PostgreSQL
 - GitHub OAuth (better-auth)
 

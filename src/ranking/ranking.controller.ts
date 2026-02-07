@@ -1,6 +1,5 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TypedRoute } from '@nestia/core';
 import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import { applyNoCacheHeaders } from '../common/http/response-helpers';
@@ -13,7 +12,7 @@ import { RankingService } from './ranking.service';
 export class RankingController {
   constructor(private readonly rankingService: RankingService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<RankingPayload>>('ranking')
+  @Get('ranking')
   @UseGuards(AuthenticatedThrottlerGuard)
   async getRanking(
     @Req() request: Request & { id?: string },

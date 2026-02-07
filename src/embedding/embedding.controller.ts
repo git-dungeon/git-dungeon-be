@@ -1,7 +1,14 @@
-import { Controller, Inject, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Inject,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+  Get,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
-import { TypedQuery, TypedRoute } from '@nestia/core';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import {
   successResponseWithGeneratedAt,
@@ -11,11 +18,6 @@ import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
 import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
 import { EmbeddingService } from './embedding.service';
 
-const SVG_RAW_STRINGIFY = {
-  type: 'stringify' as const,
-  stringify: (value: string) => value,
-};
-
 @ApiTags('Embedding')
 @Controller('api/embedding')
 export class EmbeddingController {
@@ -24,12 +26,12 @@ export class EmbeddingController {
     private readonly embeddingService: EmbeddingService,
   ) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<EmbeddingPreviewPayload>>('preview')
+  @Get('preview')
   @UseGuards(AuthenticatedThrottlerGuard)
   async getPreview(
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
-    @TypedQuery() query: EmbeddingPreviewQueryDto,
+    @Query() query: EmbeddingPreviewQueryDto,
   ): Promise<ApiSuccessResponse<EmbeddingPreviewPayload>> {
     response.setHeader(
       'Cache-Control',
@@ -43,12 +45,12 @@ export class EmbeddingController {
     });
   }
 
-  @TypedRoute.Get<string>('preview.svg', SVG_RAW_STRINGIFY)
+  @Get('preview.svg')
   @UseGuards(AuthenticatedThrottlerGuard)
   async getPreviewSvg(
     @Req() _request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
-    @TypedQuery() query: EmbeddingPreviewQueryDto,
+    @Query() query: EmbeddingPreviewQueryDto,
   ): Promise<string> {
     response.setHeader(
       'Cache-Control',

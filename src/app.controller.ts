@@ -1,5 +1,4 @@
-import { Controller, Req } from '@nestjs/common';
-import { TypedRoute } from '@nestia/core';
+import { Controller, Get, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import {
   successResponse,
@@ -14,7 +13,7 @@ export interface HealthCheckResponse {
 
 @Controller()
 export class AppController {
-  @TypedRoute.Get<ApiSuccessResponse<HealthCheckResponse>>('health')
+  @Get('health')
   public health(
     @Req() request: Request & { id?: string },
   ): ApiSuccessResponse<HealthCheckResponse> {

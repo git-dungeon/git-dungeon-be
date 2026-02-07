@@ -1,4 +1,3 @@
-import { tags } from 'typia';
 import type { ApiSuccessResponse } from '../../common/http/api-response';
 
 export type EmbeddingPreviewTheme = 'light' | 'dark';
@@ -23,7 +22,7 @@ export interface EmbeddingPreviewPayload {
   theme: EmbeddingPreviewTheme;
   size: EmbeddingPreviewSize;
   language: EmbeddingPreviewLanguage;
-  generatedAt: string & tags.Format<'date-time'>;
+  generatedAt: string;
   overview: EmbeddingPreviewOverview;
 }
 
@@ -63,7 +62,7 @@ export interface EmbeddingPreviewStatBlock {
 }
 
 export interface EmbeddingPreviewEquipmentItem {
-  id: string & tags.Format<'uuid'>;
+  id: string;
   code: string | null;
   name: string;
   slot: EmbeddingPreviewSlot;
@@ -71,7 +70,7 @@ export interface EmbeddingPreviewEquipmentItem {
   modifiers: EmbeddingPreviewModifier[];
   effect: EmbeddingPreviewEffect | null;
   sprite: string;
-  createdAt: string & tags.Format<'date-time'>;
+  createdAt: string;
   isEquipped: boolean;
 }
 

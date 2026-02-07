@@ -1,6 +1,13 @@
-import { Controller, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { TypedBody, TypedRoute } from '@nestia/core';
 import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import {
@@ -22,7 +29,7 @@ import { LevelUpService } from './level-up.service';
 export class LevelUpController {
   constructor(private readonly levelUpService: LevelUpService) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<LevelUpSelectionResponse>>('level-up')
+  @Get('level-up')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async getLevelUpSelection(
@@ -42,12 +49,12 @@ export class LevelUpController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<LevelUpApplyResponse>>('level-up/select')
+  @Post('level-up/select')
   @Authenticated()
   @UseGuards(AuthenticatedThrottlerGuard)
   async applyLevelUpSelection(
     @CurrentAuthSession() session: ActiveSessionResult,
-    @TypedBody() body: LevelUpApplyRequest,
+    @Body() body: LevelUpApplyRequest,
     @Req() request: Request & { id?: string },
     @Res({ passthrough: true }) response: Response,
   ): Promise<ApiSuccessResponse<LevelUpApplyResponse>> {

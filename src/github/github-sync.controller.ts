@@ -1,13 +1,14 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Inject,
+  Post,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { TypedRoute, TypedException } from '@nestia/core';
 import { ApSyncTokenType } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
@@ -15,7 +16,6 @@ import { CurrentAuthSession } from '../auth/decorators/current-auth-session.deco
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import {
   successResponseWithGeneratedAt,
-  type ApiErrorResponse,
   type ApiSuccessResponse,
 } from '../common/http/api-response';
 import {
@@ -40,17 +40,9 @@ export class GithubSyncController {
     private readonly manualSyncService: GithubManualSyncService,
   ) {}
 
-  @TypedRoute.Get<ApiSuccessResponse<GithubSyncStatusDto>>('sync/status')
+  @Get('sync/status')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
-  @TypedException<ApiErrorResponse>({
-    status: 401,
-    description: '세션 쿠키가 없거나 만료된 경우',
-  })
-  @TypedException<ApiErrorResponse>({
-    status: 429,
-    description: '요청 한도 초과',
-  })
   async getSyncStatus(
     @CurrentAuthSession() session: ActiveSessionResult,
     @Req() request: Request & { id?: string },
@@ -68,26 +60,9 @@ export class GithubSyncController {
     });
   }
 
-  @TypedRoute.Post<ApiSuccessResponse<GithubSyncDataDto>>('sync')
+  @Post('sync')
   @HttpCode(HttpStatus.OK)
   @Authenticated()
-  @TypedException<ApiErrorResponse>({
-    status: 400,
-    description: 'GitHub 계정이 연결되지 않은 경우',
-  })
-  @TypedException<ApiErrorResponse>({
-    status: 401,
-    description: '세션 쿠키가 없거나 만료된 경우',
-  })
-  @TypedException<ApiErrorResponse>({
-    status: 429,
-    description:
-      '수동 동기화 쿨다운(GITHUB_SYNC_TOO_FREQUENT) 또는 GitHub 레이트 리밋(GITHUB_SYNC_RATE_LIMITED)',
-  })
-  @TypedException<ApiErrorResponse>({
-    status: 409,
-    description: '동일 사용자의 GitHub 동기화가 이미 실행 중인 경우',
-  })
   async triggerSync(
     @CurrentAuthSession() session: ActiveSessionResult,
     @Req() request: Request & { id?: string },
