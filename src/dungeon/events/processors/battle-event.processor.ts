@@ -9,7 +9,7 @@ import {
   addEquipmentStats,
   createEmptyEquipmentStats,
 } from '../../../common/inventory/equipment-stats';
-import type { EquipmentStats } from '../../../inventory/dto/inventory.response';
+import type { EquipmentStats } from '../../../inventory/dto/inventory-response.dto';
 import {
   DungeonEventProcessor,
   DungeonEventProcessorInput,

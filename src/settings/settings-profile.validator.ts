@@ -1,4 +1,4 @@
-import type { SettingsProfileResponse } from './dto/settings-profile.response';
+import type { SettingsProfileResponse } from './dto/settings-profile-response.dto';
 import {
   assertBoolean,
   assertIsoDateTimeString,

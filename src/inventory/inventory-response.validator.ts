@@ -1,4 +1,4 @@
-import type { InventoryResponse } from './dto/inventory.response';
+import type { InventoryResponse } from './dto/inventory-response.dto';
 import {
   INVENTORY_MODES,
   INVENTORY_STATS,
@@ -13,7 +13,7 @@ import {
   assertRecord,
   assertString,
 } from '../common/validation/runtime-validation';
-import { INVENTORY_RARITIES, INVENTORY_SLOTS } from './dto/inventory.response';
+import { INVENTORY_RARITIES, INVENTORY_SLOTS } from './dto/inventory-response.dto';
 
 const assertEquipmentStats = (value: unknown, path: string): void => {
   const stats = assertRecord(value, path);

@@ -17,7 +17,7 @@ import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
-import type { ChestOpenResponse } from './dto/chest.response';
+import type { ChestOpenResponse } from './dto/chest-response.dto';
 import { ChestService } from './chest.service';
 
 @Controller('api')

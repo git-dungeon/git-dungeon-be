@@ -41,7 +41,7 @@ import type {
   InventoryResponse,
   InventoryRarity,
   InventorySlot,
-} from './dto/inventory.response';
+} from './dto/inventory-response.dto';
 import type {
   DungeonLogDelta,
   InventoryDelta,

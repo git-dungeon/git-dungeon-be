@@ -6,7 +6,7 @@ import type {
   EmbeddingPreviewSlot,
   EmbeddingPreviewStat,
   EmbeddingPreviewTheme,
-} from './dto/embedding-preview.response';
+} from './dto/embedding-preview-response.dto';
 import {
   assertArray,
   assertBoolean,

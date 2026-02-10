@@ -5,7 +5,7 @@ import {
 } from './ranking.constants';
 import { decodeRankingCursor, type RankingCursor } from './ranking-cursor.util';
 import { buildInvalidQueryException } from './ranking.errors';
-import type { RankingQueryDto } from './dto/ranking.query';
+import type { RankingQueryDto } from './dto/ranking-query.dto';
 
 export type ValidatedRankingQuery = {
   limit: number;

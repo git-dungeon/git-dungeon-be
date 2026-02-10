@@ -10,10 +10,10 @@ import {
   type ApiSuccessResponse,
 } from '../common/http/api-response';
 import { applyNoCacheHeaders } from '../common/http/response-helpers';
-import type { DungeonLogsPayload } from './dto/logs.response';
+import type { DungeonLogsPayload } from './dto/logs-response.dto';
 import { LogsService } from './logs.service';
 import { validateLogsQuery } from './logs-query.validator';
-import type { LogsQueryDto } from './dto/logs.query';
+import type { LogsQueryDto } from './dto/logs-query.dto';
 import { LogTypeEnum } from './logs.types';
 
 @ApiTags('Logs')

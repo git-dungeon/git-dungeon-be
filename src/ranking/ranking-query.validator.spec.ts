@@ -5,7 +5,7 @@ import {
   RANKING_MIN_LIMIT,
 } from './ranking.constants';
 import { validateRankingQuery } from './ranking-query.validator';
-import type { RankingQueryDto } from './dto/ranking.query';
+import type { RankingQueryDto } from './dto/ranking-query.dto';
 import { encodeRankingCursor } from './ranking-cursor.util';
 
 describe('validateRankingQuery', () => {

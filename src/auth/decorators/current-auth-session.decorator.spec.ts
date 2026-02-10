@@ -3,7 +3,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import type { Request } from 'express';
 import { describe, expect, it } from 'vitest';
 import type { ActiveSessionResult } from '../auth-session.service';
-import type { AuthenticatedRequest } from '../auth-session.request';
+import type { AuthenticatedRequest } from '../auth-session-request.dto';
 import { resolveCurrentAuthSession } from './current-auth-session.decorator';
 
 const USER_ID_1 = '00000000-0000-4000-8000-000000000001';

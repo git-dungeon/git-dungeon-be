@@ -13,7 +13,7 @@ import {
   type Prisma,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import type { ChestOpenResponse } from './dto/chest.response';
+import type { ChestOpenResponse } from './dto/chest-response.dto';
 import {
   SEEDED_RNG_FACTORY,
   type SeededRandomFactory,
@@ -28,7 +28,7 @@ import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import type {
   InventoryRarity,
   InventorySlot,
-} from '../inventory/dto/inventory.response';
+} from '../inventory/dto/inventory-response.dto';
 
 @Injectable()
 export class ChestService {

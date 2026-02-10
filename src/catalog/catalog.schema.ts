@@ -6,7 +6,7 @@ import {
 import {
   INVENTORY_SLOTS,
   type InventorySlot,
-} from '../inventory/dto/inventory.response';
+} from '../inventory/dto/inventory-response.dto';
 import {
   RuntimeValidationError,
   assertArray,

@@ -1,6 +1,6 @@
 import type { ActiveSessionResult } from '../auth/auth-session.service';
-import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state.response';
-import type { InventoryResponse } from '../inventory/dto/inventory.response';
+import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state-response.dto';
+import type { InventoryResponse } from '../inventory/dto/inventory-response.dto';
 
 export const TEST_USER_ID_1 = '00000000-0000-4000-8000-000000000001';
 export const TEST_USER_ID_2 = '00000000-0000-4000-8000-000000000002';

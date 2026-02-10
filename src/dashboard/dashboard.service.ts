@@ -16,7 +16,7 @@ import type {
   DashboardStateResponse,
   EquipmentItem,
   StatBlock,
-} from './dto/dashboard-state.response';
+} from './dto/dashboard-state-response.dto';
 import { assertDashboardStateResponse } from './dashboard-response.validator';
 
 @Injectable()

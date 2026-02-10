@@ -3,7 +3,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { DashboardService } from '../dashboard/dashboard.service';
 import type { InventoryService } from '../inventory/inventory.service';
-import type { InventoryResponse } from '../inventory/dto/inventory.response';
+import type { InventoryResponse } from '../inventory/dto/inventory-response.dto';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import {
   createDashboardStateResponse,

@@ -1,4 +1,4 @@
-import type { DashboardStateResponse } from './dto/dashboard-state.response';
+import type { DashboardStateResponse } from './dto/dashboard-state-response.dto';
 import {
   assertArray,
   assertBoolean,

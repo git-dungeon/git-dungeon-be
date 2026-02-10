@@ -7,7 +7,7 @@ import type {
 } from '@prisma/client';
 import type { DungeonLogDelta } from '../../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../../common/logs/dungeon-log-extra';
-import type { EquipmentStats } from '../../inventory/dto/inventory.response';
+import type { EquipmentStats } from '../../inventory/dto/inventory-response.dto';
 import type { DropResult } from '../drops/drop-table';
 
 export enum DungeonEventType {

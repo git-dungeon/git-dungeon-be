@@ -16,7 +16,7 @@ import type {
 } from './auth-session.service';
 import { Authenticated } from './decorators/authenticated.decorator';
 import { CurrentAuthSession } from './decorators/current-auth-session.decorator';
-import type { AuthenticatedRequest } from './auth-session.request';
+import type { AuthenticatedRequest } from './auth-session-request.dto';
 import {
   successResponse,
   type ApiSuccessResponse,

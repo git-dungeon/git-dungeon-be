@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RANKING_DEFAULT_LIMIT, RANKING_MAX_LIMIT } from './ranking.constants';
 import { encodeRankingCursor } from './ranking-cursor.util';
-import type { RankingPayload } from './dto/ranking.response';
+import type { RankingPayload } from './dto/ranking-response.dto';
 
 interface RankingQuery {
   limit?: number;

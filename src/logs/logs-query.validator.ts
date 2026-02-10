@@ -6,7 +6,7 @@ import {
 import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
 import { buildInvalidQueryException } from './logs.errors';
 import { isLogAction, isLogCategory, type LogTypeFilter } from './logs.types';
-import type { LogsQueryDto } from './dto/logs.query';
+import type { LogsQueryDto } from './dto/logs-query.dto';
 
 export type ValidatedLogsQuery = {
   limit: number;
