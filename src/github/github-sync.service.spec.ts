@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Prisma, ApSyncStatus, ApSyncTokenType } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GithubSyncService } from '../github-sync.service';
-import { createSyncServiceTestbed } from './helpers';
+import { GithubSyncService } from './github-sync.service';
+import { createSyncServiceTestbed } from './github-test.helpers';
 
 type MockPrismaTx = {
   apSyncLog: {

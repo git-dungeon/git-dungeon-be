@@ -12,7 +12,7 @@ import {
   type Prisma,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import type { LevelUpApplyRequest } from './dto/level-up.request';
+import type { LevelUpApplyRequest } from './dto/level-up-request.dto';
 import type {
   LevelUpApplyResponse,
   LevelUpOption,
@@ -20,7 +20,7 @@ import type {
   LevelUpSelectionResponse,
   LevelUpStat,
   LevelUpStatBlock,
-} from './dto/level-up.response';
+} from './dto/level-up-response.dto';
 import type {
   DungeonLogDelta,
   StatsDelta,

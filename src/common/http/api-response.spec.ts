@@ -3,7 +3,7 @@ import {
   successResponse,
   successResponseWithGeneratedAt,
   errorResponse,
-} from '../api-response';
+} from './api-response';
 
 describe('api-response 헬퍼', () => {
   afterEach(() => {

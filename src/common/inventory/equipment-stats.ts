@@ -1,4 +1,4 @@
-import type { EquipmentStats } from '../../inventory/dto/inventory.response';
+import type { EquipmentStats } from '../../inventory/dto/inventory-response.dto';
 import { INVENTORY_STATS, type InventoryModifier } from './inventory-modifier';
 
 export const createEmptyEquipmentStats = (): EquipmentStats => ({

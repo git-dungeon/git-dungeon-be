@@ -14,8 +14,8 @@ import {
   successResponseWithGeneratedAt,
   type ApiSuccessResponse,
 } from '../common/http/api-response';
-import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
-import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
+import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview-request.dto';
+import type { EmbeddingPreviewPayload } from './dto/embedding-preview-response.dto';
 import { EmbeddingService } from './embedding.service';
 
 @ApiTags('Embedding')

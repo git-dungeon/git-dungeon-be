@@ -11,7 +11,7 @@ import {
   parseInventoryModifiers,
   type InventoryModifier,
 } from '../inventory/inventory-modifier';
-import type { EquipmentStats } from '../../inventory/dto/inventory.response';
+import type { EquipmentStats } from '../../inventory/dto/inventory-response.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 
 type PrismaClient = PrismaService | Prisma.TransactionClient;

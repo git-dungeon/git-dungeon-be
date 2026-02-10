@@ -2,11 +2,11 @@ import {
   LOGS_DEFAULT_LIMIT,
   LOGS_MAX_LIMIT,
   LOGS_MIN_LIMIT,
-} from './logs.constants';
-import { decodeLogsCursor, type LogsCursor } from './logs-cursor.util';
-import { buildInvalidQueryException } from './logs.errors';
-import { isLogAction, isLogCategory, type LogTypeFilter } from './logs.types';
-import type { LogsQueryDto } from './dto/logs.query';
+} from '../logs.constants';
+import { decodeLogsCursor, type LogsCursor } from '../utils/logs-cursor.util';
+import { buildInvalidQueryException } from '../logs.errors';
+import { isLogAction, isLogCategory, type LogTypeFilter } from '../logs.types';
+import type { LogsQueryDto } from '../dto/logs-query.dto';
 
 export type ValidatedLogsQuery = {
   limit: number;

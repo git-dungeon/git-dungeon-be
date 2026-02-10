@@ -9,7 +9,7 @@ import {
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
-import type { DashboardStateResponse } from './dto/dashboard-state.response';
+import type { DashboardStateResponse } from './dto/dashboard-state-response.dto';
 import { DashboardService } from './dashboard.service';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 

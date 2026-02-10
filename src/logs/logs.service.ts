@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DungeonLogAction, DungeonLogCategory, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { encodeLogsCursor } from './logs-cursor.util';
-import type { ValidatedLogsQuery } from './logs-query.validator';
+import { encodeLogsCursor } from './utils/logs-cursor.util';
+import type { ValidatedLogsQuery } from './validators/logs-query.validator';
 import type { DungeonLogDelta } from '../common/logs/dungeon-log-delta';
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
-import type { DungeonLogsPayload } from './dto/logs.response';
+import type { DungeonLogsPayload } from './dto/logs-response.dto';
 import { isLogAction, type LogAction, type LogStatus } from './logs.types';
 
 @Injectable()

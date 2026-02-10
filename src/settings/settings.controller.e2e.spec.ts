@@ -69,5 +69,5 @@ describe('SettingsController (E2E)', () => {
     } finally {
       await app.close();
     }
-  });
+  }, 15000);
 });

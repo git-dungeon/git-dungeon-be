@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import type { ActiveSessionResult } from '../auth-session.service';
-import type { AuthenticatedRequest } from '../auth-session.request';
+import type { AuthenticatedRequest } from '../dto/auth-session-request.dto';
 
 export interface CurrentAuthSessionOptions {
   optional?: boolean;

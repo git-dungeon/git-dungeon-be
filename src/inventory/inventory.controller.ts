@@ -22,10 +22,10 @@ import {
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
 import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
-import type { InventoryResponse } from './dto/inventory.response';
+import type { InventoryResponse } from './dto/inventory-response.dto';
 import { InventoryService } from './inventory.service';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
-import type { InventoryItemMutationRequest } from './dto/inventory.request';
+import type { InventoryItemMutationRequest } from './dto/inventory-request.dto';
 
 @Controller('api')
 export class InventoryController {

@@ -4,8 +4,8 @@ import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
 import { applyNoCacheHeaders } from '../common/http/response-helpers';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
-import { validateRankingQuery } from './ranking-query.validator';
-import type { RankingPayload } from './dto/ranking.response';
+import { validateRankingQuery } from './validators/ranking-query.validator';
+import type { RankingPayload } from './dto/ranking-response.dto';
 import { RankingService } from './ranking.service';
 
 @Controller('api')

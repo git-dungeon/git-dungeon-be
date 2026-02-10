@@ -1,8 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 import { ApSyncStatus } from '@prisma/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GithubGraphqlError } from '../github.interfaces';
-import { createManualSyncTestbed } from './helpers';
+import { GithubGraphqlError } from './github.interfaces';
+import { createManualSyncTestbed } from './github-test.helpers';
 
 describe('GithubManualSyncService', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';

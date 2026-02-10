@@ -7,8 +7,8 @@ import {
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import { PrismaService } from '../prisma/prisma.service';
-import type { SettingsProfileResponse } from './dto/settings-profile.response';
-import { assertSettingsProfileResponse } from './settings-profile.validator';
+import type { SettingsProfileResponse } from './dto/settings-profile-response.dto';
+import { assertSettingsProfileResponse } from './validators/settings-profile.validator';
 
 @Injectable()
 export class SettingsService {

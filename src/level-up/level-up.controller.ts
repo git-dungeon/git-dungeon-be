@@ -18,11 +18,11 @@ import { Authenticated } from '../auth/decorators/authenticated.decorator';
 import { CurrentAuthSession } from '../auth/decorators/current-auth-session.decorator';
 import type { ActiveSessionResult } from '../auth/auth-session.service';
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
-import type { LevelUpApplyRequest } from './dto/level-up.request';
+import type { LevelUpApplyRequest } from './dto/level-up-request.dto';
 import type {
   LevelUpApplyResponse,
   LevelUpSelectionResponse,
-} from './dto/level-up.response';
+} from './dto/level-up-response.dto';
 import { LevelUpService } from './level-up.service';
 
 @Controller('api')

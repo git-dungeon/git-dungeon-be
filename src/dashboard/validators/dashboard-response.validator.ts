@@ -1,4 +1,4 @@
-import type { DashboardStateResponse } from './dto/dashboard-state.response';
+import type { DashboardStateResponse } from '../dto/dashboard-state-response.dto';
 import {
   assertArray,
   assertBoolean,
@@ -9,7 +9,7 @@ import {
   assertNumber,
   assertRecord,
   assertString,
-} from '../common/validation/runtime-validation';
+} from '../../common/validation/runtime-validation';
 
 const assertStatBlock = (value: unknown, path: string): void => {
   const block = assertRecord(value, path);

@@ -1,7 +1,7 @@
 import type {
   InventoryRarity,
   InventorySlot,
-} from '../../inventory/dto/inventory.response';
+} from '../../inventory/dto/inventory-response.dto';
 
 export interface ChestOpenItem {
   itemId: string;

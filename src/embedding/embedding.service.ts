@@ -6,9 +6,9 @@ import {
 import { loadCatalogData } from '../catalog';
 import type { CatalogData, CatalogItem } from '../catalog/catalog.schema';
 import type { InventoryModifier } from '../common/inventory/inventory-modifier';
-import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state.response';
+import type { DashboardStateResponse } from '../dashboard/dto/dashboard-state-response.dto';
 import { DashboardService } from '../dashboard/dashboard.service';
-import type { InventoryResponse } from '../inventory/dto/inventory.response';
+import type { InventoryResponse } from '../inventory/dto/inventory-response.dto';
 import { InventoryService } from '../inventory/inventory.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
@@ -21,10 +21,10 @@ import type {
   EmbeddingPreviewSlot,
   EmbeddingPreviewStatBlock,
   EmbeddingPreviewStatSummary,
-} from './dto/embedding-preview.response';
-import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview.request';
+} from './dto/embedding-preview-response.dto';
+import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview-request.dto';
 import { EmbedRendererService } from './embed-renderer.service';
-import { assertEmbeddingPreviewPayload } from './embedding-preview.validator';
+import { assertEmbeddingPreviewPayload } from './validators/embedding-preview.validator';
 
 @Injectable()
 export class EmbeddingService {

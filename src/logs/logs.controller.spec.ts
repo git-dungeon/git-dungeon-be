@@ -13,7 +13,7 @@ import { createActiveSession } from '../test-support/fixtures';
 import { AuthSessionService } from '../auth/auth-session.service';
 import { LogsController } from './logs.controller';
 import { LogsService } from './logs.service';
-import { encodeLogsCursor } from './logs-cursor.util';
+import { encodeLogsCursor } from './utils/logs-cursor.util';
 
 describe('LogsController (E2E)', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';

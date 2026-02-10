@@ -14,7 +14,7 @@ import type {
   EmbeddingPreviewEquipmentItem,
   EmbeddingPreviewOverview,
   EmbeddingPreviewPayload,
-} from './dto/embedding-preview.response';
+} from './dto/embedding-preview-response.dto';
 
 @Injectable()
 export class EmbedRendererService {

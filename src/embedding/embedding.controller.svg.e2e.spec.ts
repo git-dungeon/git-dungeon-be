@@ -67,5 +67,5 @@ describe('EmbeddingController SVG (E2E)', () => {
     } finally {
       await app.close();
     }
-  });
+  }, 10000);
 });

@@ -3,7 +3,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import type { PrismaService } from '../prisma/prisma.service';
 import type { DashboardService } from '../dashboard/dashboard.service';
 import type { InventoryService } from '../inventory/inventory.service';
-import type { InventoryResponse } from '../inventory/dto/inventory.response';
+import type { InventoryResponse } from '../inventory/dto/inventory-response.dto';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import {
   createDashboardStateResponse,
@@ -14,7 +14,7 @@ import {
 import { EmbeddingService } from './embedding.service';
 import { loadCatalogData } from '../catalog';
 import type { EmbedRendererService } from './embed-renderer.service';
-import * as embeddingPreviewValidator from './embedding-preview.validator';
+import * as embeddingPreviewValidator from './validators/embedding-preview.validator';
 
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),

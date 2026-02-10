@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApSyncTokenType } from '@prisma/client';
-import { createSchedulerTestbed } from './helpers';
+import { createSchedulerTestbed } from './github-test.helpers';
 
 describe('GithubSyncScheduler', () => {
   const USER_ID_1 = '00000000-0000-4000-8000-000000000001';

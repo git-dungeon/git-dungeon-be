@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import type { Request, Response } from 'express';
-import type { EmbeddingPreviewPayload } from './dto/embedding-preview.response';
+import type { EmbeddingPreviewPayload } from './dto/embedding-preview-response.dto';
 import { EmbeddingController } from './embedding.controller';
 import type { EmbeddingService } from './embedding.service';
 

@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 import { createActiveSession } from '../test-support/fixtures';
 import type { PrismaService } from '../prisma/prisma.service';
 import { SettingsController } from './settings.controller';
-import type { SettingsProfileResponse } from './dto/settings-profile.response';
+import type { SettingsProfileResponse } from './dto/settings-profile-response.dto';
 import { SettingsService } from './settings.service';
 
 describe('SettingsService', () => {

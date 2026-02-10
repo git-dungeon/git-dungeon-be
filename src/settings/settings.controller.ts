@@ -6,7 +6,7 @@ import { CurrentAuthSession } from '../auth/decorators/current-auth-session.deco
 import { AuthenticatedThrottlerGuard } from '../common/guards/authenticated-throttler.guard';
 import type { ApiSuccessResponse } from '../common/http/api-response';
 import { successResponseWithGeneratedAt } from '../common/http/api-response';
-import type { SettingsProfileResponse } from './dto/settings-profile.response';
+import type { SettingsProfileResponse } from './dto/settings-profile-response.dto';
 import { SettingsService } from './settings.service';
 
 @Controller('api/settings')
