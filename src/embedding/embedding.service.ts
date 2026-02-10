@@ -24,7 +24,7 @@ import type {
 } from './dto/embedding-preview-response.dto';
 import type { EmbeddingPreviewQueryDto } from './dto/embedding-preview-request.dto';
 import { EmbedRendererService } from './embed-renderer.service';
-import { assertEmbeddingPreviewPayload } from './embedding-preview.validator';
+import { assertEmbeddingPreviewPayload } from './validators/embedding-preview.validator';
 
 @Injectable()
 export class EmbeddingService {

@@ -3,14 +3,14 @@ import {
   LOGS_DEFAULT_LIMIT,
   LOGS_MAX_LIMIT,
   LOGS_MIN_LIMIT,
-} from './logs.constants';
+} from '../logs.constants';
 import { validateLogsQuery } from './logs-query.validator';
 import {
   LOG_ACTION_VALUES,
   LOG_CATEGORY_VALUES,
   LogTypeEnum,
-} from './logs.types';
-import { encodeLogsCursor } from './logs-cursor.util';
+} from '../logs.types';
+import { encodeLogsCursor } from '../utils/logs-cursor.util';
 
 describe('validateLogsQuery', () => {
   it('limit 기본값을 적용한다', () => {

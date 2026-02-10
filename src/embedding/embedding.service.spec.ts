@@ -14,7 +14,7 @@ import {
 import { EmbeddingService } from './embedding.service';
 import { loadCatalogData } from '../catalog';
 import type { EmbedRendererService } from './embed-renderer.service';
-import * as embeddingPreviewValidator from './embedding-preview.validator';
+import * as embeddingPreviewValidator from './validators/embedding-preview.validator';
 
 vi.mock('../catalog', () => ({
   loadCatalogData: vi.fn(),

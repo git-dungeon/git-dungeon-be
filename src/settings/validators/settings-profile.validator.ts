@@ -1,4 +1,4 @@
-import type { SettingsProfileResponse } from './dto/settings-profile-response.dto';
+import type { SettingsProfileResponse } from '../dto/settings-profile-response.dto';
 import {
   assertBoolean,
   assertIsoDateTimeString,
@@ -6,7 +6,7 @@ import {
   assertNullableString,
   assertRecord,
   assertString,
-} from '../common/validation/runtime-validation';
+} from '../../common/validation/runtime-validation';
 
 export const assertSettingsProfileResponse = (
   input: SettingsProfileResponse,

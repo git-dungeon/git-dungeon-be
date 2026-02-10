@@ -3,10 +3,10 @@ import {
   RANKING_DEFAULT_LIMIT,
   RANKING_MAX_LIMIT,
   RANKING_MIN_LIMIT,
-} from './ranking.constants';
+} from '../ranking.constants';
 import { validateRankingQuery } from './ranking-query.validator';
-import type { RankingQueryDto } from './dto/ranking-query.dto';
-import { encodeRankingCursor } from './ranking-cursor.util';
+import type { RankingQueryDto } from '../dto/ranking-query.dto';
+import { encodeRankingCursor } from '../utils/ranking-cursor.util';
 
 describe('validateRankingQuery', () => {
   it('limit 기본값을 적용한다', () => {

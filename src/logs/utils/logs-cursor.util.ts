@@ -1,5 +1,5 @@
-import { LOGS_CURSOR_ENCODING } from './logs.constants';
-import { buildInvalidQueryException } from './logs.errors';
+import { LOGS_CURSOR_ENCODING } from '../logs.constants';
+import { buildInvalidQueryException } from '../logs.errors';
 
 export interface LogsCursor {
   sequence: bigint;

@@ -6,7 +6,7 @@ import type {
   EmbeddingPreviewSlot,
   EmbeddingPreviewStat,
   EmbeddingPreviewTheme,
-} from './dto/embedding-preview-response.dto';
+} from '../dto/embedding-preview-response.dto';
 import {
   assertArray,
   assertBoolean,
@@ -16,7 +16,7 @@ import {
   assertOneOf,
   assertRecord,
   assertString,
-} from '../common/validation/runtime-validation';
+} from '../../common/validation/runtime-validation';
 
 const PREVIEW_THEME = [
   'light',

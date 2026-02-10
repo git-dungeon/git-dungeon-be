@@ -50,7 +50,7 @@ import type {
 import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
-import { assertInventoryResponsePayload } from './inventory-response.validator';
+import { assertInventoryResponsePayload } from './validators/inventory-response.validator';
 
 type InventoryLogAction =
   | 'EQUIP_ITEM'

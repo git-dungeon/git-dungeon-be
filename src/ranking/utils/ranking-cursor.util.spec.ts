@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-import { RANKING_ERROR_CODES } from './ranking.errors';
+import { RANKING_ERROR_CODES } from '../ranking.errors';
 import {
   decodeRankingCursor,
   encodeRankingCursor,

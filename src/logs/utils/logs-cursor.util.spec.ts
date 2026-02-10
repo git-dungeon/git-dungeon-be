@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
-import { LOGS_ERROR_CODES } from './logs.errors';
+import { LOGS_ERROR_CODES } from '../logs.errors';
 import { decodeLogsCursor, encodeLogsCursor } from './logs-cursor.util';
 
 describe('logs-cursor.util', () => {

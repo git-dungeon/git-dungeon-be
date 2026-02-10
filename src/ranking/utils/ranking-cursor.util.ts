@@ -1,5 +1,5 @@
-import { RANKING_CURSOR_ENCODING } from './ranking.constants';
-import { buildInvalidQueryException } from './ranking.errors';
+import { RANKING_CURSOR_ENCODING } from '../ranking.constants';
+import { buildInvalidQueryException } from '../ranking.errors';
 
 export interface RankingCursor {
   offset: number;

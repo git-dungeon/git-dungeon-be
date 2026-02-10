@@ -5,7 +5,7 @@ import request from 'supertest';
 import { createTestingApp } from '../test-support/app';
 import { RankingController } from './ranking.controller';
 import { RankingService } from './ranking.service';
-import { encodeRankingCursor } from './ranking-cursor.util';
+import { encodeRankingCursor } from './utils/ranking-cursor.util';
 
 describe('RankingController (E2E)', () => {
   const setupApp = async (options?: { guards?: CanActivate[] }) => {

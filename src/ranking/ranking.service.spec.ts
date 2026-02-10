@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PrismaService } from '../prisma/prisma.service';
-import { encodeRankingCursor } from './ranking-cursor.util';
+import { encodeRankingCursor } from './utils/ranking-cursor.util';
 import { RankingService } from './ranking.service';
 
 describe('RankingService', () => {
