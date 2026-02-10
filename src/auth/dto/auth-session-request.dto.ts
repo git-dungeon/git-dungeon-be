@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { ActiveSessionResult } from './auth-session.service';
+import type { ActiveSessionResult } from '../auth-session.service';
 
 declare module 'express' {
   interface Request {
