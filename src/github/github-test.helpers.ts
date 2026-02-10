@@ -1,9 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { vi } from 'vitest';
-import { GithubManualSyncService } from '../github-sync.manual.service';
-import { GithubSyncService } from '../github-sync.service';
-import { GithubSyncScheduler } from '../github-sync.scheduler';
-import type { PrismaService } from '../../prisma/prisma.service';
+import { GithubManualSyncService } from './github-sync.manual.service';
+import { GithubSyncService } from './github-sync.service';
+import { GithubSyncScheduler } from './github-sync.scheduler';
+import type { PrismaService } from '../prisma/prisma.service';
 
 type PrismaManualMock = {
   account: {

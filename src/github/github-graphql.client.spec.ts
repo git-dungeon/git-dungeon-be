@@ -1,11 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { GithubGraphqlClient } from '../github-graphql.client';
+import { GithubGraphqlClient } from './github-graphql.client';
 import {
   GithubGraphqlClientOptions,
   GithubTokenCandidate,
   GithubOctokitInstance,
-} from '../github.interfaces';
-import { GithubTokenGuard } from '../github-token.guard';
+} from './github.interfaces';
+import { GithubTokenGuard } from './github-token.guard';
 
 const createClient = (
   factory: (token: string) => GithubOctokitInstance,
