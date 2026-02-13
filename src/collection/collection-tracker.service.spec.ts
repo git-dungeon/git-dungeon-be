@@ -26,7 +26,11 @@ describe('CollectionTrackerService', () => {
     prismaMock as unknown as PrismaService,
   );
   const warnSpy = vi
-    .spyOn((service as { logger: { warn: (message: string) => void } }).logger, 'warn')
+    .spyOn(
+      (service as unknown as { logger: { warn: (message: string) => void } })
+        .logger,
+      'warn',
+    )
     .mockImplementation(() => undefined);
 
   beforeEach(() => {
@@ -145,6 +149,7 @@ describe('CollectionTrackerService', () => {
           nameKey: 'item.material-metal-scrap',
           slot: 'material',
           rarity: 'common',
+          modifiers: [],
           spriteId: 'material-metal-scrap',
         },
       ],
@@ -154,7 +159,7 @@ describe('CollectionTrackerService', () => {
           code: 'monster-goblin',
           name: 'Goblin',
           nameKey: 'monster.goblin',
-          rarity: 'common',
+          rarity: 'normal',
           hp: 10,
           atk: 3,
           def: 1,
