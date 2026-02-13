@@ -12,12 +12,14 @@ import {
   AuthenticatedThrottlerGuard,
   RATE_LIMIT_CONFIG,
 } from '../common/guards/authenticated-throttler.guard';
+import { CollectionTrackerService } from '../collection/collection-tracker.service';
 
 @Module({
   imports: [PrismaModule, SharedModule, AuthModule],
   controllers: [ChestController],
   providers: [
     ChestService,
+    CollectionTrackerService,
     {
       provide: SEEDED_RNG_FACTORY,
       useClass: SeedrandomFactory,

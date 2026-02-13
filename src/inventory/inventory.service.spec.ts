@@ -13,6 +13,7 @@ import { InventoryService } from './inventory.service';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 import { loadCatalogData } from '../catalog';
 import seedrandom from 'seedrandom';
+import type { CollectionTrackerService } from '../collection/collection-tracker.service';
 
 const USER_ID_1 = '00000000-0000-4000-8000-000000000001';
 const USER_ID_2 = '00000000-0000-4000-8000-000000000002';
@@ -44,15 +45,21 @@ describe('InventoryService', () => {
     prismaMock as unknown as PrismaService,
   );
   const statsCacheMock = vi.spyOn(statsCacheService, 'ensureStatsCache');
+  const collectionTrackerMock = {
+    recordFromLog: vi.fn(),
+  };
   const service = new InventoryService(
     prismaMock as unknown as PrismaService,
     statsCacheService,
+    collectionTrackerMock as unknown as CollectionTrackerService,
   );
 
   beforeEach(() => {
     prismaMock.dungeonState.findUnique.mockReset();
     prismaMock.inventoryItem.findMany.mockReset();
     statsCacheMock.mockReset();
+    collectionTrackerMock.recordFromLog.mockReset();
+    collectionTrackerMock.recordFromLog.mockResolvedValue(0);
     loadCatalogDataMock.mockReset();
     seedrandomMock.mockImplementation(
       () => ({ quick: () => 0.5 }) as unknown as { quick: () => number },
@@ -645,6 +652,9 @@ describe('InventoryService mutations', () => {
         def: 0,
         luck: 0,
       });
+    const collectionTrackerMock = {
+      recordFromLog: vi.fn().mockResolvedValue(0),
+    };
 
     seedrandomMock.mockImplementation(
       () => ({ quick: () => rngNext }) as unknown as { quick: () => number },
@@ -654,9 +664,11 @@ describe('InventoryService mutations', () => {
       service: new InventoryService(
         prismaMock as unknown as PrismaService,
         statsCacheService,
+        collectionTrackerMock as unknown as CollectionTrackerService,
       ),
       prismaMock,
       statsCacheMock,
+      collectionTrackerMock,
       getDungeonState: () => dungeonStateSnapshot,
       getItems: () => inventoryItems,
       getDungeonLogs: () => dungeonLogCreates,
@@ -1167,19 +1179,20 @@ describe('InventoryService mutations', () => {
   });
 
   it('dismantle: 재료를 추가하고 로그를 남긴다', async () => {
-    const { service, getItems, getDungeonLogs } = createPrismaMock({
-      dungeonState: baseDungeonState,
-      items: [
-        createItem({
-          id: SWORD_ID,
-          code: 'weapon-longsword',
-          slot: 'WEAPON',
-          rarity: 'RARE',
-          isEquipped: false,
-          version: 3,
-        }),
-      ],
-    });
+    const { service, getItems, getDungeonLogs, collectionTrackerMock } =
+      createPrismaMock({
+        dungeonState: baseDungeonState,
+        items: [
+          createItem({
+            id: SWORD_ID,
+            code: 'weapon-longsword',
+            slot: 'WEAPON',
+            rarity: 'RARE',
+            isEquipped: false,
+            version: 3,
+          }),
+        ],
+      });
 
     const response = await service.dismantleItem(USER_ID_1, {
       itemId: SWORD_ID,
@@ -1202,6 +1215,13 @@ describe('InventoryService mutations', () => {
         action: DungeonLogAction.DISMANTLE_ITEM,
         category: DungeonLogCategory.STATUS,
       }),
+    );
+    expect(collectionTrackerMock.recordFromLog).toHaveBeenCalledWith(
+      USER_ID_1,
+      expect.objectContaining({
+        action: DungeonLogAction.DISMANTLE_ITEM,
+      }),
+      expect.any(Object),
     );
   });
 

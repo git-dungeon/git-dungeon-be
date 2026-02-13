@@ -51,6 +51,7 @@ import type { DungeonLogDetails } from '../common/logs/dungeon-log-extra';
 import { StatsCacheService } from '../common/stats/stats-cache.service';
 import { RuntimeValidationError } from '../common/validation/runtime-validation';
 import { assertInventoryResponsePayload } from './validators/inventory-response.validator';
+import { CollectionTrackerService } from '../collection/collection-tracker.service';
 
 type InventoryLogAction =
   | 'EQUIP_ITEM'
@@ -89,6 +90,7 @@ export class InventoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly statsCacheService: StatsCacheService,
+    private readonly collectionTrackerService: CollectionTrackerService,
   ) {}
 
   async getInventory(userId: string): Promise<InventoryResponse> {
@@ -1062,6 +1064,7 @@ export class InventoryService {
   ): Promise<void> {
     const delta: DungeonLogDelta = this.buildInventoryDelta(input);
     const extra: DungeonLogDetails = this.buildInventoryDetails(input);
+    const createdAt = new Date();
 
     await tx.dungeonLog.create({
       data: {
@@ -1075,9 +1078,23 @@ export class InventoryService {
         stateVersionAfter: null,
         delta: delta as Prisma.InputJsonValue,
         extra: extra as Prisma.InputJsonValue,
-        createdAt: new Date(),
+        createdAt,
       },
     });
+
+    if (input.action === DungeonLogAction.DISMANTLE_ITEM) {
+      await this.collectionTrackerService.recordFromLog(
+        userId,
+        {
+          action: input.action,
+          status: DungeonLogStatus.COMPLETED,
+          delta,
+          extra,
+          createdAt,
+        },
+        tx,
+      );
+    }
   }
 
   private buildInventoryDelta(input: {

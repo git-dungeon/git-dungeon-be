@@ -13,6 +13,7 @@ import type { DungeonEventService } from '../events/dungeon-event.service';
 import type { DungeonBatchLockService } from './dungeon-batch.lock.service';
 import type { SimpleQueue } from '../../common/queue/simple-queue';
 import { StatsCacheService } from '../../common/stats/stats-cache.service';
+import type { CollectionTrackerService } from '../../collection/collection-tracker.service';
 
 type MockConfigService = Pick<ConfigService, 'get'>;
 
@@ -97,6 +98,10 @@ describe('DungeonBatchService 배치 동작', () => {
     execute: vi.fn(),
   };
 
+  const collectionTrackerMock = {
+    recordFromLogs: vi.fn(),
+  };
+
   const statsCacheService = new StatsCacheService(
     prismaMock as unknown as PrismaService,
   );
@@ -144,6 +149,8 @@ describe('DungeonBatchService 배치 동작', () => {
     queueMock.enqueue.mockClear();
     queueMock.resetHandler();
     statsCacheMock.mockClear();
+    collectionTrackerMock.recordFromLogs.mockReset();
+    collectionTrackerMock.recordFromLogs.mockResolvedValue(0);
   });
 
   afterEach(() => {
@@ -156,6 +163,7 @@ describe('DungeonBatchService 배치 동작', () => {
       eventServiceMock as unknown as DungeonEventService,
       lockMock as unknown as DungeonBatchLockService,
       statsCacheService,
+      collectionTrackerMock as unknown as CollectionTrackerService,
       queueMock as unknown as SimpleQueue<{ userId: string }>,
       undefined,
       configService as unknown as ConfigService,
@@ -279,6 +287,11 @@ describe('DungeonBatchService 배치 동작', () => {
         }),
       ],
     });
+    expect(collectionTrackerMock.recordFromLogs).toHaveBeenCalledWith(
+      state.userId,
+      expect.any(Array),
+      prismaMock,
+    );
     expect(lockMock.release).toHaveBeenCalledWith(state.userId);
   });
 
@@ -318,6 +331,7 @@ describe('DungeonBatchService 배치 동작', () => {
         levelUpPoints: state.levelUpPoints + 2,
       }) as Record<string, unknown>,
     });
+    expect(collectionTrackerMock.recordFromLogs).not.toHaveBeenCalled();
   });
 
   it('커서 기반 라운드 로빈으로 사용자 목록을 순환한다', async () => {
