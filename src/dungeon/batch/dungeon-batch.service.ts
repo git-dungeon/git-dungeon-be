@@ -17,6 +17,7 @@ import { loadEnvironment } from '../../config/environment';
 import { SimpleQueue } from '../../common/queue/simple-queue';
 import { StatsCacheService } from '../../common/stats/stats-cache.service';
 import { buildDungeonStateUpdate } from './dungeon-state-update';
+import { CollectionTrackerService } from '../../collection/collection-tracker.service';
 
 type BatchConfig = {
   cron: string;
@@ -55,6 +56,7 @@ export class DungeonBatchService implements OnModuleInit {
     private readonly dungeonEventService: DungeonEventService,
     private readonly lockService: DungeonBatchLockService,
     private readonly statsCacheService: StatsCacheService,
+    private readonly collectionTrackerService: CollectionTrackerService,
     @Inject('DUNGEON_BATCH_QUEUE')
     private readonly queue: SimpleQueue<DungeonBatchJob>,
     @Optional() private readonly schedulerRegistry?: SchedulerRegistry,
@@ -319,6 +321,12 @@ export class DungeonBatchService implements OnModuleInit {
             createdAt: log.createdAt ?? new Date(),
           })),
         });
+
+        await this.collectionTrackerService.recordFromLogs(
+          stateBefore.userId,
+          result.logs,
+          tx,
+        );
       }
 
       return result.stateAfter;

@@ -18,14 +18,15 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  state          DungeonState?
-  logs           DungeonLog[]
-  stateSnapshots DungeonStateSnapshot[]
-  inventoryItems InventoryItem[]
-  apSyncLogs     ApSyncLog[]
-  githubSyncState GithubSyncState?
+  accounts          Account[]
+  sessions          Session[]
+  state             DungeonState?
+  logs              DungeonLog[]
+  stateSnapshots    DungeonStateSnapshot[]
+  inventoryItems    InventoryItem[]
+  apSyncLogs        ApSyncLog[]
+  collectionEntries UserCollectionEntry[]
+  githubSyncState   GithubSyncState?
 }
 
 model Account {
@@ -121,6 +122,11 @@ enum ApSyncStatus {
 enum ApSyncTokenType {
   OAUTH
   PAT
+}
+
+enum UserCollectionTargetType {
+  ITEM
+  MONSTER
 }
 
 model DungeonState {
@@ -225,20 +231,20 @@ model DungeonStateSnapshot {
 }
 
 model InventoryItem {
-  id         String          @id @default(uuid()) @db.Uuid
-  userId     String          @db.Uuid
-  code       String
-  slot       InventorySlot
-  rarity     InventoryRarity
-  modifiers  Json
-  isEquipped Boolean         @default(false)
-  quantity   Int             @default(1)
-  modifierVersion Int        @default(0)
-  enhancementLevel Int       @default(0)
-  obtainedAt DateTime        @default(now())
-  version    Int             @default(1)
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id               String          @id @default(uuid()) @db.Uuid
+  userId           String          @db.Uuid
+  code             String
+  slot             InventorySlot
+  rarity           InventoryRarity
+  modifiers        Json
+  isEquipped       Boolean         @default(false)
+  quantity         Int             @default(1)
+  modifierVersion  Int             @default(0)
+  enhancementLevel Int             @default(0)
+  obtainedAt       DateTime        @default(now())
+  version          Int             @default(1)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   // Partial unique index for equipped slot enforced via raw SQL migration.
@@ -246,6 +252,22 @@ model InventoryItem {
   @@index([userId, slot])
   @@index([userId, code])
   @@index([userId, isEquipped])
+}
+
+model UserCollectionEntry {
+  id                String                   @id @default(uuid()) @db.Uuid
+  userId            String                   @db.Uuid
+  targetType        UserCollectionTargetType
+  targetCode        String
+  firstDiscoveredAt DateTime
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, targetType, targetCode])
+  @@index([userId, targetType])
+  @@index([userId, createdAt])
 }
 
 model ApSyncLog {
@@ -271,11 +293,11 @@ model ApSyncLog {
 }
 
 model GithubSyncState {
-  userId                    String   @id @db.Uuid
+  userId                     String    @id @db.Uuid
   lastSuccessfulSyncAt       DateTime?
   lastManualSuccessfulSyncAt DateTime?
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }

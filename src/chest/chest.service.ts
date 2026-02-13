@@ -29,6 +29,7 @@ import type {
   InventoryRarity,
   InventorySlot,
 } from '../inventory/dto/inventory-response.dto';
+import { CollectionTrackerService } from '../collection/collection-tracker.service';
 
 @Injectable()
 export class ChestService {
@@ -38,6 +39,7 @@ export class ChestService {
     private readonly rngFactory: SeededRandomFactory,
     private readonly dropService: DropService,
     private readonly dropInventoryService: DropInventoryService,
+    private readonly collectionTrackerService: CollectionTrackerService,
   ) {}
 
   async open(userId: string): Promise<ChestOpenResponse> {
@@ -126,6 +128,8 @@ export class ChestService {
         },
       };
 
+      const createdAt = new Date();
+
       await tx.dungeonLog.create({
         data: {
           userId,
@@ -138,9 +142,21 @@ export class ChestService {
           stateVersionAfter: nextVersion,
           delta: delta as Prisma.InputJsonValue,
           extra: extra as Prisma.InputJsonValue,
-          createdAt: new Date(),
+          createdAt,
         },
       });
+
+      await this.collectionTrackerService.recordFromLog(
+        userId,
+        {
+          action: DungeonLogAction.ACQUIRE_ITEM,
+          status: DungeonLogStatus.COMPLETED,
+          delta,
+          extra,
+          createdAt,
+        },
+        tx,
+      );
 
       return added;
     });

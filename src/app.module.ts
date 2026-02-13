@@ -28,6 +28,7 @@ import { LogsModule } from './logs/logs.module';
 import { EmbeddingModule } from './embedding/embedding.module';
 import { LevelUpModule } from './level-up/level-up.module';
 import { ChestModule } from './chest/chest.module';
+import { CollectionModule } from './collection/collection.module';
 
 const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
 
@@ -78,6 +79,7 @@ const isTestEnv = (process.env.NODE_ENV ?? '').toLowerCase() === 'test';
     AuthModule,
     SettingsModule,
     DashboardModule,
+    CollectionModule,
     InventoryModule,
     CatalogModule,
     RankingModule,

@@ -5,6 +5,7 @@ import { ChestService } from './chest.service';
 import type { SeededRandomFactory } from '../dungeon/events/seeded-rng.provider';
 import type { DropService } from '../dungeon/drops/drop.service';
 import type { DropInventoryService } from '../dungeon/drops/drop-inventory.service';
+import type { CollectionTrackerService } from '../collection/collection-tracker.service';
 
 const createState = (overrides: Partial<DungeonState> = {}) => ({
   userId: '00000000-0000-4000-8000-000000000777',
@@ -51,6 +52,7 @@ describe('ChestService', () => {
       { create: vi.fn() } as unknown as SeededRandomFactory,
       { roll: vi.fn() } as unknown as DropService,
       { applyDrops: vi.fn() } as unknown as DropInventoryService,
+      { recordFromLog: vi.fn() } as unknown as CollectionTrackerService,
     );
 
     await expect(service.open('user')).rejects.toBeInstanceOf(
@@ -72,6 +74,7 @@ describe('ChestService', () => {
       { create: vi.fn() } as unknown as SeededRandomFactory,
       { roll: vi.fn() } as unknown as DropService,
       { applyDrops: vi.fn() } as unknown as DropInventoryService,
+      { recordFromLog: vi.fn() } as unknown as CollectionTrackerService,
     );
 
     await expect(service.open('user')).rejects.toBeInstanceOf(
@@ -127,12 +130,16 @@ describe('ChestService', () => {
     const rngFactory = {
       create: vi.fn().mockReturnValue({ next: () => 0.1 }),
     } as unknown as SeededRandomFactory;
+    const collectionTrackerMock = {
+      recordFromLog: vi.fn().mockResolvedValue(0),
+    };
 
     const service = new ChestService(
       prisma as never,
       rngFactory,
       dropService as unknown as DropService,
       dropInventoryService as unknown as DropInventoryService,
+      collectionTrackerMock as unknown as CollectionTrackerService,
     );
 
     const result = await service.open(state.userId);
@@ -151,5 +158,13 @@ describe('ChestService', () => {
       },
     });
     expect(createLog).toHaveBeenCalled();
+    expect(collectionTrackerMock.recordFromLog).toHaveBeenCalledWith(
+      state.userId,
+      expect.objectContaining({
+        action: 'ACQUIRE_ITEM',
+        status: 'COMPLETED',
+      }),
+      expect.any(Object),
+    );
   });
 });

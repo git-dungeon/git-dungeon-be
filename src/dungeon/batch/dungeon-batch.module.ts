@@ -8,6 +8,7 @@ import { SimpleQueue } from '../../common/queue/simple-queue';
 import { ConfigService } from '@nestjs/config';
 import { StatsCacheService } from '../../common/stats/stats-cache.service';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { CollectionTrackerService } from '../../collection/collection-tracker.service';
 
 @Module({
   imports: [ConfigModule, ScheduleModule, DungeonModule, PrismaModule],
@@ -15,6 +16,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
     DungeonBatchService,
     DungeonBatchLockService,
     StatsCacheService,
+    CollectionTrackerService,
     {
       provide: 'DUNGEON_BATCH_QUEUE',
       inject: [ConfigService],
